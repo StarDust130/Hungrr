@@ -67,12 +67,12 @@ I was tired of waiting too long for chai — and realized how many cafes still t
 
 ## 📁 Project Structure
 
-"""
+```
 hungrr/
-├── frontend/ # Next.js + Clerk Auth + Menu UI
+├── frontend/ # Next.js + Clerk Auth + shadcn UI
 └── backend/ # Django + PostgreSQL + API
 
-"""
+```
 
 
 ---
