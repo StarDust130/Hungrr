@@ -9,8 +9,8 @@ class Cafe(models.Model):
     owner_id = models.CharField(max_length=200)
     # 🔒 For soft delete or disabling
     is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    
+
 
     def __str__(self):
         return self.name
@@ -48,12 +48,13 @@ class MenuItem(models.Model):
 #! 🧾 Order Model
 class Order(models.Model):
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('preparing', 'Preparing'),
-        ('served', 'Served'),
-        ('completed', 'Completed'),
+        ('pending', 'Pending'),          # New order
+        ('accepted', 'Accepted'),        # Owner accepted
+        ('preparing', 'Preparing'),      # Kitchen preparing
+        ('ready', 'Ready to Serve'),     # Ready for waiter
+        ('served', 'Served'),            # Delivered
+        ('completed', 'Completed'),      # All done
     ]
-
     table = models.ForeignKey(
         Table, on_delete=models.CASCADE, related_name='orders')
     cafe = models.ForeignKey(
@@ -63,6 +64,7 @@ class Order(models.Model):
     total_price = models.DecimalField(
         max_digits=8, decimal_places=2, default=0.00)
     paid = models.BooleanField(default=False)
+    cafe = models.ForeignKey(Cafe, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
