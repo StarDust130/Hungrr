@@ -60,3 +60,55 @@ def delete_cafe(request, cafe_id):
 
 
 #! Tables Views 🍽️
+
+# Get all tables in a cafe 🍽️
+@api_view(['GET'])
+def get_all_tables(request):
+    tables = Table.objects.all()
+    serializer = TableSerializer(tables, many=True)
+    return Response(serializer.data)
+
+# Get a single table by ID 🍽️
+@api_view(['GET'])
+def get_table_by_id(request, table_id):
+    try:
+        table = Table.objects.get(id=table_id)
+        serializer = TableSerializer(table)
+        return Response(serializer.data)
+    except Table.DoesNotExist:
+        return Response({"error": "Table not found"}, status=404)
+
+# Create a new table in a cafe 🍽️
+@api_view(['POST'])
+def create_table(request):
+    serializer = TableSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
+
+# Update an existing table info 🍽️
+@api_view(['PUT', 'PATCH'])
+def update_table(request, table_id):
+    try:
+        table = Table.objects.get(id=table_id)
+        partial = request.method == 'PATCH'
+        serializer = TableSerializer(table, data=request.data, partial=partial)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+    except Table.DoesNotExist:
+        return Response({"error": "Table not found"}, status=404)
+
+# Delete a table (is_active = False) 🍽️
+@api_view(['DELETE'])
+def delete_table(request, table_id):
+    try:
+        table = Table.objects.get(id=table_id)
+        table.is_active = False
+        table.save()
+        return Response({"message": "Table deleted successfully"}, status=204)
+    except Table.DoesNotExist:
+        return Response({"error": "Table not found"}, status=404)
+    
