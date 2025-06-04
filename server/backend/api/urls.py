@@ -1,6 +1,7 @@
 
 from django.urls import path
-from .views import get_all_cafes , get_cafe_by_id, create_cafe, update_cafe, delete_cafe
+from .views import get_all_cafes , get_cafe_by_id, create_cafe, get_table_by_id, update_cafe, delete_cafe , get_all_tables
+
 
 urlpatterns = [
     #! Cafes URLs ☕
@@ -11,6 +12,14 @@ urlpatterns = [
     path('cafes/delete/<int:cafe_id>/', delete_cafe, name='delete_cafe'), # Delete(soft delete)
 
     #! Tables URLs 🍽️
+    path('tables/', get_all_tables, name='get_all_tables'), # Get
+    path('tables/<int:table_id>/', get_table_by_id, name='get_table_by_id'), # Get
+    path('tables/create/', create_cafe, name='create_table'), # Post
+    path('tables/update/<int:table_id>/', update_cafe, name='update_table'), # Put or Patch
+    path('tables/delete/<int:table_id>/', delete_cafe, name='delete_table'), # Delete(soft delete)
+
+    
+    #! Menu Items URLs 🍽️
 
 
 ]
