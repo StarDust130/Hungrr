@@ -112,3 +112,58 @@ def delete_table(request, table_id):
     except Table.DoesNotExist:
         return Response({"error": "Table not found"}, status=404)
     
+#! 📝 MenuItem 
+# Get all menu items in a cafe 🍽️
+@api_view(['GET'])
+def get_all_menu_items(request):
+    menu_items = MenuItem.objects.all()
+    serializer = MenuItemSerializer(menu_items, many=True)
+    return Response(serializer.data)
+
+# Get a single menu item by ID 🍽️
+@api_view(['GET'])
+def get_menu_item_by_id(request, item_id):
+    try:
+        menu_item = MenuItem.objects.get(id=item_id)
+        serializer = MenuItemSerializer(menu_item)
+        return Response(serializer.data)
+    except MenuItem.DoesNotExist:
+        return Response({"error": "Menu item not found"}, status=404)
+    
+
+# Create a new menu item in a cafe 🍽️
+@api_view(['POST'])
+def create_menu_item(request):
+    serializer = MenuItemSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
+
+# Update an existing menu item info 🍽️
+@api_view(['PUT', 'PATCH'])
+def update_menu_item(request, item_id):
+    try:
+        menu_item = MenuItem.objects.get(id=item_id)
+        partial = request.method == 'PATCH'
+        serializer = MenuItemSerializer(menu_item, data=request.data, partial=partial)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+    except MenuItem.DoesNotExist:
+        return Response({"error": "Menu item not found"}, status=404)
+
+
+# Delete a menu item (is_active = False) 🍽️
+@api_view(['DELETE'])
+def delete_menu_item(request, item_id):
+    try:
+        menu_item = MenuItem.objects.get(id=item_id)
+        menu_item.is_active = False
+        menu_item.save()
+        return Response({"message": "Menu item deleted successfully"}, status=204)
+    except MenuItem.DoesNotExist:
+        return Response({"error": "Menu item not found"}, status=404)
+    
+    
