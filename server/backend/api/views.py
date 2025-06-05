@@ -1,6 +1,6 @@
 from rest_framework import viewsets
-from .models import Cafe, Table, MenuItem, Order
-from .serializers import CafeSerializer, TableSerializer, MenuItemSerializer, OrderSerializer
+from .models import Cafe, Table, MenuItem, Order , OrderItem
+from .serializers import CafeSerializer, TableSerializer, MenuItemSerializer, OrderSerializer , OrderItemSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
@@ -219,4 +219,60 @@ def delete_order(request , order_id):
         return Response({"message": "Order deleted successfully 🥳"}, status=204)
     except Cafe.DoesNotExist:
         return Response({"error": "Order not found"}, status=404)
+
+
+#! 📝 Order Views 🦮
+
+# Get all order items in an order 😜
+@api_view(['GET'])
+def get_all_orders_item(request):
+    orders = Order.objects.all()
+    serializer = OrderSerializer(orders, many=True)
+    return Response(serializer.data)
+
+# Get a single order item by ID 😝
+@api_view(['GET'])
+def get_order_item_by_id(request, item_id):
+    try:
+        order_item = OrderItem.objects.get(id=item_id)
+        serializer = OrderItemSerializer(order_item)
+        return Response(serializer.data)
+    except OrderItem.DoesNotExist:
+        return Response({"error": "Order item not found"}, status=404)
+
+# Create a new order item in an order 😉
+@api_view(['POST'])
+def create_order_item(request):
+    serializer = OrderItemSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
+
+# Update an existing order item info 😌
+@api_view(['PUT', 'PATCH'])
+def update_order_item(request, item_id):
+    try:
+        order_item = OrderItem.objects.get(id=item_id)
+        partial = request.method == 'PATCH'
+        serializer = OrderItemSerializer(order_item, data=request.data, partial=partial)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+    except OrderItem.DoesNotExist:
+        return Response({"error": "Order item not found"}, status=404)
+    
+
+# Delete an order item (is_active = False) 😝
+@api_view(['DELETE'])
+def delete_order_item(request, item_id):
+    try:
+        order_item = OrderItem.objects.get(id=item_id)
+        order_item.is_active = False
+        order_item.save()
+        return Response({"message": "Order item deleted successfully"}, status=204)
+    except OrderItem.DoesNotExist:
+        return Response({"error": "Order item not found"}, status=404)
+
 
