@@ -1,6 +1,9 @@
 
 from django.urls import path
-from .views import get_all_cafes , get_cafe_by_id, create_cafe, get_table_by_id, update_cafe, delete_cafe , get_all_tables , get_all_menu_items, get_menu_item_by_id, create_menu_item, update_menu_item, delete_menu_item
+from .views import get_all_cafes , get_cafe_by_id, create_cafe, get_table_by_id, update_cafe, delete_cafe , get_all_tables , get_all_menu_items, get_menu_item_by_id, create_menu_item, update_menu_item, delete_menu_item , get_all_orders, get_order_by_id , create_order, update_order, delete_order 
+
+
+
 
 
 urlpatterns = [
@@ -27,6 +30,12 @@ urlpatterns = [
     path('menu-items/delete/<int:item_id>/', delete_menu_item, name='delete_menu_item'), # Delete(soft delete)
 
     #! Orders URLs 📝
+    path("orders/", get_all_orders, name="get_all_orders"),  # Get all orders
+    path("orders/<int:order_id>/", get_order_by_id, name="get_order_by_id"),  # Get order by ID
+    path("orders/create/", create_order, name="create_order"),  # Create new order
+    path("orders/update/<int:order_id>/", update_order, name="update_order"),  # Update order
+    path("orders/delete/<int:order_id>/", delete_order, name="delete_order"),  # Delete order (soft delete)
+
 
 
 ]
