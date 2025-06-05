@@ -29,7 +29,7 @@ class Table(models.Model):
 
     def __str__(self):
         return f"Table {self.number} - {self.cafe.name}"
-
+   
 
 #! 📝 MenuItem Model
 class MenuItem(models.Model):
