@@ -60,13 +60,12 @@ class Order(models.Model):
     table = models.ForeignKey(
         Table, on_delete=models.CASCADE, related_name='orders')
     cafe = models.ForeignKey(
-        Cafe, on_delete=models.CASCADE, related_name='orders')
+        Cafe, on_delete=models.CASCADE, related_name='orders', null=True)
     status = models.CharField(
         max_length=50, choices=STATUS_CHOICES, default='pending')
     total_price = models.DecimalField(
         max_digits=8, decimal_places=2, default=0.00)
     paid = models.BooleanField(default=False)
-    cafe = models.ForeignKey(Cafe, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
