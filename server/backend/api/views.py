@@ -197,7 +197,7 @@ def create_order(request):
 
 # Update Orders 🦚
 @api_view(['PUT', 'PATCH'])
-def update_orders(request , order_id):
+def update_order(request, order_id):
     try:
         order = Order.objects.get(id=order_id)
         partial = request.method == 'PATCH'

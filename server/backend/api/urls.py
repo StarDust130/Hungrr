@@ -3,9 +3,6 @@ from django.urls import path
 from .views import get_all_cafes , get_cafe_by_id, create_cafe, get_table_by_id, update_cafe, delete_cafe , get_all_tables , get_all_menu_items, get_menu_item_by_id, create_menu_item, update_menu_item, delete_menu_item , get_all_orders, get_order_by_id , create_order, update_order, delete_order 
 
 
-
-
-
 urlpatterns = [
     #! Cafes URLs ☕
     path('cafes/', get_all_cafes, name='get_all_cafes'), # Get
