@@ -166,4 +166,57 @@ def delete_menu_item(request, item_id):
     except MenuItem.DoesNotExist:
         return Response({"error": "Menu item not found"}, status=404)
     
+
+#! 📝 Order Views   
+
+# Get all orders 😚
+@api_view(['GET'])
+def get_all_orders(request):
+    orders = Order.objects.all()
+    serializer = OrderSerializer(orders ,many="True" )
+    return Response(serializer.data)
+
+# Get one order 😝
+@api_view(['GET'])
+def get_order_by_id(request , order_id):
+    try:
+        order = Order.objects.get(id=order_id)
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
+    except Cafe.DoesNotExist:
+        return Response({"error": "Order not found   😢"}, status=404)
+
+# Update an existing order info 🦤
+@api_view(['POST'])
+def create_order(request):
+    serializer = OrderSerializer(data=request.data)
+    if serializer.is_valid:
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
+
+
+# Update Orders 🦚
+@api_view(['PUT', 'PATCH'])
+def update_orders(request , order_id):
+    try:
+        order = Order.objects.get(id=order_id)
+        partial = request.method == 'PATCH'
+        serializer = OrderSerializer(order, data=request.data, partial=partial)
+        if serializer.is_valid:
+          serializer.save()
+        return Response(serializer.errors, status=400)
+    except Cafe.DoesNotExist:
+        return Response({"error": "Order not found 😢"}, status=404)
     
+
+# Delete 🦆
+@api_view(['DELETE'])
+def delete_order(request , order_id):
+    try:
+        order = Order.objects.get(order_id)
+        order.is_active = False
+        order.save()
+        return Response({"message": "Order deleted successfully 🥳"}, status=204)
+    except Cafe.DoesNotExist:
+        return Response({"error": "Order not found"}, status=404)
+
