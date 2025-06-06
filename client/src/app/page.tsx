@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import React, { useState, useEffect } from "react";
 import {
@@ -14,6 +15,8 @@ import {
   CreditCard,
 } from "lucide-react";
 import Image from "next/image";
+import { ModeToggle } from "@/components/ui/ModeToggle";
+import { Button } from "@/components/ui/button";
 
 export default function PremiumCafeLanding() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -26,13 +29,13 @@ export default function PremiumCafeLanding() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className="min-h-screen ">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+      <nav className="fixed top-0 left-0 right-0 z-50  backdrop-blur-md border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8  rounded-lg flex items-center justify-center">
                 <Image
                   src="/icon.png"
                   alt="Logo"
@@ -40,33 +43,23 @@ export default function PremiumCafeLanding() {
                   width={"500"}
                 />
               </div>
-              <span className="text-xl font-semibold text-gray-900">
-                Hungrr
-              </span>
+              <span className="text-xl font-semibold ">Hungrr</span>
             </div>
 
             <div className="hidden md:flex items-center space-x-8">
-              <a
-                href="#features"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
+              <a href="#features" className="  transition-colors">
                 Features
               </a>
-              <a
-                href="#how-it-works"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
+              <a href="#how-it-works" className="  transition-colors">
                 How it works
               </a>
-              <a
-                href="#pricing"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
+              <a href="#pricing" className="  transition-colors">
                 Pricing
               </a>
-              <button className="bg-gray-900 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-gray-800 transition-colors">
+              <Button className="px-6 py-2.5 rounded-lg font-medium  transition-colors">
                 Get Started
-              </button>
+              </Button>
+              <ModeToggle />
             </div>
 
             <button
@@ -84,25 +77,16 @@ export default function PremiumCafeLanding() {
           {isMenuOpen && (
             <div className="md:hidden mt-4 pb-4 border-t border-gray-100 pt-4">
               <div className="flex flex-col space-y-4">
-                <a
-                  href="#features"
-                  className="text-gray-600 hover:text-gray-900 transition-colors"
-                >
+                <a href="#features" className="  transition-colors">
                   Features
                 </a>
-                <a
-                  href="#how-it-works"
-                  className="text-gray-600 hover:text-gray-900 transition-colors"
-                >
+                <a href="#how-it-works" className="  transition-colors">
                   How it works
                 </a>
-                <a
-                  href="#pricing"
-                  className="text-gray-600 hover:text-gray-900 transition-colors"
-                >
+                <a href="#pricing" className="  transition-colors">
                   Pricing
                 </a>
-                <button className="bg-gray-900 text-white px-6 py-3 rounded-lg font-medium w-full">
+                <button className="px-6 py-3 rounded-lg font-medium w-full">
                   Get Started
                 </button>
               </div>
@@ -116,35 +100,35 @@ export default function PremiumCafeLanding() {
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="max-w-xl">
-              <div className="inline-flex items-center bg-gray-50 rounded-full px-4 py-2 mb-8">
+              <div className="inline-flex items-center  rounded-full px-4 py-2 mb-8">
                 <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-medium ">
                   Now serving 500+ cafes
                 </span>
               </div>
 
-              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              <h1 className="text-5xl lg:text-6xl font-bold  mb-6 leading-tight">
                 Modern cafe
                 <br />
-                <span className="text-gray-500">ordering</span>
+                <span>ordering</span>
               </h1>
 
-              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+              <p className="text-xl  mb-8 leading-relaxed">
                 Transform your cafe with seamless QR code ordering. Customers
                 scan, browse your menu, and order directly from their phone.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 mb-12">
-                <button className="bg-gray-900 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors">
+                <Button size={"lg"}>
                   Start free trial
                   <ArrowRight className="w-5 h-5" />
-                </button>
-                <button className="border border-gray-300 px-8 py-4 rounded-lg font-semibold hover:border-gray-400 transition-colors">
+                </Button>
+                <Button size={"lg"} variant={"outline"}>
                   See demo
-                </button>
+                </Button>
               </div>
 
-              <div className="flex items-center gap-8 text-sm text-gray-600">
+              <div className="flex items-center gap-8 text-sm ">
                 <div className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-green-500" />
                   <span>Setup in 5 minutes</span>
@@ -157,12 +141,12 @@ export default function PremiumCafeLanding() {
             </div>
 
             <div className="relative">
-              <div className="relative z-10 mx-auto max-w-sm">
-                <div className="bg-gray-900 rounded-[2.5rem] p-4 shadow-2xl">
-                  <div className="bg-white rounded-[2rem] p-8 min-h-[500px] flex flex-col">
+              <div className="relative z-10 mx-auto max-w-sm ">
+                <div className=" rounded-[2.5rem] p-4 ">
+                  <div className=" rounded-[2rem] p-8 min-h-[500px] shadow-2xl flex flex-col border  overflow-hidden">
                     <div className="flex items-center justify-between mb-8">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
+                        <div className="w-8 h-8  rounded-lg flex items-center justify-center">
                           <Image
                             src="/icon.png"
                             alt="Logo"
@@ -172,34 +156,32 @@ export default function PremiumCafeLanding() {
                         </div>
                         <span className="font-semibold">Menu</span>
                       </div>
-                      <div className="w-8 h-8 bg-gray-100 rounded-full"></div>
+                      <div className="w-8 h-8  rounded-full"></div>
                     </div>
 
                     <div className="space-y-4 flex-1">
-                      <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
+                      <div className="flex justify-between items-center p-4 border rounded-xl">
                         <div>
                           <h3 className="font-semibold">Cappuccino</h3>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm ">
                             Rich espresso with steamed milk
                           </p>
                         </div>
                         <span className="font-semibold">$4.50</span>
                       </div>
 
-                      <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
+                      <div className="flex justify-between items-center p-4 border  rounded-xl">
                         <div>
                           <h3 className="font-semibold">Croissant</h3>
-                          <p className="text-sm text-gray-600">
-                            Buttery, flaky pastry
-                          </p>
+                          <p className="text-sm ">Buttery, flaky pastry</p>
                         </div>
                         <span className="font-semibold">$3.20</span>
                       </div>
 
-                      <div className="flex justify-between items-center p-4 bg-gray-900 text-white rounded-xl">
+                      <div className="flex justify-between items-center p-4 border rounded-xl">
                         <div>
                           <h3 className="font-semibold">Latte</h3>
-                          <p className="text-sm text-gray-300">
+                          <p className="text-sm ">
                             Smooth coffee with milk foam
                           </p>
                         </div>
@@ -207,28 +189,26 @@ export default function PremiumCafeLanding() {
                       </div>
                     </div>
 
-                    <button className="w-full bg-gray-900 text-white py-4 rounded-xl font-semibold mt-6">
-                      Add to cart
-                    </button>
+                    <Button size={"lg"}>Add to cart</Button>
                   </div>
                 </div>
               </div>
 
-              <div className="absolute -top-8 -left-8 w-24 h-24 bg-gray-100 rounded-2xl opacity-60"></div>
-              <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-gray-50 rounded-full opacity-40"></div>
+              <div className="absolute -top-8 -left-8 w-24 h-24  rounded-2xl opacity-60"></div>
+              <div className="absolute -bottom-8 -right-8 w-32 h-32  rounded-full opacity-40"></div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section id="features" className="py-20 px-6 bg-gray-50">
+      <section id="features" className="py-20 px-6 ">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl lg:text-4xl font-bold  mb-4">
               Everything you need to modernize your cafe
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl  max-w-2xl mx-auto">
               Professional tools designed specifically for modern cafes and
               coffee shops.
             </p>
@@ -275,17 +255,13 @@ export default function PremiumCafeLanding() {
             ].map((feature, index) => (
               <div
                 key={index}
-                className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow"
+                className=" p-8 rounded-2xl shadow-sm  transition-shadow border"
               >
-                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mb-6">
-                  <feature.icon className="w-6 h-6 text-gray-700" />
+                <div className="w-12 h-12  rounded-xl flex items-center justify-center mb-6">
+                  <feature.icon className="w-6 h-6 " />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {feature.description}
-                </p>
+                <h3 className="text-xl font-semibold  mb-3">{feature.title}</h3>
+                <p className=" leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -296,10 +272,10 @@ export default function PremiumCafeLanding() {
       <section id="how-it-works" className="py-20 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl lg:text-4xl font-bold  mb-4">
               How it works
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl ">
               Get your cafe running with QR ordering in three simple steps.
             </p>
           </div>
@@ -325,16 +301,12 @@ export default function PremiumCafeLanding() {
                   "Customers scan, order, and pay. You focus on making great coffee.",
               },
             ].map((step, index) => (
-              <div key={index} className="text-center">
-                <div className="w-16 h-16 bg-gray-900 text-white rounded-2xl flex items-center justify-center mx-auto mb-6 text-xl font-bold">
+              <div key={index} className="text-center border p-4 rounded-2xl">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center mx-auto mb-6 text-xl font-bold">
                   {step.step}
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  {step.title}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {step.description}
-                </p>
+                <h3 className="text-xl font-semibold  mb-4">{step.title}</h3>
+                <p className=" leading-relaxed">{step.description}</p>
               </div>
             ))}
           </div>
@@ -342,10 +314,10 @@ export default function PremiumCafeLanding() {
       </section>
 
       {/* Social Proof */}
-      <section className="py-20 px-6 bg-gray-50">
+      <section className="py-20 px-6 ">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl lg:text-4xl font-bold  mb-4">
               Trusted by cafe owners everywhere
             </h2>
           </div>
@@ -371,7 +343,7 @@ export default function PremiumCafeLanding() {
                   "Our customers love the convenience, and we've seen a 40% increase in average order value since implementing QR ordering.",
               },
             ].map((testimonial, index) => (
-              <div key={index} className="bg-white p-8 rounded-2xl shadow-sm">
+              <div key={index} className=" p-8 rounded-2xl shadow-sm  border">
                 <div className="flex items-center mb-4">
                   {[...Array(5)].map((_, i) => (
                     <Star
@@ -380,14 +352,10 @@ export default function PremiumCafeLanding() {
                     />
                   ))}
                 </div>
-                <p className="text-gray-700 mb-6 leading-relaxed">
-                  {testimonial.content}
-                </p>
+                <p className=" mb-6 leading-relaxed">{testimonial.content}</p>
                 <div>
-                  <p className="font-semibold text-gray-900">
-                    {testimonial.name}
-                  </p>
-                  <p className="text-sm text-gray-600">{testimonial.role}</p>
+                  <p className="font-semibold ">{testimonial.name}</p>
+                  <p className="text-sm ">{testimonial.role}</p>
                 </div>
               </div>
             ))}
@@ -398,44 +366,42 @@ export default function PremiumCafeLanding() {
       {/* CTA */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
+          <h2 className="text-3xl lg:text-4xl font-bold  mb-6">
             Ready to modernize your cafe?
           </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl  mb-8 max-w-2xl mx-auto">
             Join hundreds of cafes already using Hungrr to provide better
             service and increase revenue.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-gray-900 text-white px-8 py-4 rounded-lg font-semibold hover:bg-gray-800 transition-colors">
-              Start your free trial
-            </button>
-            <button className="border border-gray-300 px-8 py-4 rounded-lg font-semibold hover:border-gray-400 transition-colors">
+            <Button size={"lg"}>Start your free trial</Button>
+            <Button size={"lg"} variant={"outline"}>
               Schedule a demo
-            </button>
+            </Button>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-6">
+      <footer className="py-12 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-3 mb-4 md:mb-0">
-              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                <Coffee className="w-5 h-5 text-gray-900" />
+              <div className="w-8 h-8  rounded-lg flex items-center justify-center">
+                <Coffee className="w-5 h-5 " />
               </div>
               <span className="text-xl font-semibold">Hungrr</span>
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-6 text-gray-400">
+            <div className="flex flex-col sm:flex-row items-center gap-6 ">
               <span>© 2025 Hungrr. All rights reserved.</span>
               <div className="flex gap-6">
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className=" transition-colors">
                   Privacy
                 </a>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className=" transition-colors">
                   Terms
                 </a>
-                <a href="#" className="hover:text-white transition-colors">
+                <a href="#" className=" transition-colors">
                   Support
                 </a>
               </div>
