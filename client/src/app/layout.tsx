@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Libre_Baskerville, Inter } from "next/font/google";
+import { Caudex, Roboto } from "next/font/google";
 import "./globals.css";
 import {
   ClerkProvider,
@@ -10,18 +10,18 @@ import {
   UserButton,
 } from "@clerk/nextjs";
 
-// Elegant serif for headings
-const libreBaskerville = Libre_Baskerville({
-  variable: "--font-libre-baskerville",
+// Serif for headings
+const caudex = Caudex({
+  variable: "--font-caudex",
   subsets: ["latin"],
   weight: ["400", "700"],
 });
 
-// Clean sans-serif for body
-const inter = Inter({
-  variable: "--font-inter",
+// Sans-serif for body
+const roboto = Roboto({
+  variable: "--font-roboto",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "700"],
 });
 
 export const metadata: Metadata = {
@@ -38,9 +38,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body
-          className={`${libreBaskerville.variable} ${inter.variable} antialiased`}
-        >
+        <body className={`${caudex.variable} ${roboto.variable} antialiased`}>
           <header className="flex justify-end items-center p-4 gap-4 h-16">
             <SignedOut>
               <SignInButton />
