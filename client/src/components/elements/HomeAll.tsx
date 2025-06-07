@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 const HomeAll = () => {
   return (
     <div>
@@ -180,6 +181,16 @@ const HomeAll = () => {
           <h2 className="text-3xl lg:text-4xl font-bold  mb-6">
             Ready to modernize your cafe?
           </h2>
+          <div className="relative w-full  mx-auto  flex justify-center items-center mb-4 md:mb-8">
+            <Image
+              src="/anime-girl-2.png"
+              alt="Anime Girl"
+              width={200}
+              height={200}
+              className="object-contain rounded-3xl"
+              priority
+            />
+          </div>
           <p className="text-xl  mb-8 max-w-2xl mx-auto">
             Join hundreds of cafes already using Hungrr to provide better
             service and increase revenue.
