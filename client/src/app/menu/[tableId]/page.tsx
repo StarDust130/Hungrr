@@ -411,7 +411,7 @@ const ZomatoStyleMenuPage = () => {
   }, [filteredMenuData]); // Rerun when search term changes the layout
 
   return (
-    <div className="bg-slate-50 min-h-screen font-sans">
+    <div className="bg-slate-50 min-h-screen font-sans" suppressHydrationWarning>
       {/* Header */}
       <header className="sticky top-0 z-20 bg-white p-4 border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto">
