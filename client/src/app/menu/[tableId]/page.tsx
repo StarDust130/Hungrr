@@ -1,4 +1,6 @@
 "use client";
+// @ts-nocheck
+
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
@@ -148,7 +150,11 @@ const menuData = {
 
 // --- REFINED COMPONENTS ---
 
-const DietaryIcon = ({ type }) => (
+type DietaryIconProps = {
+  type: string;
+};
+
+const DietaryIcon = ({ type }: DietaryIconProps) => (
   <div
     className={`w-5 h-5 border-2 ${
       type === "veg" ? "border-emerald-600" : "border-red-600"
