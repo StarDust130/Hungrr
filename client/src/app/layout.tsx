@@ -1,15 +1,8 @@
 import type { Metadata } from "next";
 import { Caudex, Roboto } from "next/font/google";
 import "./globals.css";
-import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/theme-provider"
+import { ClerkProvider } from "@clerk/nextjs";
 
 // Serif for headings
 const caudex = Caudex({
@@ -38,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" suppressHydrationWarning>
         <body className={`${caudex.variable} ${roboto.variable} antialiased`}>
         <ThemeProvider
             attribute="class"
@@ -46,15 +39,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-          <header className="flex justify-end items-center p-4 gap-4 h-16">
-            <SignedOut>
-              <SignInButton />
-              <SignUpButton />
-            </SignedOut>
-            <SignedIn>
-              <UserButton />
-            </SignedIn>
-          </header>
+          
           {children}
         </ThemeProvider>
         </body>
