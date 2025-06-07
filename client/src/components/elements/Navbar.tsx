@@ -1,0 +1,105 @@
+"use client";
+import Image from "next/image";
+import { Button } from "../ui/button";
+import { ModeToggle } from "../ui/ModeToggle";
+import { useState, useEffect } from "react";
+import { Menu,  X } from "lucide-react";
+import Link from "next/link";
+import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+
+const Navbar = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) setIsMenuOpen(false);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return (
+    <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b border-border bg-background/70">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center space-x-3">
+            <Image src="/icon.png" alt="Logo" width={32} height={32} />
+            <span className="text-lg font-bold tracking-tight">Hungrr</span>
+          </div>
+
+          {/* Center Nav (Desktop only) */}
+          <div className="hidden md:flex flex-1 justify-center items-center space-x-8 text-sm font-medium">
+            {["features", "how-it-works", "pricing"].map((section) => (
+              <Link
+                key={section}
+                href={`#${section}`}
+                className="hover:text-primary hover:underline underline-offset-4 transition-all"
+              >
+                {section
+                  .split("-")
+                  .map((word) => word[0].toUpperCase() + word.slice(1))
+                  .join(" ")}
+              </Link>
+            ))}
+          </div>
+
+          {/* Right Controls */}
+          <div className="flex items-center space-x-3">
+            <ModeToggle />
+
+            <SignedIn>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
+
+            <SignedOut>
+              <div className="hidden md:block">
+                <SignInButton mode="modal">
+                  <Button size={"lg"}>Login</Button>
+                </SignInButton>
+              </div>
+            </SignedOut>
+
+            {/* Hamburger menu for mobile */}
+            <button
+              className="md:hidden"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden mt-4 border-t border-border pt-4 space-y-4 animate-in fade-in duration-200 text-sm">
+            {["features", "how-it-works", "pricing"].map((section) => (
+              <Link
+                key={section}
+                href={`#${section}`}
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="block hover:text-primary transition-colors"
+              >
+                {section
+                  .split("-")
+                  .map((word) => word[0].toUpperCase() + word.slice(1))
+                  .join(" ")}
+              </Link>
+            ))}
+            <SignedOut>
+              <SignInButton mode="modal">
+                <Button className="w-full">Sign In</Button>
+              </SignInButton>
+            </SignedOut>
+          </div>
+        )}
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
