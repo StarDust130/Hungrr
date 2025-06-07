@@ -9,6 +9,7 @@ import {
   ChevronRight,
   ShoppingCart,
 } from "lucide-react";
+import Image from "next/image";
 
 // --- ENHANCED DUMMY DATA ---
 // (No changes to the data structure, it's already well-formed)
@@ -244,11 +245,13 @@ const MenuItemCard = ({ item, cart, setCart }) => (
     </div>
     <div className="relative col-span-1">
       {item.image && (
-        <img
+        <Image
           src={"https://picsum.photos/200/300?random=" + item.id}
           alt={item.name}
           className="w-full h-32 object-cover rounded-lg"
           loading="lazy"
+          width={200}
+          height={300}
         />
       )}
       <div className="absolute bottom-[-10px] left-1/2 -translate-x-1/2 w-[calc(100%-20px)]">
@@ -260,11 +263,13 @@ const MenuItemCard = ({ item, cart, setCart }) => (
 
 const BestsellerCard = ({ item, cart, setCart }) => (
   <div className="w-56 flex-shrink-0 relative border border-slate-200/80 rounded-lg shadow-sm bg-white">
-    <img
+    <Image
       src={"https://picsum.photos/200/300?random=" + item.id}
       alt={item.name}
       className="w-full h-32 object-cover rounded-t-lg"
       loading="lazy"
+      width={200}
+      height={300}
     />
     <div className="p-3">
       <h3 className="font-bold text-sm text-slate-800 truncate">{item.name}</h3>
