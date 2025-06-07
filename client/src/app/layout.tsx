@@ -3,6 +3,8 @@ import { Caudex, Roboto } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider"
 import { ClerkProvider } from "@clerk/nextjs";
+import Navbar from "@/components/elements/Navbar";
+import Footer from "@/components/elements/Footer";
 
 // Serif for headings
 const caudex = Caudex({
@@ -39,8 +41,9 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-          
+            <Navbar />
           {children}
+          <Footer />
         </ThemeProvider>
         </body>
       </html>
