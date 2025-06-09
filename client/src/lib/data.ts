@@ -3,7 +3,7 @@ const menuData = {
       {
         id: 1,
         name: "Sea Salt Caramel Cold Brew",
-        price: 12.5,
+        price: 299,
         description:
           "Our signature cold brew, sweetened with caramel and a hint of sea salt.",
         image:
@@ -16,7 +16,7 @@ const menuData = {
       {
         id: 2,
         name: "Avocado Toast",
-        price: 15.0,
+        price: 150,
         description:
           "Smashed avocado on toasted sourdough, topped with feta and chili flakes.",
         image:
@@ -29,7 +29,7 @@ const menuData = {
       {
         id: 3,
         name: "Spanish Latté",
-        price: 11.0,
+        price: 100,
         description:
           "Rich espresso with condensed milk for a sweet, creamy finish.",
         image:
