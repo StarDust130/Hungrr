@@ -2,38 +2,38 @@ import Image from "next/image";
 import Link from "next/link";
 
 const Footer = () => (
-  <footer className="w-full py-12 px-6 border-t border-border bg-background/90 backdrop-blur-sm rounded-t-2xl">
-    <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-      {/* Logo and Brand */}
-      <div className="flex items-center space-x-3">
-        <div className="w-12 h-12 rounded-full overflow-hidden  shadow-md bg-white/20">
+  <footer className="w-full py-8 px-6 border-t border-border">
+    <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center md:justify-between gap-6">
+      {/* Logo */}
+      <Link href="/" className="flex items-center space-x-3">
+        <div className="w-12 h-12 rounded-full overflow-hidden shadow-md bg-white/10 dark:bg-black/20">
           <Image
             src="/icon.png"
             alt="Hungrr Logo"
-            width={180}
-            height={180}
-            className="object-contain border rounded-full"
-            
+            width={48}
+            height={48}
+            className="object-contain rounded-full border"
             priority
           />
         </div>
-      </div>
+      </Link>
 
-      {/* Copyright and Links */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 text-sm text-muted-foreground">
-        <span className="select-none">
-          © 2025{" "}🌟
+      {/* Links and copyright */}
+      <div className="flex flex-col sm:flex-row items-center gap-6 text-sm text-muted-foreground text-center md:text-left md:flex-1 md:justify-end md:gap-12">
+        <span className="whitespace-nowrap">
+          © {new Date().getFullYear()} 🌟{" "}
           <Link
             href="https://chandrashekhar.life"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-bold hover:underline"
+            className="font-semibold hover:underline text-primary"
           >
             Chandrashekhar
           </Link>
           . All rights reserved.
         </span>
-        <nav className="flex gap-6">
+
+        <nav className="flex gap-6 whitespace-nowrap">
           <Link
             href="#"
             className="hover:text-primary transition-colors"
@@ -56,6 +56,10 @@ const Footer = () => (
             Support
           </Link>
         </nav>
+
+        <span className="font-medium select-none whitespace-nowrap md:hidden">
+          🇮🇳 Made with ❤️ in India
+        </span>
       </div>
     </div>
   </footer>
