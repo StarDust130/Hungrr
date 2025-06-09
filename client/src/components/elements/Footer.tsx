@@ -6,19 +6,17 @@ const Footer = () => (
     <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
       {/* Logo and Brand */}
       <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 rounded-full overflow-hidden shadow-md bg-white/20">
+        <div className="w-12 h-12 rounded-full overflow-hidden  shadow-md bg-white/20">
           <Image
             src="/icon.png"
             alt="Hungrr Logo"
-            width={40}
-            height={40}
-            className="object-contain"
+            width={180}
+            height={180}
+            className="object-contain border rounded-full"
+            
             priority
           />
         </div>
-        <span className="text-xl font-bold tracking-tight select-none text-primary">
-          Hungrr
-        </span>
       </div>
 
       {/* Copyright and Links */}

@@ -23,12 +23,14 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link
-            href={`/`}
-            className="flex items-center space-x-3"
-          >
-            <Image src="/icon.png" alt="Logo" width={32} height={32} />
-            <span className="text-lg font-bold tracking-tight">Hungrr</span>
+          <Link href={`/`} className="flex items-center space-x-3">
+            <Image
+              src="/icon.png"
+              alt="Logo"
+              width={40}
+              height={32}
+              className="rounded-full border"
+            />
           </Link>
 
           {/* Center Nav (Desktop only) */}
