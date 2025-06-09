@@ -551,7 +551,7 @@ useEffect(() => {
         {bestsellers.length > 0 && !searchTerm && (
           <section className="py-8">
             <h2 className="text-2xl font-extrabold text-foreground mb-4 tracking-tight">
-              Chef's Picks
+              Chef&apos;s Picks
             </h2>
             <div className="flex gap-4 pb-4 -mx-4 px-4 overflow-x-auto no-scrollbar">
               {bestsellers.map((item) => (
@@ -586,12 +586,13 @@ useEffect(() => {
               No Dishes Found
             </h3>
             <p className="text-muted-foreground mt-2">
-              Your search for &quot;{searchTerm}&quot; did not match any dishes. 😿
+              Your search for &quot;{searchTerm}&quot; did not match any dishes.
+              😿
             </p>
           </div>
         )}
       </main>
-      
+
       <AnimatePresence>
         <CartWidget />
       </AnimatePresence>
