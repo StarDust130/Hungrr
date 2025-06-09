@@ -426,22 +426,28 @@ const MenuPageContent = () => {
   const visibleCategories = Object.keys(filteredMenuData);
 
   const scrollToCategory = (category: string) => {
-    // Temporarily disable observer to prevent jitter
     if (observerRef.current) observerRef.current.disconnect();
 
-    sectionRefs.current[category]?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
+    const element = sectionRefs.current[category];
+    if (element) {
+      const offset = element.getBoundingClientRect().top + window.scrollY;
+      const navHeight = 140; // Adjust this based on your header + nav height
+
+      window.scrollTo({
+        top: offset - navHeight,
+        behavior: "smooth",
+      });
+    }
+
     setActiveCategory(category);
 
-    // Re-enable observer after scroll
     setTimeout(() => {
       Object.values(sectionRefs.current).forEach((ref) => {
         if (ref) observerRef.current?.observe(ref);
       });
     }, 800);
   };
+  
 
   // Auto-scroll the active category into view in the nav bar
   useEffect(() => {
@@ -478,24 +484,6 @@ const MenuPageContent = () => {
 
     return () => observer?.disconnect();
   }, [filteredMenuData]);
-
-  // In your MenuPageContent component, add a new state
-const [showBackToTop, setShowBackToTop] = useState(false);
-
-// Add this useEffect to track scroll position
-useEffect(() => {
-  const handleScroll = () => {
-    // Show button if user has scrolled down more than 400px
-    if (window.scrollY > 400) {
-      setShowBackToTop(true);
-    } else {
-      setShowBackToTop(false);
-    }
-  };
-
-  window.addEventListener('scroll', handleScroll);
-  return () => window.removeEventListener('scroll', handleScroll);
-}, []);
 
 
 
