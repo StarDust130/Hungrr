@@ -54,6 +54,8 @@ const CategoryIcon = ({ categoryName, className }: { categoryName: string, class
 };
 
 // A stylish placeholder for items without an image
+
+
 const ImagePlaceholder = ({ className }: { className?: string }) => (
   <div
     className={`flex items-center justify-center bg-muted rounded-lg ${className}`}
@@ -61,6 +63,31 @@ const ImagePlaceholder = ({ className }: { className?: string }) => (
     <Coffee className="w-8 h-8 text-muted-foreground/50" />
   </div>
 );
+
+type SafeImageProps = {
+  src: string;
+  alt: string;
+  className?: string;
+};
+
+export const SafeImage = ({ src, alt, className }: SafeImageProps) => {
+  const [error, setError] = useState(false);
+
+  if (error) return <ImagePlaceholder className={className} />;
+
+  return (
+    <Image
+      src={src}
+      width={500}
+      height={500}
+      alt={alt}
+      className={className}
+      onError={() => setError(true)}
+      loading="lazy"
+    />
+  );
+};
+
 
 // New Component for displaying item tags like "New", "Staff Pick" etc.
 const TagBadge = ({ tag }: { tag: string }) => {
@@ -252,64 +279,53 @@ const MenuItemCard = ({ item }: { item: MenuItem }) => (
       <div className="flex items-center gap-2 mb-1">
         <DietaryIcon type={item.dietary} />
         {item.isBestseller && (
-           <div className="flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-500">
-             <Star size={14} className="fill-current" />
-             <span>Bestseller</span>
-           </div>
+          <div className="flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-500">
+            <Star size={14} className="fill-current" />
+            <span>Bestseller</span>
+          </div>
         )}
       </div>
+
       <h3 className="font-bold text-lg text-foreground mb-1.5">{item.name}</h3>
-      
-      {/* --- NEW: Display Item Tags --- */}
+
       {item.tags && item.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-2">
-              {item.tags.map(tag => <TagBadge key={tag} tag={tag} />)}
-          </div>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {item.tags.map((tag) => (
+            <TagBadge key={tag} tag={tag} />
+          ))}
+        </div>
       )}
 
       <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 mt-auto">
         {item.description}
       </p>
-       <p className="text-base font-bold text-foreground mt-2">
-         {cafeInfo.currency}{item.price.toFixed(2)}
-       </p>
+
+      <p className="text-base font-bold text-foreground mt-2">
+        {cafeInfo.currency}
+        {item.price.toFixed(2)}
+      </p>
     </div>
+
     <div className="flex-shrink-0 w-32 flex flex-col items-end justify-between">
-       {item.image ? (
-         <Image
-           src={item.image}
-           alt={item.name}
-           className="w-full aspect-[4/3] object-cover rounded-lg"
-           loading="lazy"
-           width={128}
-           height={96}
-         />
-       ) : (
-         <ImagePlaceholder className="w-full aspect-[4/3]" />
-       )}
-       <div className="mt-2">
-         <AddToCartButton item={item} />
-       </div>
+      <SafeImage
+        src={item.image}
+        alt={item.name}
+        className="w-full aspect-[4/3] object-cover rounded-lg"
+      />
+      <div className="mt-2">
+        <AddToCartButton item={item} />
+      </div>
     </div>
   </div>
 );
 
 const BestsellerCard = ({ item }: { item: MenuItem }) => (
   <div className="flex-shrink-0 w-60 md:w-64 border bg-card rounded-xl overflow-hidden shadow-sm transition-shadow hover:shadow-md">
-    {/* --- IMAGE SECTION (MODIFIED) --- */}
-    {item.image ? (
-      <Image
-        src={item.image}
-        alt={item.name}
-        className="w-full h-32 object-cover"
-        width={256}
-        height={128}
-      />
-    ) : (
-      // Use the new placeholder component
-      <ImagePlaceholder className="w-full h-32" />
-    )}
-
+    <SafeImage
+      src={item.image}
+      alt={item.name}
+      className="w-full h-32 object-cover"
+    />
     <div className="p-3">
       <h3 className="font-bold text-foreground truncate">{item.name}</h3>
       <p className="text-sm font-semibold text-muted-foreground mt-0.5">
@@ -322,6 +338,7 @@ const BestsellerCard = ({ item }: { item: MenuItem }) => (
     </div>
   </div>
 );
+
 
 const CafeBanner = () => (
   <div className="relative h-56 md:h-64 w-full">
