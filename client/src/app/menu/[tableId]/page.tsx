@@ -88,7 +88,7 @@ const TagBadge = ({ tag }: { tag: string }) => {
 // --- CART CONTEXT for Global State Management ---
 const CartContext = createContext<CartContextType | null>(null);
 
-export const CartProvider = ({ children }: { children: React.ReactNode }) => {
+const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [cart, setCart] = useState<Cart>({});
 
   // Memoize all items for efficient lookups in cart calculations
@@ -150,7 +150,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const useCart = () => {
+const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
     throw new Error("useCart must be used within a CartProvider");
@@ -388,7 +388,7 @@ const CartWidget = () => {
   );
 };
 
-// --- MAIN PAGE COMPONENT ---
+//! --- MAIN PAGE COMPONENT ---
 const MenuPageContent = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const allItems = useMemo(() => Object.values(menuData).flat(), []);
@@ -524,7 +524,7 @@ useEffect(() => {
       </header>
       {/* REVAMPED Mobile Category Navigation */}
       {/* --- REVAMPED Category Navigation with Icons --- */}
-      <nav className="sticky top-[81px] z-10 bg-background/80 backdrop-blur-md">
+      <nav className="sticky top-[75px] z-10 bg-background/80 backdrop-blur-md">
         <div
           ref={navRef}
           className="max-w-4xl mx-auto flex gap-3 overflow-x-auto whitespace-nowrap p-4 border-b border-border no-scrollbar"
