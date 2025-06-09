@@ -1,7 +1,4 @@
-
-const loading = () => {
-  return (
-    <div className="flex h-screen justify-center items-center">Loading...</div>
-  )
+export default function Loading() {
+  // Or a custom loading skeleton component
+  return <p>Loading...</p>;
 }
-export default loading

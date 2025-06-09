@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Button } from "../ui/button";
 import { ArrowRight, Check } from "lucide-react";
+import Link from "next/link";
 
 const Hero = () => {
   return (
@@ -32,7 +33,7 @@ const Hero = () => {
                 size={"lg"}
                 className="flex items-center gap-3 px-8 transition-transform hover:scale-[1.07] active:scale-95"
               >
-                Start free trial
+                <Link href="/menu/123">Start free trial</Link> 
                 <ArrowRight className="w-5 h-5" />
               </Button>
               <Button
