@@ -121,7 +121,7 @@ const MenuPageContent = () => {
       suppressHydrationWarning
     >
       <CafeBanner />
-
+      {/* Search */}
       <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-md p-4 border-b border-border">
         <div className="max-w-4xl mx-auto">
           <div className="relative">
@@ -139,8 +139,7 @@ const MenuPageContent = () => {
           </div>
         </div>
       </header>
-      {/* REVAMPED Mobile Category Navigation */}
-      {/* --- REVAMPED Category Navigation with Icons --- */}
+      {/* Category 🍜 */}
       <nav className="sticky top-[75px] z-10 bg-background/80 backdrop-blur-md">
         <div
           ref={navRef}
@@ -151,7 +150,7 @@ const MenuPageContent = () => {
               key={category}
               id={`nav-${category}`}
               onClick={() => scrollToCategory(category)}
-              className={`flex  items-center gap-2.5 px-4 py-2 text-xs font-bold rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 ${
+              className={`flex  items-center gap-2.5 px-4 py-2 text-[10px] font-bold rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 ${
                 activeCategory === category
                   ? "bg-primary text-primary-foreground shadow-md"
                   : "bg-secondary text-secondary-foreground hover:bg-muted"
@@ -187,7 +186,9 @@ const MenuPageContent = () => {
             <section
               key={category}
               id={category}
-              ref={(el) => { sectionRefs.current[category] = el; }}
+              ref={(el) => {
+                sectionRefs.current[category] = el;
+              }}
               className="pt-8"
             >
               <h2 className="text-2xl font-extrabold text-foreground mb-2 tracking-tight">
@@ -203,11 +204,10 @@ const MenuPageContent = () => {
         ) : (
           <div className="text-center py-20">
             <h3 className="text-xl font-semibold text-foreground">
-              No Dishes Found
+              No Dishes Found 😿
             </h3>
             <p className="text-muted-foreground mt-2">
               Your search for &quot;{searchTerm}&quot; did not match any dishes.
-              😿
             </p>
           </div>
         )}
