@@ -12,6 +12,7 @@ import CategoryIcon from "@/components/menuComp/CategoryIcon";
 import BestsellerCard from "@/components/menuComp/BestsellerCard";
 import menuData from "@/lib/data";
 import MenuItemCard from "@/components/menuComp/MenuItemCard";
+import Image from "next/image";
 
 const MenuPageContent = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -121,7 +122,7 @@ const MenuPageContent = () => {
       suppressHydrationWarning
     >
       <CafeBanner />
-      {/* Search */}
+      {/* Search 😜 */}
       <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-md p-4 border-b border-border">
         <div className="max-w-4xl mx-auto">
           <div className="relative">
@@ -202,12 +203,19 @@ const MenuPageContent = () => {
             </section>
           ))
         ) : (
-          <div className="text-center py-20">
+          <div className="text-center flex flex-col justify-start items-center py-8">
             <h3 className="text-xl font-semibold text-foreground">
               No Dishes Found 😿
             </h3>
-            <p className="text-muted-foreground mt-2">
-              Your search for &quot;{searchTerm}&quot; did not match any dishes.
+            <Image
+              src={"/anime-girl-sad.png"}
+              alt="Not Found"
+              width={"200"}
+              height={"150"}
+            />
+            <p className="text-muted-foreground text-xs mt-2">
+              Your search for <span className="text-blue-500 font-bold">&quot;{searchTerm}&quot;</span> did not
+              match any dishes.
             </p>
           </div>
         )}
