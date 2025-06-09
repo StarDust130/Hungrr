@@ -35,7 +35,7 @@ const MenuItemCard = ({ item }: { item: MenuItem }) => (
       </p>
 
       <p className="text-base font-bold text-foreground mt-2">
-        ₹{item.price.toFixed(2)}
+        ₹{item.price}
       </p>
     </div>
 
