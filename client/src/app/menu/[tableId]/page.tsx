@@ -1,309 +1,424 @@
 "use client";
-// @ts-nocheck
 
-
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  createContext,
+  useContext,
+} from "react";
 import {
   Search,
   Star,
-  Plus,
-  Minus,
   ChevronRight,
   ShoppingCart,
+  X,
+  Clock,
+  Minus,
+  Plus,
+  CupSoda,
+  Sandwich,
+  Soup,
 } from "lucide-react";
 import Image from "next/image";
-import DietaryIcon from "@/components/menuComp/DietaryIcon";
-import AddToCartButton from "@/components/menuComp/AddToCartButton";
+import { AnimatePresence, motion } from "framer-motion";
 
-// --- ENHANCED DUMMY DATA ---
-// (No changes to the data structure, it's already well-formed)
-const menuData = {
-  Recommended: [
-    {
-      id: 1,
-      name: "Sea Salt Caramel Cold Brew",
-      price: 12.5,
-      description:
-        "Our signature cold brew, sweetened with caramel and a hint of sea salt.",
-      image:
-        "https://images.unsplash.com/photo-1517701550927-27cf9de0a375?w=500&q=80",
-      rating: 4.9,
-      tags: ["Bestseller", "Must-Try"],
-      dietary: "veg",
-      isBestseller: true,
-    },
-    {
-      id: 2,
-      name: "Avocado Toast",
-      price: 15.0,
-      description:
-        "Smashed avocado on toasted sourdough, topped with feta and chili flakes.",
-      image:
-        "https://images.unsplash.com/photo-1484723051597-626151586e56?w=500&q=80",
-      rating: 4.8,
-      tags: ["Bestseller"],
-      dietary: "veg",
-      isBestseller: true,
-    },
-    {
-      id: 3,
-      name: "Spanish Latté",
-      price: 11.0,
-      description:
-        "Rich espresso with condensed milk for a sweet, creamy finish.",
-      image:
-        "https://images.unsplash.com/photo-1558030007-4224b6c31775?w=500&q=80",
-      rating: 4.8,
-      tags: [],
-      dietary: "veg",
-      isBestseller: true,
-    },
-  ],
-  "Signature Lattes": [
-    {
-      id: 3, // Note: Duplicate ID, our code will handle this gracefully
-      name: "Spanish Latté",
-      price: 11.0,
-      description:
-        "Rich espresso with condensed milk for a sweet, creamy finish.",
-      image:
-        "https://images.unsplash.com/photo-1558030007-4224b6c31775?w=500&q=80",
-      rating: 4.8,
-      tags: [],
-      dietary: "veg",
-    },
-    {
-      id: 4,
-      name: "Rose & Cardamom Latté",
-      price: 12.0,
-      description:
-        "An aromatic and floral latté, perfect for an afternoon treat.",
-      image:
-        "https://images.unsplash.com/photo-1542990253-a781463c2b5c?w=500&q=80",
-      rating: 4.7,
-      tags: ["New"],
-      dietary: "veg",
-    },
-  ],
-  "Espresso & Brews": [
-    {
-      id: 5,
-      name: "Americano",
-      price: 8.0,
-      description: "A classic. Rich espresso shots topped with hot water.",
-      image:
-        "https://images.unsplash.com/photo-1587734561126-75a0f1d5e021?w=500&q=80",
-      rating: 4.6,
-      tags: [],
-      dietary: "veg",
-    },
-    {
-      id: 6,
-      name: "Pour Over - Kenya AA",
-      price: 9.5,
-      description:
-        "A bright and complex single-origin brew with notes of berry and citrus.",
-      image:
-        "https://images.unsplash.com/photo-1511920170033-f8396924c348?w=500&q=80",
-      rating: 4.9,
-      tags: ["Single Origin"],
-      dietary: "veg",
-    },
-    {
-      id: 7,
-      name: "Nitro Cold Brew",
-      price: 8.5,
-      description:
-        "Our classic cold brew infused with nitrogen for a creamy, stout-like texture.",
-      image:
-        "https://images.unsplash.com/photo-1621592487114-7993b5c5d3f5?w=500&q=80",
-      rating: 4.8,
-      tags: [],
-      dietary: "veg",
-    },
-  ],
-  "Bakery & Sweets": [
-    {
-      id: 8,
-      name: "Almond Croissant",
-      price: 6.0,
-      description:
-        "Flaky croissant with a rich almond paste filling, topped with toasted almonds.",
-      image:
-        "https://images.unsplash.com/photo-1621939514649-280e25f80a18?w=500&q=80",
-      rating: 4.9,
-      tags: ["Staff Pick"],
-      dietary: "veg",
-    },
-    {
-      id: 9,
-      name: "Basque Cheesecake",
-      price: 9.0,
-      description:
-        "A slice of rustic, crustless cheesecake with a caramelized top.",
-      image:
-        "https://images.unsplash.com/photo-1604391859247-fac53c80a295?w=500&q=80",
-      rating: 4.9,
-      tags: [],
-      dietary: "veg",
-    },
-  ],
+// MOCK DATA - Replace with your actual data import
+import menuData, { cafeInfo } from "@/lib/data";
+// NEW: Import types from your dedicated types file
+import type { MenuItem, MenuData, Cart, CartContextType } from "@/types/menu.d.ts";
+
+
+import { Coffee } from "lucide-react"; // Add this to your imports
+
+import { ArrowUp } from "lucide-react"; // Add to your lucide-react imports
+
+
+
+// Helper component to render an icon based on category name
+const CategoryIcon = ({ categoryName, className }: { categoryName: string, className?: string }) => {
+  const iconProps = {
+    className: className || "w-5 h-5",
+    strokeWidth: 2.5
+  };
+
+  switch (categoryName.toLowerCase()) {
+    case 'recommended':
+      return <Star {...iconProps} />;
+    case 'signature lattes':
+      return <Coffee {...iconProps} />;
+    case 'espresso & brews':
+        return <CupSoda {...iconProps} />;
+    case 'bakery & sweets':
+        return <Sandwich {...iconProps} />;
+    default:
+      return <Soup {...iconProps} />;
+  }
 };
 
-// --- REFINED COMPONENTS ---
-
-
-
-
-
-
-
-const MenuItemCard = ({ item, cart, setCart }) => (
-  <div className="relative grid grid-cols-3 gap-x-4 border-b border-slate-100 py-6">
-    <div className="col-span-2 flex flex-col space-y-2 pr-4">
-      <DietaryIcon type={item.dietary} />
-      <h3 className="font-bold text-base text-slate-800">{item.name}</h3>
-      <div className="flex items-center gap-2 text-sm text-slate-500">
-        <Star size={16} className="text-amber-500 fill-amber-500" />
-        <span className="font-semibold">{item.rating}</span>
-      </div>
-      <p className="text-sm text-slate-600 leading-relaxed line-clamp-2">
-        {item.description}
-      </p>
-      <p className="text-sm font-bold text-slate-900 pt-1">
-        ${item.price.toFixed(2)}
-      </p>
-      <div className="flex flex-wrap gap-2 pt-2">
-        {item.tags.map((tag) => (
-          <span
-            key={tag}
-            className="text-xs font-semibold text-amber-800 bg-amber-100 px-2 py-1 rounded-md"
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
-    </div>
-    <div className="relative col-span-1">
-      {item.image && (
-        <Image
-          src={"https://picsum.photos/200/300?random=" + item.id}
-          alt={item.name}
-          className="w-full h-32 object-cover rounded-lg"
-          loading="lazy"
-          width={200}
-          height={300}
-        />
-      )}
-      <div className="absolute bottom-[-10px] left-1/2 -translate-x-1/2 w-[calc(100%-20px)]">
-        <AddToCartButton item={item} cart={cart} setCart={setCart} />
-      </div>
-    </div>
+// A stylish placeholder for items without an image
+const ImagePlaceholder = ({ className }: { className?: string }) => (
+  <div
+    className={`flex items-center justify-center bg-muted rounded-lg ${className}`}
+  >
+    <Coffee className="w-8 h-8 text-muted-foreground/50" />
   </div>
 );
 
-const BestsellerCard = ({ item, cart, setCart }) => (
-  <div className="w-56 flex-shrink-0 relative border border-slate-200/80 rounded-lg shadow-sm bg-white">
-    <Image
-      src={"https://picsum.photos/200/300?random=" + item.id}
-      alt={item.name}
-      className="w-full h-32 object-cover rounded-t-lg"
-      loading="lazy"
-      width={200}
-      height={300}
-    />
-    <div className="p-3">
-      <h3 className="font-bold text-sm text-slate-800 truncate">{item.name}</h3>
-      <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
-        <Star size={14} className="text-amber-500 fill-amber-500" />
-        <span>{item.rating}</span>
-      </div>
-      <div className="flex justify-between items-center mt-3">
-        <p className="text-sm font-semibold text-slate-800">
-          ${item.price.toFixed(2)}
-        </p>
-        <AddToCartButton item={item} cart={cart} setCart={setCart} />
-      </div>
-    </div>
-  </div>
-);
+// New Component for displaying item tags like "New", "Staff Pick" etc.
+const TagBadge = ({ tag }: { tag: string }) => {
+  // Define colors for specific tags for more visual flair
+  const tagColor = useMemo(() => {
+      switch (tag.toLowerCase()) {
+          case 'new':
+              return 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300';
+          case 'staff pick':
+              return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300';
+          case 'single origin':
+              return 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300';
+          default:
+              return 'bg-muted text-muted-foreground';
+      }
+  }, [tag]);
 
-// --- NEW COMPONENT: Floating Cart Widget ---
-const CartWidget = ({ cart, menuItems }) => {
+  return (
+      <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${tagColor}`}>
+          {tag}
+      </span>
+  );
+};
+
+// --- CART CONTEXT for Global State Management ---
+const CartContext = createContext<CartContextType | null>(null);
+
+export const CartProvider = ({ children }: { children: React.ReactNode }) => {
+  const [cart, setCart] = useState<Cart>({});
+
+  // Memoize all items for efficient lookups in cart calculations
+  const allItems = useMemo(() => Object.values(menuData).flat(), []);
+
+  const addToCart = (item: MenuItem) => {
+    setCart((prev) => ({ ...prev, [item.id]: (prev[item.id] || 0) + 1 }));
+  };
+
+  const removeFromCart = (itemId: number) => {
+    setCart((prev) => {
+      const newCart = { ...prev };
+      if (newCart[itemId] > 1) {
+        newCart[itemId]--;
+      } else {
+        delete newCart[itemId];
+      }
+      return newCart;
+    });
+  };
+
+  const clearItemFromCart = (itemId: number) => {
+    setCart((prev) => {
+      const newCart = { ...prev };
+      delete newCart[itemId];
+      return newCart;
+    });
+  };
+
+  const getQuantity = (itemId: number) => cart[itemId] || 0;
+
   const { totalItems, totalPrice } = useMemo(() => {
-    let totalItems = 0;
-    let totalPrice = 0;
+    let itemsCount = 0;
+    let price = 0;
     for (const id in cart) {
-      const item = menuItems.find((i) => i.id === parseInt(id));
+      const item = allItems.find((i) => i.id === parseInt(id));
       if (item) {
-        totalItems += cart[id];
-        totalPrice += item.price * cart[id];
+        itemsCount += cart[id];
+        price += item.price * cart[id];
       }
     }
-    return { totalItems, totalPrice };
-  }, [cart, menuItems]);
+    return { totalItems: itemsCount, totalPrice: price };
+  }, [cart, allItems]);
+
+  return (
+    <CartContext.Provider
+      value={{
+        cart,
+        addToCart,
+        removeFromCart,
+        clearItemFromCart,
+        getQuantity,
+        totalItems,
+        totalPrice,
+      }}
+    >
+      {children}
+    </CartContext.Provider>
+  );
+};
+
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error("useCart must be used within a CartProvider");
+  }
+  return context;
+};
+
+// --- REFINED UI COMPONENTS ---
+
+const DietaryIcon = ({ type }: { type: MenuItem["dietary"] }) => {
+  const style = useMemo(() => {
+    switch (type) {
+      case "veg":
+        return {
+          borderColor: "border-green-600",
+          bgColor: "bg-green-600",
+          textColor: "text-green-600",
+        };
+      case "non-veg":
+        return {
+          borderColor: "border-red-600",
+          bgColor: "bg-red-600",
+          textColor: "text-red-600",
+        };
+      case "vegan":
+        return {
+          borderColor: "border-blue-500",
+          bgColor: "bg-blue-500",
+          textColor: "text-blue-500",
+        };
+      default:
+        return {
+          borderColor: "border-gray-400",
+          bgColor: "bg-gray-400",
+          textColor: "text-gray-500",
+        };
+    }
+  }, [type]);
+
+  return (
+    <div
+      className={`w-5 h-5 border ${style.borderColor} rounded-sm flex items-center justify-center`}
+    >
+      <div className={`w-2.5 h-2.5 ${style.bgColor} rounded-full`}></div>
+    </div>
+  );
+};
+
+const AddToCartButton = ({ item }: { item: MenuItem }) => {
+  const { addToCart, removeFromCart, getQuantity } = useCart();
+  const quantity = getQuantity(item.id);
+
+  return (
+    <div className="relative w-28 h-10">
+      <AnimatePresence>
+        {quantity === 0 ? (
+          <motion.button
+            key="add"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            onClick={() => addToCart(item)}
+            className="absolute inset-0 bg-card border border-primary text-primary font-bold py-2 px-4 rounded-lg shadow-sm hover:bg-primary/10 transition-colors duration-200 flex items-center justify-center"
+          >
+            Add
+          </motion.button>
+        ) : (
+          <motion.div
+            key="quantity"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="absolute inset-0 flex items-center justify-between bg-primary text-primary-foreground font-bold rounded-lg shadow-sm"
+          >
+            <button
+              onClick={() => removeFromCart(item.id)}
+              className="w-10 h-full flex items-center justify-center text-lg rounded-l-lg hover:bg-primary/80 transition-colors"
+            >
+              <Minus size={16} />
+            </button>
+            <span className="text-sm font-bold">{quantity}</span>
+            <button
+              onClick={() => addToCart(item)}
+              className="w-10 h-full flex items-center justify-center text-lg rounded-r-lg hover:bg-primary/80 transition-colors"
+            >
+              <Plus size={16} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// --- Updated MenuItemCard with Tags ---
+const MenuItemCard = ({ item }: { item: MenuItem }) => (
+  <div className="flex gap-4 py-6">
+    <div className="flex-grow flex flex-col">
+      <div className="flex items-center gap-2 mb-1">
+        <DietaryIcon type={item.dietary} />
+        {item.isBestseller && (
+           <div className="flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-500">
+             <Star size={14} className="fill-current" />
+             <span>Bestseller</span>
+           </div>
+        )}
+      </div>
+      <h3 className="font-bold text-lg text-foreground mb-1.5">{item.name}</h3>
+      
+      {/* --- NEW: Display Item Tags --- */}
+      {item.tags && item.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-2">
+              {item.tags.map(tag => <TagBadge key={tag} tag={tag} />)}
+          </div>
+      )}
+
+      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 mt-auto">
+        {item.description}
+      </p>
+       <p className="text-base font-bold text-foreground mt-2">
+         {cafeInfo.currency}{item.price.toFixed(2)}
+       </p>
+    </div>
+    <div className="flex-shrink-0 w-32 flex flex-col items-end justify-between">
+       {item.image ? (
+         <Image
+           src={item.image}
+           alt={item.name}
+           className="w-full aspect-[4/3] object-cover rounded-lg"
+           loading="lazy"
+           width={128}
+           height={96}
+         />
+       ) : (
+         <ImagePlaceholder className="w-full aspect-[4/3]" />
+       )}
+       <div className="mt-2">
+         <AddToCartButton item={item} />
+       </div>
+    </div>
+  </div>
+);
+
+const BestsellerCard = ({ item }: { item: MenuItem }) => (
+  <div className="flex-shrink-0 w-60 md:w-64 border bg-card rounded-xl overflow-hidden shadow-sm transition-shadow hover:shadow-md">
+    {/* --- IMAGE SECTION (MODIFIED) --- */}
+    {item.image ? (
+      <Image
+        src={item.image}
+        alt={item.name}
+        className="w-full h-32 object-cover"
+        width={256}
+        height={128}
+      />
+    ) : (
+      // Use the new placeholder component
+      <ImagePlaceholder className="w-full h-32" />
+    )}
+
+    <div className="p-3">
+      <h3 className="font-bold text-foreground truncate">{item.name}</h3>
+      <p className="text-sm font-semibold text-muted-foreground mt-0.5">
+        {cafeInfo.currency}
+        {item.price.toFixed(2)}
+      </p>
+      <div className="pt-3">
+        <AddToCartButton item={item} />
+      </div>
+    </div>
+  </div>
+);
+
+const CafeBanner = () => (
+  <div className="relative h-56 md:h-64 w-full">
+    <Image
+      src={cafeInfo.bannerUrl}
+      alt="Cafe Banner"
+      layout="fill"
+      objectFit="cover"
+      className="brightness-50"
+    />
+    <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-6 bg-gradient-to-t from-black/70 to-transparent">
+      <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+        {cafeInfo.name}
+      </h1>
+      <p className="text-white/90 mt-1 text-sm md:text-base">
+        {cafeInfo.tagline}
+      </p>
+      <div className="flex items-center gap-4 mt-3 text-sm text-white">
+        <div className="flex items-center gap-1.5">
+          <Star size={16} className="text-amber-400 fill-amber-400" />
+          <span className="font-bold">{cafeInfo.rating}</span>
+          <span className="text-white/70">({cafeInfo.reviews} reviews)</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Clock size={16} className="text-white/70" />
+          <span className="font-medium">Open from {cafeInfo.openingTime}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const CartWidget = () => {
+  const { totalItems, totalPrice } = useCart();
 
   if (totalItems === 0) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-30 p-4 flex justify-center">
-      <div className="w-full max-w-3xl bg-emerald-600 text-white rounded-lg shadow-2xl flex items-center justify-between p-4">
+    <motion.div
+      initial={{ y: 100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: 100, opacity: 0 }}
+      transition={{ type: "spring", stiffness: 50 }}
+      className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-50"
+    >
+      <div className="bg-primary text-primary-foreground rounded-xl shadow-2xl flex items-center justify-between p-4 font-bold">
         <div className="flex items-center gap-3">
           <ShoppingCart size={20} />
-          <span className="font-bold">
-            {totalItems} {totalItems > 1 ? "Items" : "Item"}
-          </span>
+          <div>
+            <span className="block text-sm">
+              {totalItems} {totalItems > 1 ? "Items" : "Item"}
+            </span>
+            <span className="block text-xs opacity-80">
+              {cafeInfo.currency}
+              {totalPrice.toFixed(2)}
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="font-extrabold text-lg">
-            ${totalPrice.toFixed(2)}
-          </span>
-          <button className="font-bold flex items-center gap-2">
-            View Cart <ChevronRight size={18} />
-          </button>
-        </div>
+        <button className="flex items-center gap-2 text-sm">
+          View Cart <ChevronRight size={18} />
+        </button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
 // --- MAIN PAGE COMPONENT ---
-const ZomatoStyleMenuPage = () => {
-  const [cart, setCart] = useState({});
+const MenuPageContent = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const allItems = useMemo(() => Object.values(menuData).flat(), []);
   const [activeCategory, setActiveCategory] = useState(
     Object.keys(menuData)[0]
   );
 
-  const sectionRefs = useRef({});
-  const observerRef = useRef(null);
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const navRef = useRef<HTMLDivElement>(null); // Ref for the nav container
 
-  // Flatten all menu items into a single array for easier lookup
-  const allItems = useMemo(() => Object.values(menuData).flat(), []);
+  const bestsellers = useMemo(
+    () => allItems.filter((item) => item.isBestseller),
+    [allItems]
+  );
 
-  // Memoized and deduplicated list of bestsellers
-  const bestsellers = useMemo(() => {
-    const uniqueBestsellers = new Map();
-    allItems.forEach((item) => {
-      if (item.isBestseller) {
-        uniqueBestsellers.set(item.id, item);
-      }
-    });
-    return Array.from(uniqueBestsellers.values());
-  }, [allItems]);
-
-  // Filtered menu data based on search term
   const filteredMenuData = useMemo(() => {
     if (!searchTerm.trim()) return menuData;
-
     const lowercasedFilter = searchTerm.toLowerCase();
-    const filtered = {};
-
+    const filtered: MenuData = {};
     Object.entries(menuData).forEach(([category, items]) => {
       const matchingItems = items.filter(
         (item) =>
           item.name.toLowerCase().includes(lowercasedFilter) ||
-          item.description.toLowerCase().includes(lowercasedFilter)
+          item.description.toLowerCase().includes(lowercasedFilter) ||
+          item.tags.some((tag) => tag.toLowerCase().includes(lowercasedFilter))
       );
       if (matchingItems.length > 0) {
         filtered[category] = matchingItems;
@@ -314,24 +429,44 @@ const ZomatoStyleMenuPage = () => {
 
   const visibleCategories = Object.keys(filteredMenuData);
 
-  // Scroll to category logic
-  const scrollToCategory = (category) => {
+  const scrollToCategory = (category: string) => {
+    // Temporarily disable observer to prevent jitter
+    if (observerRef.current) observerRef.current.disconnect();
+
     sectionRefs.current[category]?.scrollIntoView({
       behavior: "smooth",
       block: "start",
     });
+    setActiveCategory(category);
+
+    // Re-enable observer after scroll
+    setTimeout(() => {
+      Object.values(sectionRefs.current).forEach((ref) => {
+        if (ref) observerRef.current?.observe(ref);
+      });
+    }, 800);
   };
 
-  // Intersection Observer for active category highlighting
+  // Auto-scroll the active category into view in the nav bar
+  useEffect(() => {
+    const activeEl = document.getElementById(`nav-${activeCategory}`);
+    if (activeEl && navRef.current) {
+      navRef.current.scrollTo({
+        left:
+          activeEl.offsetLeft -
+          navRef.current.offsetWidth / 2 +
+          activeEl.offsetWidth / 2,
+        behavior: "smooth",
+      });
+    }
+  }, [activeCategory]);
+
+  // Intersection Observer for active category
   useEffect(() => {
     if (observerRef.current) observerRef.current.disconnect();
+    const observerOptions = { rootMargin: "-40% 0px -60% 0px", threshold: 0 };
 
-    const observerOptions = {
-      rootMargin: "-120px 0px -60% 0px", // Top offset for sticky header, bottom offset to trigger earlier
-      threshold: 0,
-    };
-
-    const callback = (entries) => {
+    const callback: IntersectionObserverCallback = (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           setActiveCategory(entry.target.id);
@@ -341,143 +476,140 @@ const ZomatoStyleMenuPage = () => {
 
     observerRef.current = new IntersectionObserver(callback, observerOptions);
     const observer = observerRef.current;
-
     Object.values(sectionRefs.current).forEach((ref) => {
       if (ref) observer.observe(ref);
     });
 
-    return () => {
-      if (observer) observer.disconnect();
-    };
-  }, [filteredMenuData]); // Rerun when search term changes the layout
+    return () => observer?.disconnect();
+  }, [filteredMenuData]);
+
+  // In your MenuPageContent component, add a new state
+const [showBackToTop, setShowBackToTop] = useState(false);
+
+// Add this useEffect to track scroll position
+useEffect(() => {
+  const handleScroll = () => {
+    // Show button if user has scrolled down more than 400px
+    if (window.scrollY > 400) {
+      setShowBackToTop(true);
+    } else {
+      setShowBackToTop(false);
+    }
+  };
+
+  window.addEventListener('scroll', handleScroll);
+  return () => window.removeEventListener('scroll', handleScroll);
+}, []);
+
+
 
   return (
-    <div className="bg-slate-50 min-h-screen font-sans" suppressHydrationWarning>
-      {/* Header */}
-      <header className="sticky top-0 z-20 bg-white p-4 border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto">
+    <div
+      className="font-sans bg-background text-foreground min-h-screen"
+      suppressHydrationWarning
+    >
+      <CafeBanner />
+      <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-md p-4 border-b border-border">
+        <div className="max-w-4xl mx-auto">
           <div className="relative">
             <input
               type="text"
               placeholder="Search for dishes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
+              className="w-full pl-10 pr-4 py-2.5 bg-secondary border border-transparent rounded-full focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
             />
             <Search
               size={20}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
             />
           </div>
         </div>
       </header>
-
-      {/* Mobile Category Navigation */}
-      <nav className="lg:hidden sticky top-[81px] z-10 bg-white/80 backdrop-blur-sm p-2 border-b border-slate-200">
-        <div className="flex gap-2 overflow-x-auto whitespace-nowrap pb-2">
+      {/* REVAMPED Mobile Category Navigation */}
+      {/* --- REVAMPED Category Navigation with Icons --- */}
+      <nav className="sticky top-[81px] z-10 bg-background/80 backdrop-blur-md">
+        <div
+          ref={navRef}
+          className="max-w-4xl mx-auto flex gap-3 overflow-x-auto whitespace-nowrap p-4 border-b border-border no-scrollbar"
+        >
           {visibleCategories.map((category) => (
             <button
               key={category}
+              id={`nav-${category}`}
               onClick={() => scrollToCategory(category)}
-              className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${
+              className={`flex items-center gap-2.5 px-4 py-2 text-sm font-bold rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 ${
                 activeCategory === category
-                  ? "bg-emerald-600 text-white"
-                  : "bg-slate-100 text-slate-700"
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : "bg-secondary text-secondary-foreground hover:bg-muted"
               }`}
             >
-              {category}
+              <CategoryIcon categoryName={category} />
+              <span>{category}</span>
             </button>
           ))}
         </div>
       </nav>
+      <main className="max-w-4xl mx-auto px-4 pb-32">
+        {/* Bestsellers Section */}
+        {bestsellers.length > 0 && !searchTerm && (
+          <section className="py-8">
+            <h2 className="text-2xl font-extrabold text-foreground mb-4 tracking-tight">
+              Chef's Picks
+            </h2>
+            <div className="flex gap-4 pb-4 -mx-4 px-4 overflow-x-auto no-scrollbar">
+              {bestsellers.map((item) => (
+                <BestsellerCard key={`bestseller-${item.id}`} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 px-4">
-        {/* Main Menu Content (Center) */}
-        <main className="lg:col-span-8 py-8">
-          {/* Bestsellers Section */}
-          {bestsellers.length > 0 && !searchTerm && (
-            <section className="mb-10">
-              <h2 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight">
-                Bestsellers
+        {/* Menu Items by Category */}
+        {visibleCategories.length > 0 ? (
+          Object.entries(filteredMenuData).map(([category, items]) => (
+            <section
+              key={category}
+              id={category}
+              ref={(el) => (sectionRefs.current[category] = el)}
+              className="pt-8"
+            >
+              <h2 className="text-2xl font-extrabold text-foreground mb-2 tracking-tight">
+                {category}
               </h2>
-              <div className="flex gap-4 pb-4 -mx-4 px-4 overflow-x-auto">
-                {bestsellers.map((item) => (
-                  <BestsellerCard
-                    key={`bestseller-${item.id}`}
-                    item={item}
-                    cart={cart}
-                    setCart={setCart}
-                  />
+              <div className="divide-y divide-border">
+                {items.map((item) => (
+                  <MenuItemCard key={`item-${item.id}`} item={item} />
                 ))}
               </div>
             </section>
-          )}
-
-          {/* Menu Items by Category */}
-          {visibleCategories.length > 0 ? (
-            Object.entries(filteredMenuData).map(([category, items]) => (
-              <section
-                key={category}
-                id={category}
-                ref={(el) => (sectionRefs.current[category] = el)}
-                className="pt-8 -mt-8" // Padding/margin trick for accurate scroll-spy
-              >
-                <h2 className="text-3xl font-extrabold text-slate-900 my-6 tracking-tight">
-                  {category}
-                </h2>
-                <div className="divide-y divide-slate-100">
-                  {items.map((item) => (
-                    <MenuItemCard
-                      key={`item-${item.id}`}
-                      item={item}
-                      cart={cart}
-                      setCart={setCart}
-                    />
-                  ))}
-                </div>
-              </section>
-            ))
-          ) : (
-            <div className="text-center py-20">
-              <h3 className="text-xl font-semibold text-slate-700">
-                No Dishes Found
-              </h3>
-              <p className="text-slate-500 mt-2">
-                Try searching for something else!
-              </p>
-            </div>
-          )}
-        </main>
-
-        {/* Right Side Category Navigation (Desktop) */}
-        <aside className="hidden lg:block lg:col-span-4 py-8">
-          <nav className="sticky top-24">
-            <h3 className="font-bold text-lg mb-4 text-slate-800">Menu</h3>
-            <ul className="space-y-1">
-              {visibleCategories.map((category) => (
-                <li key={category}>
-                  <button
-                    onClick={() => scrollToCategory(category)}
-                    className={`w-full text-left px-4 py-2.5 rounded-lg transition-all text-sm font-semibold flex justify-between items-center ${
-                      activeCategory === category
-                        ? "bg-emerald-100/80 text-emerald-800"
-                        : "text-slate-600 hover:bg-slate-100"
-                    }`}
-                  >
-                    <span>{category}</span>
-                    {activeCategory === category && <ChevronRight size={16} />}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </aside>
-      </div>
-
-      {/* Floating Cart Widget */}
-      <CartWidget cart={cart} menuItems={allItems} />
+          ))
+        ) : (
+          <div className="text-center py-20">
+            <h3 className="text-xl font-semibold text-foreground">
+              No Dishes Found
+            </h3>
+            <p className="text-muted-foreground mt-2">
+              Your search for &quot;{searchTerm}&quot; did not match any dishes. 😿
+            </p>
+          </div>
+        )}
+      </main>
+      
+      <AnimatePresence>
+        <CartWidget />
+      </AnimatePresence>
+      <AnimatePresence>
+        <CartWidget />
+      </AnimatePresence>
     </div>
   );
 };
 
-export default ZomatoStyleMenuPage;
+const MenuPage = () => (
+  <CartProvider>
+    <MenuPageContent />
+  </CartProvider>
+);
+
+export default MenuPage;
