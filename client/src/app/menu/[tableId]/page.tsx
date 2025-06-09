@@ -12,6 +12,7 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import Image from "next/image";
+import DietaryIcon from "@/components/menuComp/DietaryIcon";
 
 // --- ENHANCED DUMMY DATA ---
 // (No changes to the data structure, it's already well-formed)
@@ -150,23 +151,9 @@ const menuData = {
 
 // --- REFINED COMPONENTS ---
 
-type DietaryIconProps = {
-  type: string;
-};
 
-const DietaryIcon = ({ type }: DietaryIconProps) => (
-  <div
-    className={`w-5 h-5 border-2 ${
-      type === "veg" ? "border-emerald-600" : "border-red-600"
-    } flex items-center justify-center p-0.5`}
-  >
-    <div
-      className={`w-2.5 h-2.5 rounded-full ${
-        type === "veg" ? "bg-emerald-600" : "bg-red-600"
-      }`}
-    ></div>
-  </div>
-);
+
+
 
 const AddToCartButton = ({ item, cart, setCart }) => {
   const quantity = cart[item.id] || 0;
