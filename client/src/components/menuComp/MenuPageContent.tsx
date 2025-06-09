@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 import { AnimatePresence } from "framer-motion";
 import type { MenuData, MenuItem } from "@/types/menu.d.ts";
@@ -137,6 +137,14 @@ const MenuPageContent = () => {
               size={20}
               className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
             />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
+              >
+                <X size={20} />
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -214,8 +222,9 @@ const MenuPageContent = () => {
               height={"150"}
             />
             <p className="text-muted-foreground text-xs mt-2">
-              Your search for <span className="text-blue-500 font-bold">&quot;{searchTerm}&quot;</span> did not
-              match any dishes.
+              Your search for{" "}
+              <span className="text-emerald-500 font-bold">“{searchTerm}”</span>{" "}
+              did not match any dishes.
             </p>
           </div>
         )}
