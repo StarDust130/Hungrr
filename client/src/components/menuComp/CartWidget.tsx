@@ -17,14 +17,17 @@ const CartWidget = () => {
     >
       <div className="bg-primary text-primary-foreground backdrop-blur-md border border-border/40 shadow-xl rounded-full px-5 py-3 flex items-center justify-between gap-4 cursor-pointer hover:shadow-2xl transition-all duration-200">
         <div className="flex items-center gap-3">
-          <div className="bg-blue-100 p-2 rounded-full">
+          <div className="bg-primary  p-2 rounded-full">
             <ShoppingCart size={18} className="text-primary-foreground" />
           </div>
           <div className="leading-tight">
             <p className="text-xs font-medium opacity-90">
               {totalItems} {totalItems > 1 ? "Items" : "Item"}
             </p>
-            <p className="text-sm font-semibold">₹{totalPrice}</p>
+            <p className="text-sm font-semibold">
+              ₹{totalPrice}{" "}
+              <span className="text-[10px] text-gray-300 dark:text-gray-500 font-medium">+ GST</span>
+            </p>
           </div>
         </div>
         <button className="flex items-center gap-1 text-sm font-medium hover:underline underline-offset-4 transition-all">
