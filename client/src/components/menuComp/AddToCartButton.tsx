@@ -1,66 +1,50 @@
 import { Minus, Plus } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { MenuItem } from "@/types/menu";
+import useCart from "@/hooks/useCart";
 
-interface AddToCartButtonProps {
-  item: {
-    id: string;
-    name: string;
-    price: number;
-  };
-  cart: Record<string, number>;
-  setCart: React.Dispatch<React.SetStateAction<Record<string, number>>>;
-}
-
-const AddToCartButton = ({ item, cart, setCart }: AddToCartButtonProps) => {
-  const quantity = cart[item.id] || 0;
-
-  const handleAdd = (e: { stopPropagation: () => void; }) => {
-    e.stopPropagation(); // Prevent card click events
-    setCart((prev) => ({ ...prev, [item.id]: (prev[item.id] || 0) + 1 }));
-  };
-
-  const handleSubtract = (e: { stopPropagation: () => void; }) => {
-    e.stopPropagation();
-    setCart((prev) => {
-      const newCart = { ...prev };
-      if (newCart[item.id] > 1) {
-        newCart[item.id] -= 1;
-      } else {
-        delete newCart[item.id];
-      }
-      return newCart;
-    });
-  };
-
-  if (quantity === 0) {
-    return (
-      <button
-        onClick={handleAdd}
-        className="text-sm font-bold text-emerald-600 border border-slate-300 rounded-lg px-6 py-2 bg-white hover:bg-emerald-50/50 transition-all shadow-sm"
-      >
-        ADD
-      </button>
-    );
-  }
+const AddToCartButton = ({ item }: { item: MenuItem }) => {
+  const { addToCart, removeFromCart, getQuantity } = useCart();
+  const quantity = getQuantity(item.id);
 
   return (
-    <div className="flex items-center justify-center bg-white border border-slate-300 rounded-lg shadow-sm">
-      <button
-        onClick={handleSubtract}
-        className="px-3 py-2 text-emerald-600 hover:bg-emerald-50/50 rounded-l-lg"
-        aria-label="Remove one item"
-      >
-        <Minus size={16} />
-      </button>
-      <span className="px-3 py-2 text-sm font-bold text-emerald-600 tabular-nums">
-        {quantity}
-      </span>
-      <button
-        onClick={handleAdd}
-        className="px-3 py-2 text-emerald-600 hover:bg-emerald-50/50 rounded-r-lg"
-        aria-label="Add one more item"
-      >
-        <Plus size={16} />
-      </button>
+    <div className="relative w-28 h-10">
+      <AnimatePresence>
+        {quantity === 0 ? (
+          <motion.button
+            key="add"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            onClick={() => addToCart(item)}
+            className="absolute inset-0 bg-card border border-primary text-primary font-bold py-2 px-4 rounded-lg shadow-sm hover:bg-primary/10 transition-colors duration-200 flex items-center justify-center"
+          >
+            Add
+          </motion.button>
+        ) : (
+          <motion.div
+            key="quantity"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="absolute inset-0 flex items-center justify-between bg-primary text-primary-foreground font-bold rounded-lg shadow-sm"
+          >
+            <button
+              onClick={() => removeFromCart(item.id)}
+              className="w-10 h-full flex items-center justify-center text-lg rounded-l-lg hover:bg-primary/80 transition-colors"
+            >
+              <Minus size={16} />
+            </button>
+            <span className="text-sm font-bold">{quantity}</span>
+            <button
+              onClick={() => addToCart(item)}
+              className="w-10 h-full flex items-center justify-center text-lg rounded-r-lg hover:bg-primary/80 transition-colors"
+            >
+              <Plus size={16} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
