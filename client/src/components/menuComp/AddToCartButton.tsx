@@ -29,7 +29,7 @@ const AddToCartButton = ({ item }: { item: MenuItem }) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="absolute inset-0 flex items-center justify-between bg-primary text-primary-foreground rounded-xl overflow-hidden shadow-md"
+            className="absolute inset-0 flex items-center justify-between bg-primary text-primary-foreground rounded-3xl overflow-hidden shadow-md"
           >
             <button
               onClick={() => removeFromCart(item.id)}
