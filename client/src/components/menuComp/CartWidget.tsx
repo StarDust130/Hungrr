@@ -24,7 +24,7 @@ const CartWidget = () => {
               {totalItems} {totalItems > 1 ? "Items" : "Item"}
             </span>
             <span className="block text-xs opacity-80">
-            ₹{totalPrice.toFixed(2)}
+            ₹{totalPrice}
             </span>
           </div>
         </div>

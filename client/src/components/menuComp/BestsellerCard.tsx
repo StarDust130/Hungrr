@@ -14,8 +14,8 @@ const BestsellerCard = ({ item }: { item: MenuItem }) => (
     />
     <div className="p-3">
       <h3 className="font-bold text-foreground truncate">{item.name}</h3>
-      <p className="text-sm font-semibold text-muted-foreground mt-0.5">
-        ₹{item.price.toFixed(2)}
+      <p className="text-sm font-semibold  mt-0.5">
+        ₹{item.price}
       </p>
       <div className="pt-3">
         <AddToCartButton item={item} />
