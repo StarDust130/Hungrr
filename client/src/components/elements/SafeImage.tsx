@@ -21,7 +21,10 @@ type SafeImageProps = {
 const SafeImage = ({ src, alt, className }: SafeImageProps) => {
   const [error, setError] = useState(false);
 
-  if (error) return <ImagePlaceholder className={className} />;
+  // If src is empty or only whitespace, don't render Image, show placeholder
+  if (!src?.trim() || error) {
+    return <ImagePlaceholder className={className} />;
+  }
 
   return (
     <Image
@@ -35,5 +38,6 @@ const SafeImage = ({ src, alt, className }: SafeImageProps) => {
     />
   );
 };
+
 
 export default SafeImage;
