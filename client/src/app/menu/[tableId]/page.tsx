@@ -32,10 +32,6 @@ import type { MenuItem, MenuData, Cart, CartContextType } from "@/types/menu.d.t
 
 import { Coffee } from "lucide-react"; // Add this to your imports
 
-import { ArrowUp } from "lucide-react"; // Add to your lucide-react imports
-
-
-
 // Helper component to render an icon based on category name
 const CategoryIcon = ({ categoryName, className }: { categoryName: string, className?: string }) => {
   const iconProps = {
