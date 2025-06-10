@@ -28,7 +28,14 @@ export interface MenuData {
   [category: string]: MenuItem[];
 }
 
-export type Cart = { [itemId: number]: number };
+// Inside /types/menu.ts (or define here)
+export type CartItem = {
+  item: MenuItem;
+  quantity: number;
+};
+
+export type Cart = Record<number, CartItem>;
+
 
 export interface CartContextType {
   cart: Cart;
