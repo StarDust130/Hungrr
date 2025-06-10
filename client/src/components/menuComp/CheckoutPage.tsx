@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { CartItem } from "@/types/menu";
 import SafeImage from "../elements/SafeImage";
 import BillModal from "./BillModal"; 
+import Link from "next/link";
 
 const CheckoutPage = () => {
   const [isBillVisible, setIsBillVisible] = useState(false); // <-- State to control the bill modal
@@ -68,7 +69,7 @@ const CheckoutPage = () => {
               <li key={item.id} className="flex py-6">
                 <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 dark:border-gray-800">
                   <SafeImage
-                    src={item.image|| ""}
+                    src={item.image || ""}
                     alt={item.name}
                     className="h-full w-full object-cover object-center"
                   />
@@ -119,7 +120,7 @@ const CheckoutPage = () => {
                         className="text-muted-foreground"
                         onClick={() => clearItemFromCart(item.id)}
                       >
-                        Remove 
+                        Remove
                       </Button>
                     </div>
                   </div>
@@ -177,9 +178,6 @@ const CheckoutPage = () => {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <Button size="lg" className="h-14 font-bold text-base rounded-xl">
-            <CreditCard size={20} className="mr-2.5" /> Pay Online
-          </Button>
           <Button
             size="lg"
             variant="secondary"
@@ -187,6 +185,16 @@ const CheckoutPage = () => {
             onClick={() => setIsBillVisible(true)} // <-- Show the modal on click
           >
             <Wallet size={20} className="mr-2.5" /> Pay at Counter
+          </Button>
+          <Button size="lg" className="h-14 font-bold text-base rounded-xl">
+            <Link
+              href={`upi://pay?pa=9302903537-2@ybl&pn=Chandrashekhar&am=${grandTotal}&cu=INR&tn=Thanks%20for%20shopping`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center w-full h-full"
+            >
+              <CreditCard size={20} className="mr-2.5" /> Pay Online
+            </Link>
           </Button>
         </div>
       </div>

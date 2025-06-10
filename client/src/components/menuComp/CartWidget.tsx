@@ -34,12 +34,12 @@ const CartWidget = () => {
           >
             <div className="flex items-center gap-4">
               <div className="relative">
-                <div className="absolute -top-3 -left-2 bg-background/20 backdrop-blur-sm w-8 h-8 rounded-full"></div>
+                <div className="absolute -top-3 -left-2  backdrop-blur-sm w-8 h-8 rounded-full"></div>
                 <ShoppingCart size={24} className="relative z-10" />
               </div>
               <p className="font-bold text-lg">₹{totalPrice.toFixed(2)}</p>
             </div>
-            <div className="flex items-center gap-1 font-semibold text-base pr-2">
+            <div className="flex items-center gap-1 font-semibold text-base pr-2 cursor-pointer">
               View Cart <ChevronRight size={20} />
             </div>
           </Button>
@@ -49,7 +49,7 @@ const CartWidget = () => {
                     We define the flexbox layout here on the DrawerContent itself.
                     This ensures the header and the summary footer are fixed, and only the item list scrolls.
                 */}
-        <DrawerContent className="flex flex-col bg-background max-h-[95vh]">
+        <DrawerContent className="flex flex-col bg-background max-h-[95vh] w-full md:max-w-6xl mx-auto rounded-lg shadow-lg overflow-hidden">
           <DrawerHeader className="text-left flex-shrink-0">
             <DrawerTitle className="text-2xl font-bold tracking-tight">
               Your Order Summary
