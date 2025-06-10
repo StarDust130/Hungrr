@@ -1,6 +1,17 @@
+"use client";
+
 import useCart from "@/hooks/useCart";
 import { ChevronRight, ShoppingCart } from "lucide-react";
 import { motion } from "framer-motion";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import CheckoutPage from "./CheckoutPage";
+import { Button } from "@/components/ui/button";
 
 const CartWidget = () => {
   const { totalItems, totalPrice } = useCart();
@@ -9,31 +20,45 @@ const CartWidget = () => {
 
   return (
     <motion.div
-      initial={{ y: 80, opacity: 0 }}
+      initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      exit={{ y: 80, opacity: 0 }}
-      transition={{ type: "spring", stiffness: 60, damping: 12 }}
+      exit={{ y: 100, opacity: 0 }}
+      transition={{ type: "spring", stiffness: 50, damping: 15 }}
       className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-50"
     >
-      <div className="bg-primary text-primary-foreground backdrop-blur-md border border-border/40 shadow-xl rounded-full px-5 py-3 flex items-center justify-between gap-4 cursor-pointer hover:shadow-2xl transition-all duration-200">
-        <div className="flex items-center gap-3">
-          <div className="bg-primary  p-2 rounded-full">
-            <ShoppingCart size={18} className="text-primary-foreground" />
-          </div>
-          <div className="leading-tight">
-            <p className="text-xs font-medium opacity-90">
-              {totalItems} {totalItems > 1 ? "Items" : "Item"}
-            </p>
-            <p className="text-sm font-semibold">
-              ₹{totalPrice}{" "}
-              <span className="text-[10px] text-gray-300 dark:text-gray-500 font-medium">+ GST</span>
-            </p>
-          </div>
-        </div>
-        <button className="flex items-center gap-1 text-sm font-medium hover:underline underline-offset-4 transition-all">
-          View Cart <ChevronRight size={16} />
-        </button>
-      </div>
+      <Drawer>
+        <DrawerTrigger asChild>
+          <Button
+            variant="default"
+            className="w-full h-16 rounded-2xl shadow-2xl shadow-primary/30 flex items-center justify-between p-3 text-primary-foreground bg-gradient-to-r from-primary via-primary to-primary/80 transition-all duration-300 transform hover:scale-[1.03]"
+          >
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <div className="absolute -top-3 -left-2 bg-background/20 backdrop-blur-sm w-8 h-8 rounded-full"></div>
+                <ShoppingCart size={24} className="relative z-10" />
+              </div>
+              <p className="font-bold text-lg">₹{totalPrice.toFixed(2)}</p>
+            </div>
+            <div className="flex items-center gap-1 font-semibold text-base pr-2">
+              View Cart <ChevronRight size={20} />
+            </div>
+          </Button>
+        </DrawerTrigger>
+
+        {/* --- THIS IS THE KEY FIX FOR SCROLLING --- 
+                    We define the flexbox layout here on the DrawerContent itself.
+                    This ensures the header and the summary footer are fixed, and only the item list scrolls.
+                */}
+        <DrawerContent className="flex flex-col bg-background max-h-[95vh]">
+          <DrawerHeader className="text-left flex-shrink-0">
+            <DrawerTitle className="text-2xl font-bold tracking-tight">
+              Your Order Summary
+            </DrawerTitle>
+          </DrawerHeader>
+          {/* The CheckoutPage now just provides the content, not the layout */}
+          <CheckoutPage />
+        </DrawerContent>
+      </Drawer>
     </motion.div>
   );
 };
