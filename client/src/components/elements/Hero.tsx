@@ -18,7 +18,6 @@ const Hero = () => {
             transition={{ duration: 0.6 }}
             className="text-center lg:text-left px-4 sm:px-0 space-y-6 lg:space-y-10"
           >
-
             {/* Main Heading */}
             <div>
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold leading-tight">
@@ -48,13 +47,15 @@ const Hero = () => {
 
             {/* CTA Buttons */}
             <div className="flex w-full flex-col sm:flex-row gap-4 sm:gap-5 mx-auto lg:mx-0 justify-center lg:justify-start">
-              <Button
-                size="lg"
-                className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 transition-transform hover:scale-[1.07] active:scale-95"
-              >
-                <Link href="/menu/123">Start free trial</Link>
-                <ArrowRight className="w-5 h-5" />
-              </Button>
+              <Link href="/menu/123">
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 transition-transform hover:scale-[1.07] active:scale-95"
+                >
+                  Start free trial
+                  <ArrowRight className="w-5 h-5" />
+                </Button>
+              </Link>
               <Button
                 size="lg"
                 variant="outline"
