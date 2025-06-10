@@ -3,7 +3,6 @@
 **Scan. Order. Eat.**  
 A slick QR-based ordering system for cafes and restaurants — no waiters, no delays, just good food faster 😎
 
-
 ---
 
 ## 🚀 What is Hungrr?
