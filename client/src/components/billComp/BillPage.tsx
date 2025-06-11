@@ -4,10 +4,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangle, QrCode, Atom, ReceiptIndianRupee } from "lucide-react";
+import { AlertTriangle, QrCode, Atom, ReceiptIndianRupee, Loader } from "lucide-react";
 import { CartItem } from "@/types/menu"; // Make sure you have this type defined
 import { BillActions } from "./BillActions";
 import { OrderStatusTracker } from "./OrderStatusTracker";
+import Image from "next/image";
 
 // This interface is used by both the page and its child components
 export interface BillData {
@@ -95,11 +96,11 @@ export default function BillPage() {
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
   
-            <ReceiptIndianRupee className="h-12 w-12 text-gray-500" />
+            <Image src="/anime-girl-loading.png" alt="laoding" width={150} height={150} />
           </div>
 
           <div className="flex items-center gap-2 animate-fade-in">
-            <p className="text-lg font-medium ">Loading Bill...</p>
+            <p className="text-lg font-medium ">Loading Bill...</p> <Loader className="h-5 w-5 animate-spin text-primary" />
           </div>
 
           <p className="text-xs mt-8 text-muted-foreground">
