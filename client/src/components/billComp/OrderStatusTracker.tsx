@@ -102,7 +102,7 @@ export const OrderStatusTracker = ({ status }: { status: Status }) => {
     },
   ];
 
-  const currentStepIndex = steps.findIndex((step) => step.id === status);
+//   const currentStepIndex = steps.findIndex((step) => step.id === status);
 
   // Remap "payment-pending" to be the first step for UI logic
   const displayStatus = status === "payment-pending" ? "confirmed" : status;
