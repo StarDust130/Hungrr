@@ -1,4 +1,4 @@
-import BillPage from "@/components/menuComp/BillPage";
+import BillPage from "@/components/billComp/BillPage";
 import CartProvider from "@/components/menuComp/CartProvider";
 
 const page = () => {
@@ -7,5 +7,5 @@ const page = () => {
       <BillPage />
     </CartProvider>
   );
-}
-export default page
+};
+export default page;
