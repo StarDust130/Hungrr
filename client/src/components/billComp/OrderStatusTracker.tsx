@@ -1,140 +1,153 @@
-// /app/bill/OrderStatusTracker.tsx (New File)
+// /app/bill/OrderStatusTracker.tsx
 
 "use client";
 
-import {
-  Check,
-  Loader,
-  ChefHat,
-  ShoppingBasket,
-  CircleDollarSign,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { CheckCircle, Clock, UtensilsCrossed, PartyPopper } from "lucide-react";
 
-type Status = "payment-pending" | "confirmed" | "preparing" | "ready";
+// Define the status types for clarity
+export type OrderStatus =
+  | "payment-pending"
+  | "confirmed"
+  | "preparing"
+  | "ready";
 
-interface StepProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  isCompleted: boolean;
-  isActive: boolean;
-}
+// --- Countdown Timer Hook (Unchanged) ---
+const useCountdown = (initialMinutes: number, isActive: boolean) => {
+  const [totalSeconds, setTotalSeconds] = useState(initialMinutes * 60);
+  const totalInitialSeconds = initialMinutes * 60;
 
-const Step = ({
-  icon,
-  title,
-  description,
-  isCompleted,
-  isActive,
-}: StepProps) => {
-  const getStatusClasses = () => {
-    if (isActive) return "border-blue-500 text-blue-500";
-    if (isCompleted) return "border-green-500 text-green-500";
-    return "border-gray-300 text-gray-400";
+  useEffect(() => {
+    if (!isActive) {
+      setTotalSeconds(initialMinutes * 60);
+      return;
+    }
+    if (totalSeconds <= 0) return;
+
+    const timer = setInterval(() => {
+      setTotalSeconds((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isActive, totalSeconds, initialMinutes]);
+
+  const percentage =
+    totalSeconds > 0
+      ? ((totalInitialSeconds - totalSeconds) / totalInitialSeconds) * 100
+      : 100;
+
+  return {
+    minutes: Math.floor(totalSeconds / 60),
+    seconds: totalSeconds % 60,
+    percentage: percentage,
   };
-
-  const getIcon = () => {
-    if (isActive) return <Loader className="h-5 w-5 animate-spin" />;
-    if (isCompleted) return <Check className="h-5 w-5" />;
-    return icon;
-  };
-
-  return (
-    <div className="flex items-start">
-      <div className={`flex flex-col items-center mr-4`}>
-        <div
-          className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${getStatusClasses()}`}
-        >
-          {getIcon()}
-        </div>
-        <div
-          className={`w-0.5 h-16 mt-2 ${
-            isCompleted ? "bg-green-500" : "bg-gray-300"
-          }`}
-        ></div>
-      </div>
-      <div>
-        <h3
-          className={`font-bold ${
-            isActive || isCompleted
-              ? "text-foreground"
-              : "text-muted-foreground"
-          }`}
-        >
-          {title}
-        </h3>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
-    </div>
-  );
 };
 
-export const OrderStatusTracker = ({ status }: { status: Status }) => {
-  const steps: {
-    id: Status;
-    title: string;
-    desc: string;
-    icon: React.ReactNode;
-  }[] = [
-    {
-      id: "payment-pending",
-      title: "Payment Pending",
-      desc: "Waiting for payment confirmation.",
-      icon: <CircleDollarSign className="h-5 w-5" />,
-    },
-    {
-      id: "confirmed",
-      title: "Order Confirmed",
-      desc: "Your payment was successful.",
-      icon: <Check className="h-5 w-5" />,
-    },
-    {
-      id: "preparing",
-      title: "Preparing Your Food",
-      desc: "The kitchen has started your order. Approx. 15 mins.",
-      icon: <ChefHat className="h-5 w-5" />,
-    },
-    {
-      id: "ready",
-      title: "Ready for Pickup",
-      desc: "Your order is ready at the counter.",
-      icon: <ShoppingBasket className="h-5 w-5" />,
-    },
-  ];
-
-//   const currentStepIndex = steps.findIndex((step) => step.id === status);
-
-  // Remap "payment-pending" to be the first step for UI logic
-  const displayStatus = status === "payment-pending" ? "confirmed" : status;
-  const displayCurrentStepIndex = steps.findIndex(
-    (step) => step.id === displayStatus
+// --- Main Component with New, Integrated UI ---
+export const OrderStatusTracker = ({ status }: { status: OrderStatus }) => {
+  const isPaid = status !== "payment-pending";
+  const { minutes, seconds, percentage } = useCountdown(
+    15,
+    status === "preparing"
   );
 
+  const getLiveStatusDetails = () => {
+    switch (status) {
+      case "confirmed":
+        return {
+          title: "Order Confirmed",
+          Icon: CheckCircle,
+          color: "text-blue-500",
+          gradient: "from-blue-500 to-cyan-500",
+          progress: 33,
+        };
+      case "preparing":
+        return {
+          title: "Preparing Your Food",
+          Icon: UtensilsCrossed,
+          color: "text-orange-500",
+          gradient: "from-orange-500 to-amber-500",
+          progress: percentage,
+          isPreparing: true,
+        };
+      case "ready":
+        return {
+          title: "Ready for Pickup",
+          Icon: PartyPopper,
+          color: "text-green-500",
+          gradient: "from-green-500 to-emerald-500",
+          progress: 100,
+        };
+      default: // payment-pending
+        return {
+          title: "Awaiting Payment",
+          Icon: Clock,
+          color: "text-gray-500",
+          gradient: "from-gray-400 to-gray-500",
+          progress: 0,
+        };
+    }
+  };
+
+  const { title, Icon, color, gradient, progress, isPreparing } =
+    getLiveStatusDetails();
+
   return (
-    <div className="p-6 bg-gray-50 dark:bg-gray-900/50 rounded-lg border w-full">
-      {status === "payment-pending" ? (
-        <Step
-          key="payment-pending"
-          icon={<CircleDollarSign className="h-5 w-5" />}
-          title="Payment Pending"
-          description="Please complete the payment below."
-          isActive={true}
-          isCompleted={false}
+    <div className="w-full font-sans p-5 rounded-2xl bg-gray-50 dark:bg-gray-900/50 shadow-sm border border-gray-200 dark:border-gray-800 space-y-4">
+      {/* --- Main Status Display --- */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
+            {title}
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Live Order Status
+          </p>
+        </div>
+        <Icon
+          className={`h-6 w-6 ${color} ${isPreparing ? "animate-bounce" : ""}`}
         />
-      ) : (
-        steps
-          .slice(1)
-          .map((step, index) => (
-            <Step
-              key={step.id}
-              icon={step.icon}
-              title={step.title}
-              description={step.desc}
-              isActive={index + 1 === displayCurrentStepIndex}
-              isCompleted={index + 1 < displayCurrentStepIndex}
-            />
-          ))
+      </div>
+
+      {/* --- Integrated Countdown Timer --- */}
+      {/* This section now appears seamlessly as part of the main card */}
+      {isPreparing && (
+        <div className="text-left flex justify-center pt-2">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+            Estimated time remaining
+          </p>
+          <p className={`font-mono font-bold text-3xl ${color}`}>
+            {String(minutes).padStart(2, "0")}:
+            {String(seconds).padStart(2, "0")}
+          </p>
+        </div>
       )}
+
+      {/* --- Linear Progress Bar --- */}
+      <div className="space-y-2">
+        <div className="w-full bg-black/5 dark:bg-white/5 rounded-full h-2">
+          <div
+            className={`bg-gradient-to-r ${gradient} h-2 rounded-full transition-all duration-300 ease-linear`}
+            style={{ width: `${progress}%` }}
+          ></div>
+        </div>
+        <div className="flex justify-between text-xs font-medium text-gray-400">
+          <span>Order Placed</span>
+          <span>Ready</span>
+        </div>
+      </div>
+
+      {/* --- Payment Status Footer --- */}
+      <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-800">
+        <p>Payment</p>
+        <div
+          className={`font-bold ${
+            isPaid ? "text-green-600" : "text-yellow-600"
+          }`}
+        >
+          {isPaid ? "PAID" : "PENDING"}
+        </div>
+      </div>
     </div>
   );
 };
