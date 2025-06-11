@@ -1,6 +1,13 @@
 "use client";
+
 import { Cart, CartContextType, MenuItem } from "@/types/menu";
-import { useMemo, useState, useEffect, createContext } from "react";
+import {
+  useMemo,
+  useState,
+  useEffect,
+  createContext,
+  useCallback,
+} from "react";
 
 //! Create Context for Cart 🛒
 export const CartContext = createContext<CartContextType | null>(null);
@@ -8,11 +15,15 @@ export const CartContext = createContext<CartContextType | null>(null);
 const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [cart, setCart] = useState<Cart>({});
 
-  //! Load cart from localStorage on first render
+  //! Load cart from localStorage on component mount (client-side only)
   useEffect(() => {
-    const storedCart = localStorage.getItem("cart");
-    if (storedCart) {
-      setCart(JSON.parse(storedCart));
+    try {
+      const storedCart = localStorage.getItem("cart");
+      if (storedCart) {
+        setCart(JSON.parse(storedCart));
+      }
+    } catch (error) {
+      console.error("Failed to parse cart from localStorage", error);
     }
   }, []);
 
@@ -21,8 +32,7 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  //! Add or increase quantity of item in cart
-  const addToCart = (item: MenuItem) => {
+  const addToCart = useCallback((item: MenuItem) => {
     setCart((prev) => {
       const existing = prev[item.id];
       return {
@@ -33,10 +43,10 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
         },
       };
     });
-  };
+  }, []);
 
-  //! Remove 1 quantity or delete item if 1 left
-  const removeFromCart = (itemId: number) => {
+  //! Remove an item from the cart
+  const removeFromCart = useCallback((itemId: number) => {
     setCart((prev) => {
       const existing = prev[itemId];
       if (!existing) return prev;
@@ -44,44 +54,51 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
       if (existing.quantity > 1) {
         return {
           ...prev,
-          [itemId]: {
-            ...existing,
-            quantity: existing.quantity - 1,
-          },
+          [itemId]: { ...existing, quantity: existing.quantity - 1 },
         };
-      } else {
-        const newCart = { ...prev };
-        delete newCart[itemId];
-        return newCart;
       }
+      const newCart = { ...prev };
+      delete newCart[itemId];
+      return newCart;
     });
-  };
+  }, []);
 
-  //! Clear item completely
-  const clearItemFromCart = (itemId: number) => {
+//! Clear a specific item from the cart
+  const clearItemFromCart = useCallback((itemId: number) => {
     setCart((prev) => {
       const newCart = { ...prev };
       delete newCart[itemId];
       return newCart;
     });
-  };
+  }, []);
 
-  //! Get item quantity
-  const getQuantity = (itemId: number) => {
-    return cart[itemId]?.quantity || 0;
-  };
+  //! ✨ NEW: Function to clear the entire cart
+  const clearCart = useCallback(() => {
+    setCart({});
+  }, []);
 
-  //! Total items and total price
+  const getQuantity = useCallback(
+    (itemId: number) => {
+      return cart[itemId]?.quantity || 0;
+    },
+    [cart]
+  );
+
+  //! Calculate total items and total price using useMemo for performance optimization
   const { totalItems, totalPrice } = useMemo(() => {
-    let items = 0;
-    let price = 0;
-    for (const id in cart) {
-      const entry = cart[id];
-      items += entry.quantity;
-      price += entry.item.price * entry.quantity;
-    }
-    return { totalItems: items, totalPrice: price };
-  }, [cart]);
+    // Use Object.values to get an array of cart entries and then reduce them
+    return Object.values(cart).reduce(
+      (acc, entry) => {
+        // Ensure the item and price are valid before adding
+        if (entry && entry.item && typeof entry.item.price === "number") {
+          acc.totalItems += entry.quantity;
+          acc.totalPrice += entry.item.price * entry.quantity;
+        }
+        return acc;
+      },
+      { totalItems: 0, totalPrice: 0 } // Initial values
+    );
+  }, [cart]); // This calculation re-runs only when the cart changes
 
   return (
     <CartContext.Provider
@@ -93,6 +110,7 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
         getQuantity,
         totalItems,
         totalPrice,
+        clearCart, // Provide the new function to your app
       }}
     >
       {children}
