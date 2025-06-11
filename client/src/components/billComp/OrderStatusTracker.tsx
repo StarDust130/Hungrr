@@ -112,7 +112,7 @@ export const OrderStatusTracker = ({ status }: { status: OrderStatus }) => {
       {/* --- Integrated Countdown Timer --- */}
       {/* This section now appears seamlessly as part of the main card */}
       {isPreparing && (
-        <div className="text-left flex justify-center pt-2">
+        <div className="text-left  justify-center pt-2">
           <p className="text-sm  mb-1">
             Estimated time remaining
           </p>
