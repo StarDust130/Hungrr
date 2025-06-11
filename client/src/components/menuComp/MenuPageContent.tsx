@@ -14,6 +14,7 @@ import menuData from "@/lib/data";
 import MenuItemCard from "@/components/menuComp/MenuItemCard";
 import Image from "next/image";
 
+
 const MenuPageContent = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const allItems = useMemo(() => {
@@ -29,11 +30,16 @@ const MenuPageContent = () => {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const navRef = useRef<HTMLDivElement>(null); // Ref for the nav container
 
+  //! Filter bestsellers from all items
+  // This will return all items that are marked as bestsellers
+  // It uses useMemo to optimize performance by memoizing the result
   const bestsellers = useMemo(
     () => allItems.filter((item) => item.isBestseller),
     [allItems]
   );
 
+  //! Filter menu data based on search term
+  // This will return all items if searchTerm is empty
   const filteredMenuData = useMemo(() => {
     if (!searchTerm.trim()) return menuData;
     const lowercasedFilter = searchTerm.toLowerCase();
@@ -55,8 +61,13 @@ const MenuPageContent = () => {
     return filtered;
   }, [searchTerm]);
 
+  // Get the visible categories based on the filtered menu data
+  // This will return an array of categories that have items matching the search term
+  // If no items match, it will return an empty array
   const visibleCategories = Object.keys(filteredMenuData);
 
+  //! Scroll to the selected category in the nav bar
+  // This function will scroll to the section of the selected category
   const scrollToCategory = (category: string) => {
     if (observerRef.current) observerRef.current.disconnect();
 
@@ -80,7 +91,7 @@ const MenuPageContent = () => {
     }, 800);
   };
 
-  // Auto-scroll the active category into view in the nav bar
+  //! Auto-scroll the active category into view in the nav bar ☺️
   useEffect(() => {
     const activeEl = document.getElementById(`nav-${activeCategory}`);
     if (activeEl && navRef.current) {
@@ -94,7 +105,8 @@ const MenuPageContent = () => {
     }
   }, [activeCategory]);
 
-  // Intersection Observer for active category
+  //! Intersection Observer for active category
+  // This will observe the sections and set the active category based on which section is currently in view
   useEffect(() => {
     if (observerRef.current) observerRef.current.disconnect();
     const observerOptions = { rootMargin: "-40% 0px -60% 0px", threshold: 0 };
@@ -231,7 +243,7 @@ const MenuPageContent = () => {
       </main>
 
       <AnimatePresence>
-        <CartWidget />
+        <CartWidget />      
       </AnimatePresence>
       <AnimatePresence>
         <CartWidget />
