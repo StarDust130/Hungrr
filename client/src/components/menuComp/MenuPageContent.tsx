@@ -245,9 +245,6 @@ const MenuPageContent = () => {
       <AnimatePresence>
         <CartWidget />      
       </AnimatePresence>
-      <AnimatePresence>
-        <CartWidget />
-      </AnimatePresence>
     </div>
   );
 };
