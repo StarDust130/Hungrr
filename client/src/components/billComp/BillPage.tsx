@@ -9,6 +9,7 @@ import { CartItem } from "@/types/menu"; // Make sure you have this type defined
 import { OrderStatusTracker } from "./OrderStatusTracker";
 import Image from "next/image";
 import { BillActions } from "./BillActions";
+import { Separator } from "../ui/separator";
 
 // This interface is used by both the page and its child components
 export interface BillData {
@@ -67,7 +68,7 @@ export default function BillPage() {
   // 1. Render Error State
   if (error) {
     return (
-      <main className="flex justify-center items-center min-h-screen p-4">
+      <main className="flex justify-center items-center h-[90vh] md:h-screen p-4">
         <div className="text-center p-8 bg-background rounded-lg shadow-md max-w-sm">
           <AlertTriangle className="mx-auto h-12 w-12 text-destructive" />
           <h1 className="mt-4 text-xl font-bold">Unable to Load Bill</h1>
@@ -79,15 +80,20 @@ export default function BillPage() {
 
   if (!bill) {
     return (
-      <main className="flex flex-col justify-center items-center min-h-screen px-4 text-center">
+      <main className="flex flex-col justify-center items-center h-[90vh] md:h-screen px-4 text-center">
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
-  
-            <Image src="/anime-girl-loading.png" alt="laoding" width={150} height={150} />
+            <Image
+              src="/anime-girl-loading.png"
+              alt="laoding"
+              width={150}
+              height={150}
+            />
           </div>
 
           <div className="flex items-center gap-2 animate-fade-in">
-            <p className="text-lg font-medium ">Loading Bill...</p> <Loader className="h-5 w-5 animate-spin text-primary" />
+            <p className="text-lg font-medium ">Loading Bill...</p>{" "}
+            <Loader className="h-5 w-5 animate-spin text-primary" />
           </div>
 
           <p className="text-xs mt-8 text-muted-foreground">
@@ -179,6 +185,29 @@ export default function BillPage() {
             </div>
             <QrCode className="h-16 w-16 text-muted-foreground" />
           </div>
+        </div>
+        <div className="flex flex-col justify-center items-center text-center px-6 py-10 space-y-4">
+          <Image
+            src="/anime-girl-thanks-2.png"
+            alt="Thanks for ordering"
+            width={160}
+            height={160}
+            className="mb-2"
+          />
+          <Separator className="w-full mt-2" />
+
+          <p className="text-base  font-medium leading-relaxed">
+            Your order is on the way. <br />
+            <span className="text-sm">
+              Track it above and enjoy your meal
+            </span>{" "}
+            <span className="ml-1 text-sm">😋</span>
+          </p>
+          <Separator className="w-full" />
+
+          <p className="text-xs text-muted-foreground">
+            Need help? Please reach out to our staff. 
+          </p>
         </div>
 
         {/* Component 3: The Action Buttons (Pay, Download, etc.) */}

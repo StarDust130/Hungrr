@@ -23,6 +23,7 @@ import QRCode from "react-qr-code";
 import { BillData } from "./BillPage";
 import GenerateReliablePdf from "./GenerateReliablePdf";
 
+
 // --- Configuration for Your UPI Details ---
 const YOUR_UPI_ID = "9302903537-2@ybl";
 const YOUR_NAME = "Chandrashekhar";
