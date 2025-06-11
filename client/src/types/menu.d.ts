@@ -40,9 +40,10 @@ export type Cart = Record<number, CartItem>;
 export interface CartContextType {
   cart: Cart;
   addToCart: (item: MenuItem) => void;
-  removeFromCart: (itemId: number) => void; // Changed to accept itemId for simplicity
-  clearItemFromCart: (itemId: number) => void; // New: to completely remove an item
+  removeFromCart: (itemId: number) => void;
+  clearItemFromCart: (itemId: number) => void;
   getQuantity: (itemId: number) => number;
   totalItems: number;
   totalPrice: number;
+  clearCart: () => void; // ✨ New: Essential for clearing the cart post-order
 }
