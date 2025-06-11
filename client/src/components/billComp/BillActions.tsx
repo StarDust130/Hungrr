@@ -152,7 +152,7 @@ export function BillActions({ bill }: BillActionsProps) {
               </DialogDescription>
             </DialogHeader>
             <div className="p-4">
-              <div className="bg-white p-4 rounded-lg w-full max-w-[200px] mx-auto">
+              <div className=" p-4 rounded-lg w-full max-w-[200px] mx-auto">
                 <QRCode
                   value={upiUrl}
                   style={{ height: "auto", maxWidth: "100%", width: "100%" }}

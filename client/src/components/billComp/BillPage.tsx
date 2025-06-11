@@ -4,11 +4,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangle, QrCode, Atom, ReceiptIndianRupee, Loader } from "lucide-react";
+import { AlertTriangle, QrCode, Atom, Loader } from "lucide-react";
 import { CartItem } from "@/types/menu"; // Make sure you have this type defined
-import { BillActions } from "./BillActions";
 import { OrderStatusTracker } from "./OrderStatusTracker";
 import Image from "next/image";
+import { BillActions } from "./BillActions";
 
 // This interface is used by both the page and its child components
 export interface BillData {
@@ -32,48 +32,35 @@ export default function BillPage() {
   const [orderStatus, setOrderStatus] =
     useState<OrderStatus>("payment-pending");
 
-  // The ref for printing is no longer needed as the PDF is generated from data
+    useEffect(() => {
+      const billJson = sessionStorage.getItem("currentBill");
+      if (billJson) {
+        try {
+          const parsedBill: BillData = JSON.parse(billJson);
 
-  // --- EFFECTS ---
+          // ✨ --- DEBUGGING STEP 1 --- ✨
+          // Log the data exactly as it comes from sessionStorage.
+          console.log("1. Bill data from sessionStorage:", parsedBill);
 
-  // Effect 1: Get bill from session storage and simulate payment
-  useEffect(() => {
-    const billJson = sessionStorage.getItem("currentBill");
-    if (billJson) {
-      try {
-        const parsedBill: BillData = JSON.parse(billJson);
-
-        // For demonstration: simulate an "online" payment being completed after 5 seconds
-        if (
-          parsedBill.paymentMethod === "online" &&
-          parsedBill.paymentStatus === "pending"
-        ) {
-          setTimeout(() => {
-            setBill({ ...parsedBill, paymentStatus: "paid" });
-          }, 5000); // 5-second delay to simulate a real payment process
-        } else {
           setBill(parsedBill);
-        }
-      } catch (e) {
-        setError("Failed to read bill data. It might be corrupted.");
-      }
-    } else {
-      setError("Bill not found. Your session may have expired.");
-    }
-  }, []);
 
-  // Effect 2: Simulate the food preparation progress after payment is confirmed
-  useEffect(() => {
-    // This effect runs whenever the bill's payment status changes
-    if (bill?.paymentStatus === "paid") {
-      setOrderStatus("confirmed");
-      // Chain setTimeouts to simulate the order progressing through the kitchen
-      setTimeout(() => setOrderStatus("preparing"), 2000); // Move to 'preparing' after 2 seconds
-      setTimeout(() => setOrderStatus("ready"), 12000); // Move to 'ready' 10 seconds after that (total 12s)
-    } else {
-      setOrderStatus("payment-pending");
-    }
-  }, [bill?.paymentStatus]);
+        } catch (e) {
+          setError("Failed to read bill data. It might be corrupted.");
+        }
+      } else {
+        setError("Bill not found. Your session may have expired.");
+      }
+    }, []);
+
+    useEffect(() => {
+      if (bill?.paymentStatus === "paid") {
+        setOrderStatus("confirmed");
+        setTimeout(() => setOrderStatus("preparing"), 2000);
+        setTimeout(() => setOrderStatus("ready"), 17000);
+      } else {
+        setOrderStatus("payment-pending");
+      }
+    }, [bill?.paymentStatus]);
 
   // --- RENDER LOGIC ---
 
@@ -116,7 +103,7 @@ export default function BillPage() {
     <main className="font-sans w-full min-h-screen flex flex-col items-center bg-gray-50 dark:bg-black p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-md mx-auto space-y-6">
         {/* Component 1: The Live Order Status Tracker */}
-        <OrderStatusTracker status={orderStatus} />
+        <OrderStatusTracker status={orderStatus} bill={bill} />
 
         {/* Component 2: The On-Screen Bill Display */}
         <div className="bg-background p-6 sm:p-8 space-y-6 rounded-lg border border-border shadow-sm">
