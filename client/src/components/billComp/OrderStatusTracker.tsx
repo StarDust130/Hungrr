@@ -93,14 +93,14 @@ export const OrderStatusTracker = ({ status }: { status: OrderStatus }) => {
     getLiveStatusDetails();
 
   return (
-    <div className="w-full font-sans p-5 rounded-2xl bg-gray-50 dark:bg-gray-900/50 shadow-sm border border-gray-200 dark:border-gray-800 space-y-4">
+    <div className="w-full font-sans p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 space-y-4">
       {/* --- Main Status Display --- */}
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
+          <h3 className="font-bold text-lg  ">
             {title}
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-xs ">
             Live Order Status
           </p>
         </div>
@@ -113,7 +113,7 @@ export const OrderStatusTracker = ({ status }: { status: OrderStatus }) => {
       {/* This section now appears seamlessly as part of the main card */}
       {isPreparing && (
         <div className="text-left flex justify-center pt-2">
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+          <p className="text-sm  mb-1">
             Estimated time remaining
           </p>
           <p className={`font-mono font-bold text-3xl ${color}`}>
@@ -131,14 +131,14 @@ export const OrderStatusTracker = ({ status }: { status: OrderStatus }) => {
             style={{ width: `${progress}%` }}
           ></div>
         </div>
-        <div className="flex justify-between text-xs font-medium text-gray-400">
+        <div className="flex justify-between text-xs font-medium ">
           <span>Order Placed</span>
           <span>Ready</span>
         </div>
       </div>
 
       {/* --- Payment Status Footer --- */}
-      <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-800">
+      <div className="flex justify-between items-center text-sm  dark: pt-4 border-t border-gray-200 dark:border-gray-800">
         <p>Payment</p>
         <div
           className={`font-bold ${
