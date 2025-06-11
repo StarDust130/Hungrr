@@ -89,13 +89,22 @@ export default function BillPage() {
     );
   }
 
-  // 2. Render Loading State
   if (!bill) {
     return (
-      <main className="flex justify-center items-center min-h-screen">
-        <div className="flex items-center space-x-2 text-muted-foreground">
-          <ReceiptIndianRupee className="h-8 w-8 animate-spin" />
-          <span className="font-medium text-lg">Loading Bill...</span>
+      <main className="flex flex-col justify-center items-center min-h-screen px-4 text-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+  
+            <ReceiptIndianRupee className="h-12 w-12 text-gray-500" />
+          </div>
+
+          <div className="flex items-center gap-2 animate-fade-in">
+            <p className="text-lg font-medium ">Loading Bill...</p>
+          </div>
+
+          <p className="text-xs mt-8 text-muted-foreground">
+            Fetching your order details, please hang tight. 😉
+          </p>
         </div>
       </main>
     );
