@@ -197,9 +197,12 @@ const MenuPageContent = () => {
                   item={item as MenuItem}
                 />
               ))}
+            
             </div>
           </section>
         )}
+
+        
 
         {/* Menu Items by Category */}
         {visibleCategories.length > 0 ? (
@@ -235,7 +238,7 @@ const MenuPageContent = () => {
             />
             <p className="text-muted-foreground text-xs mt-2">
               Your search for{" "}
-              <span className="text-emerald-500 font-bold">“{searchTerm}”</span>{" "}
+              <span className="text-red-400 font-bold">“{searchTerm}”</span>{" "}
               did not match any dishes.
             </p>
           </div>
