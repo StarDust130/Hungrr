@@ -2,7 +2,7 @@ const menuData = {
     Recommended: [
       {
         id: 1,
-        name: "Sea Salt Caramel Cold Brew",
+        name: "Sea Salt Caramel",
         price: 299,
         description:
           "Our signature cold brew, sweetened with caramel and a hint of sea salt.",
