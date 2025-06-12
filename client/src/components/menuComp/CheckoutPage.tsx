@@ -65,6 +65,8 @@ const CheckoutPage = () => {
     setIsLoading(true);
     setIsRedirecting(true); // ✨ Trigger the full-page loader
 
+    
+
     // Simulate a quick process before redirecting so the user sees the loader
     setTimeout(() => {
       const tempBillId = Date.now().toString();
@@ -79,9 +81,10 @@ const CheckoutPage = () => {
         paymentStatus: "pending",
         specialInstructions,
       };
+      router.push(`/bills/${tempBillId}`);
 
       sessionStorage.setItem("currentBill", JSON.stringify(billData));
-      router.push(`/bills/${tempBillId}`);
+      
       clearCart();
     }, 1500); // 1.5-second delay for a smooth UX
   };
