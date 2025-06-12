@@ -3,12 +3,20 @@ import { AnimatePresence, motion } from "framer-motion";
 import { MenuItem } from "@/types/menu";
 import useCart from "@/hooks/useCart";
 
-const AddToCartButton = ({ item }: { item: MenuItem }) => {
+const AddToCartButton = ({
+  item,
+  className,
+}: {
+  item: MenuItem;
+  className?: string | undefined;
+}) => {
   const { addToCart, removeFromCart, getQuantity } = useCart();
   const quantity = getQuantity(item.id);
 
   return (
-    <div className="relative w-28 h-10">
+    <div
+      className={`relative w-28 h-10 ${className || ""}`}
+    >
       <AnimatePresence mode="wait" initial={false}>
         {quantity === 0 ? (
           <motion.button
