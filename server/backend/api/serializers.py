@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Cafe, Table, MenuItem, Order , OrderItem
 
 
-class CafeSerializer(serializers.ModelSerializer):
+class CafeInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cafe
         fields = 'name', 'tagline', 'bannerUrl', 'rating', 'reviews', 'openingTime'  , "slug"
