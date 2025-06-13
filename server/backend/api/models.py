@@ -1,5 +1,6 @@
 from django.db import models
 import uuid
+from django.utils.text import slugify
 
 
 # 🧁 Cafe Model
@@ -27,6 +28,15 @@ class Cafe(models.Model):
 
     def __str__(self):
         return self.name
+    
+    # Generate a unique slug if not provided
+    # This ensures slug is unique and human-readable
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.name)
+            unique_suffix = str(uuid.uuid4())[:8]  # short random code
+            self.slug = f"{base_slug}-{unique_suffix}"
+        super().save(*args, **kwargs)
 
 # 🍽️ Table Model
 class Table(models.Model):
