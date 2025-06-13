@@ -143,6 +143,5 @@ export const cafeInfo = {
     "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1200&q=80",
   rating: 4.9,
   reviews: 782,
-  address: "123 Lens Lane, Satna",
   openingTime: "9:00 AM",
 };
