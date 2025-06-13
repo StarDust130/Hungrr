@@ -13,6 +13,7 @@ import BestsellerCard from "@/components/menuComp/BestsellerCard";
 import menuData from "@/lib/data";
 import MenuItemCard from "@/components/menuComp/MenuItemCard";
 import Image from "next/image";
+import SpecialLabel from "./SpecialLabel";
 
 
 const MenuPageContent = () => {
@@ -187,9 +188,7 @@ const MenuPageContent = () => {
         {/* Bestsellers Section */}
         {bestsellers.length > 0 && !searchTerm && (
           <section className="py-8">
-            <h2 className="text-2xl font-extrabold text-foreground mb-4 tracking-tight">
-              Chef&apos;s Picks
-            </h2>
+            <SpecialLabel />
             <div className="flex gap-4 pb-4 -mx-4 px-4 overflow-x-auto no-scrollbar">
               {bestsellers.map((item) => (
                 <BestsellerCard
@@ -197,12 +196,9 @@ const MenuPageContent = () => {
                   item={item as MenuItem}
                 />
               ))}
-            
             </div>
           </section>
         )}
-
-        
 
         {/* Menu Items by Category */}
         {visibleCategories.length > 0 ? (
@@ -238,15 +234,15 @@ const MenuPageContent = () => {
             />
             <p className="text-muted-foreground text-xs mt-2">
               Your search for{" "}
-              <span className="text-red-400 font-bold">“{searchTerm}”</span>{" "}
-              did not match any dishes.
+              <span className="text-red-400 font-bold">“{searchTerm}”</span> did
+              not match any dishes.
             </p>
           </div>
         )}
       </main>
 
       <AnimatePresence>
-        <CartWidget />      
+        <CartWidget />
       </AnimatePresence>
     </div>
   );
