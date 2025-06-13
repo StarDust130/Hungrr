@@ -11,7 +11,7 @@ const menuData = {
         rating: 4.9,
         tags: ["Bestseller", "Must-Try"],
         dietary: "veg",
-        isBestseller: true,
+        isSpecial: true,
       },
       {
         id: 2,
@@ -24,7 +24,7 @@ const menuData = {
         rating: 4.8,
         tags: ["Bestseller"],
         dietary: "veg",
-        isBestseller: true,
+        isSpecial: true,
       },
       {
         id: 3,
@@ -37,7 +37,7 @@ const menuData = {
         rating: 4.8,
         tags: [],
         dietary: "veg",
-        isBestseller: true,
+        isSpecial: true,
       },
     ],
     "Signature Lattes": [
@@ -64,7 +64,7 @@ const menuData = {
         rating: 4.2,
         tags: ["New", "Staff Pick"],
         dietary: "veg",
-        isBestseller: true,
+        isSpecial: true,
       },
     ],
     "Espresso & Brews": [
@@ -145,4 +145,6 @@ export const cafeInfo = {
   reviews: 782,
   address: "123 Lens Lane, Satna",
   openingTime: "9:00 AM",
+  location: "Connaught Place, Delhi",
+  category: "Specialty Coffee",
 };

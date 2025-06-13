@@ -21,7 +21,7 @@ export interface MenuItem {
   rating: number;
   dietary: DietaryType;
   tags: string[];
-  isBestseller?: boolean;
+  isSpecial?: boolean;
 }
 
 export interface MenuData {
