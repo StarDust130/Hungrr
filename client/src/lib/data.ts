@@ -145,6 +145,4 @@ export const cafeInfo = {
   reviews: 782,
   address: "123 Lens Lane, Satna",
   openingTime: "9:00 AM",
-  location: "Connaught Place, Delhi",
-  category: "Specialty Coffee",
 };

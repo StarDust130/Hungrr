@@ -1,39 +1,44 @@
-
 import Image from "next/image";
-import {cafeInfo} from "@/lib/data";
+import { cafeInfo } from "@/lib/data";
 import { Star, Clock } from "lucide-react";
 
 const CafeBanner = () => (
-  <div className="relative h-56 md:h-64 w-full">
+  <div className="relative w-full h-60 md:h-80 rounded-b-3xl overflow-hidden">
+    {/* Bright and clean banner image */}
     <Image
       src={cafeInfo.bannerUrl}
       alt="Cafe Banner"
       layout="fill"
       objectFit="cover"
-      className="brightness-50"
+      className="object-center"
     />
-    <div className="absolute inset-0 flex flex-col justify-end p-4 md:p-6 bg-gradient-to-t from-black/70 to-transparent">
-      <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+
+    {/* Only bottom gradient to support text readability */}
+    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-4 py-6 flex flex-col justify-end">
+      {/* Cafe Name */}
+      <h1 className="text-white text-3xl md:text-5xl font-bold tracking-tight">
         {cafeInfo.name}
       </h1>
-      <p className="text-white/90 mt-1 text-sm md:text-base">
+
+      {/* Tagline */}
+      <p className="text-white/80 text-sm md:text-base font-bold mt-1">
         {cafeInfo.tagline}
       </p>
-      <div className="flex items-center gap-4 mt-3 text-sm text-white">
+
+      {/* Ratings + Time */}
+      <div className="flex flex-wrap items-center gap-4 mt-3 text-white text-sm font-bold">
         <div className="flex items-center gap-1.5">
           <Star size={16} className="text-amber-400 fill-amber-400" />
-          <span className="font-bold">{cafeInfo.rating}</span>
+          <span>{cafeInfo.rating}</span>
           <span className="text-white/70">({cafeInfo.reviews} reviews)</span>
         </div>
         <div className="flex items-center gap-1.5">
           <Clock size={16} className="text-white/70" />
-          <span className="font-medium">Open from {cafeInfo.openingTime}</span>
+          <span>Opens at {cafeInfo.openingTime}</span>
         </div>
       </div>
     </div>
   </div>
 );
-
-
 
 export default CafeBanner;
