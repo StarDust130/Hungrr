@@ -5,7 +5,7 @@ from .models import Cafe, Table, MenuItem, Order , OrderItem
 class CafeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cafe
-        fields = 'name', 'tagline', 'bannerUrl', 'rating', 'reviews', 'openingTime' , "slug"
+        fields = 'name', 'tagline', 'bannerUrl', 'rating', 'reviews', 'openingTime' 
         read_only_fields = ('is_active',)
 
 
