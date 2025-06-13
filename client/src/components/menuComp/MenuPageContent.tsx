@@ -9,7 +9,7 @@ import type { MenuData, MenuItem } from "@/types/menu.d.ts";
 import CafeBanner from "@/components/menuComp/CafeBanner";
 import CartWidget from "@/components/menuComp/CartWidget";
 import CategoryIcon from "@/components/menuComp/CategoryIcon";
-import BestsellerCard from "@/components/menuComp/BestsellerCard";
+import SpecialCard from "@/components/menuComp/SpecialCard";
 import menuData from "@/lib/data";
 import MenuItemCard from "@/components/menuComp/MenuItemCard";
 import Image from "next/image";
@@ -34,8 +34,8 @@ const MenuPageContent = () => {
   //! Filter bestsellers from all items
   // This will return all items that are marked as bestsellers
   // It uses useMemo to optimize performance by memoizing the result
-  const bestsellers = useMemo(
-    () => allItems.filter((item) => item.isBestseller),
+  const isSpecial = useMemo(
+    () => allItems.filter((item) => item.isSpecial),
     [allItems]
   );
 
@@ -186,12 +186,12 @@ const MenuPageContent = () => {
       </nav>
       <main className="max-w-4xl mx-auto px-4 pb-32">
         {/* Bestsellers Section */}
-        {bestsellers.length > 0 && !searchTerm && (
+        {isSpecial.length > 0 && !searchTerm && (
           <section className="py-8">
             <SpecialLabel />
             <div className="flex gap-4 pb-4 -mx-4 px-4 overflow-x-auto no-scrollbar">
-              {bestsellers.map((item) => (
-                <BestsellerCard
+              {isSpecial.map((item) => (
+                <SpecialCard
                   key={`bestseller-${item.id}`}
                   item={item as MenuItem}
                 />
