@@ -26,11 +26,15 @@ def get_cafe_by_id(request, cafe_id):
 # Create a new cafe 🏪
 @api_view(['POST'])
 def create_cafe(request):
+    print("RAW BODY:", request.body)
+    print("PARSED DATA:", request.data)
+
     serializer = CafeSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
+
 
 # Update an existing cafe info🏠
 @api_view(['PUT', 'PATCH'])
