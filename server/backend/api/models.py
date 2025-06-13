@@ -12,12 +12,12 @@ class Cafe(models.Model):
     name = models.CharField(max_length=50)
     slug = models.SlugField(max_length=60, unique=True, blank=True)
     tagline = models.CharField(max_length=100, blank=True)
-    openingTime = models.TimeField(
-        help_text='Opening time in HH:MM format',
-        default='09:00',
-        blank=True
-    )
-    banner_url = models.URLField(max_length=200, blank=True)
+    openingTime = models.CharField(
+        max_length=20,
+        blank=True,
+        unique=True,
+        )
+    bannerUrl = models.URLField(max_length=200, blank=True)
     location = models.TextField()
     rating = models.DecimalField(max_digits=3, decimal_places=1, default=4.7)
     reviews = models.PositiveIntegerField(default=969)
