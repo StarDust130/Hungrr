@@ -3,7 +3,7 @@ import uuid
 from django.utils.text import slugify
 
 
-# 🧁 Cafe Model
+#! 🧁 Cafe Model
 class Cafe(models.Model):
     # Using Clerk for auth, so store Clerk user ID directly
     owner_id = models.CharField(
@@ -38,7 +38,7 @@ class Cafe(models.Model):
             self.slug = f"{base_slug}-{unique_suffix}"
         super().save(*args, **kwargs)
 
-# 🍽️ Table Model
+#! 🍽️ Table Model
 class Table(models.Model):
     cafe = models.ForeignKey(
         Cafe,
@@ -59,9 +59,7 @@ class Table(models.Model):
     def __str__(self):
         return f"Table {self.number} — {self.cafe.name}"
 
-# 🍴 Category Model for menu grouping
-
-
+#! 🍴 Category Model for menu grouping
 class Category(models.Model):
     cafe = models.ForeignKey(
         Cafe,
@@ -76,9 +74,7 @@ class Category(models.Model):
     def __str__(self):
         return f"{self.name} ({self.cafe.name})"
 
-# 🍽️ MenuItem Model
-
-
+#! 🍽️ MenuItem Model
 class MenuItem(models.Model):
     cafe = models.ForeignKey(
         Cafe,
@@ -94,6 +90,9 @@ class MenuItem(models.Model):
     )
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
+    isSpecial = models.BooleanField(
+        default=False,
+    )
     food_image_url = models.URLField(
         max_length=200, 
         blank=True,
@@ -119,9 +118,7 @@ class MenuItem(models.Model):
     def __str__(self):
         return f"{self.name} — ₹{self.price}"
 
-# 🧾 Order Model
-
-
+#! 🧾 Order Model
 class Order(models.Model):
     PAYMENT_METHODS = [
         ('counter', 'Pay at Counter'),
@@ -169,9 +166,7 @@ class Order(models.Model):
     def __str__(self):
         return f"Order #{self.id} — {self.status}"
 
-# 🍔 OrderItem (Bridge between Order & MenuItem)
-
-
+#! 🍔 OrderItem (Bridge between Order & MenuItem)
 class OrderItem(models.Model):
     order = models.ForeignKey(
         Order,
@@ -188,9 +183,7 @@ class OrderItem(models.Model):
     def __str__(self):
         return f"{self.quantity} x {self.item.name}"
 
-# 🫦 Bill Model
-
-
+#! 🫦 Bill Model
 class Bill(models.Model):
     order = models.OneToOneField(
         Order,
