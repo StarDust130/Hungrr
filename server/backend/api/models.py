@@ -85,13 +85,13 @@ class MenuItem(models.Model):
         Category,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True,
         related_name='items'
     )
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     isSpecial = models.BooleanField(
         default=False,
+        blank=True,
     )
     food_image_url = models.URLField(
         max_length=200, 
