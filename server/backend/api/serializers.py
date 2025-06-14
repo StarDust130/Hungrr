@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Cafe, Table, MenuItem, Order , OrderItem
 
-
+#! Cafe Info Serializer 😌
 class CafeInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cafe
@@ -9,24 +9,34 @@ class CafeInfoSerializer(serializers.ModelSerializer):
         read_only_fields = ('is_active',)
 
 
-class TableSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Table
-        fields = '__all__'
-
-
+#! Menu Item Serializer 😚
 class MenuItemSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    rating = serializers.SerializerMethodField()
+    tags = serializers.SerializerMethodField()
+    isSpecial = serializers.SerializerMethodField()
+
     class Meta:
         model = MenuItem
-        fields = '__all__'
+        fields = [
+            "id", "name", "price", "description",
+            "image", "rating", "tags", "dietary", "isSpecial"
+        ]
 
+    def get_image(self, obj):
+        return obj.food_image_url or ""
 
-class OrderSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Order
-        fields = '__all__'
+    def get_rating(self, obj):
+        # Just return fixed rating for now or calculate from reviews later
+        return 4.9
 
-class OrderItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrderItem
-        fields = '__all__'
+    def get_tags(self, obj):
+        tags = []
+        if obj.dietary == "vegan":
+            tags.append("Vegan")
+        if obj.isSpecial:
+            tags.append("Bestseller")  # You can customize this later
+        return tags
+
+    def get_isSpecial(self, obj):
+        return obj.isSpecial if hasattr(obj, 'isSpecial') else False
