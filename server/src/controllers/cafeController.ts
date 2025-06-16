@@ -71,9 +71,15 @@ export const getCafeMenu = async (req: Request, res: Response): Promise<Response
     }
 
     const categoryName = categories[categoryIndex];
+    if (categoryIndex >= categories.length) {
+      return res.status(204).json({});
+    }
+
     return res.json({
       [categoryName]: grouped[categoryName],
+      hasMore: categoryIndex + 1 < categories.length,
     });
+    
   } catch (err: any) {
     console.error("Error in getCafeMenu:", err);
     return res.status(500).json({ detail: "Internal server error" });

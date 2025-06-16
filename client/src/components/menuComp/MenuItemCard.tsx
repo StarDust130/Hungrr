@@ -11,8 +11,12 @@ const MenuItemCard = ({ item }: { item: MenuItem }) => (
   <div className="flex gap-4 py-6">
     <div className="flex-grow flex flex-col">
       <div className="flex items-center gap-2 mb-1">
-        <DietaryIcon type={item.dietary} />
-        {item.isBestseller && (
+        {item.dietary && (
+          <span className="text-xs ml-2 text-muted-foreground">
+            <DietaryIcon type={item.dietary} />
+          </span>
+        )}
+        {item.isSpecial && (
           <div className="flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-500">
             <Star size={14} className="fill-current" />
             <span>Bestseller</span>
@@ -34,9 +38,7 @@ const MenuItemCard = ({ item }: { item: MenuItem }) => (
         {item.description}
       </p>
 
-      <p className="text-base font-bold text-foreground mt-2">
-        ₹{item.price}
-      </p>
+      <p className="text-base font-bold text-foreground mt-2">₹{item.price}</p>
     </div>
 
     <div className="flex-shrink-0 w-32 flex flex-col items-end justify-between">

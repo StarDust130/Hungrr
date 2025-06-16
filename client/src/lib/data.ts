@@ -51,7 +51,6 @@ const menuData = {
           "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=500&q=80",
         rating: 4.7,
         tags: ["New"],
-        dietary: "veg",
       },
       {
         id: 5,
