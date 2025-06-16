@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Cafe {
+  id          Int        @id @default(autoincrement())
+  owner_id    String
+  name        String
+  slug        String     @unique
+  tagline     String?
+  openingTime String?    @unique
+  bannerUrl   String?
+  location    String
+  rating      Decimal    @default(4.7)
+  reviews     Int        @default(969)
+  is_active   Boolean    @default(true)
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+
+  tables      Table[]
+  categories  Category[]
+  menu_items  MenuItem[]
+  orders      Order[]
+}
+
+model Table {
+  id        Int      @id @default(autoincrement())
+  cafeId    Int
+  number    Int
+  qr_token  String   @unique
+  is_active Boolean  @default(true)
+
+  cafe      Cafe     @relation(fields: [cafeId], references: [id])
+  orders    Order[]
+
+  @@unique([cafeId, number])
+}
+
+model Category {
+  id       Int      @id @default(autoincrement())
+  cafeId   Int
+  name     String
+
+  cafe     Cafe     @relation(fields: [cafeId], references: [id])
+  items    MenuItem[]
+
+  @@unique([cafeId, name])
+}
+
+model MenuItem {
+  id             Int       @id @default(autoincrement())
+  cafeId         Int
+  categoryId     Int?
+  name           String
+  description    String?
+  isSpecial      Boolean   @default(false)
+  food_image_url String?
+  price          Decimal
+  dietary        Dietary?
+  is_available   Boolean   @default(true)
+  is_active      Boolean   @default(true)
+
+  cafe           Cafe      @relation(fields: [cafeId], references: [id])
+  category       Category? @relation(fields: [categoryId], references: [id])
+  order_items    OrderItem[]
+}
+
+model Order {
+  id             Int          @id @default(autoincrement())
+  tableId        Int
+  cafeId         Int
+  payment_method PaymentMethod @default(counter)
+  status         OrderStatus   @default(pending)
+  total_price    Decimal      @default(0.00)
+  paid           Boolean      @default(false)
+  payment_url    String?
+  created_at     DateTime     @default(now())
+  updated_at     DateTime     @updatedAt
+
+  table          Table        @relation(fields: [tableId], references: [id])
+  cafe           Cafe         @relation(fields: [cafeId], references: [id])
+  order_items    OrderItem[]
+  bill           Bill?
+}
+
+model OrderItem {
+  id       Int      @id @default(autoincrement())
+  orderId  Int
+  itemId   Int
+  quantity Int      @default(1)
+
+  order    Order    @relation(fields: [orderId], references: [id])
+  item     MenuItem @relation(fields: [itemId], references: [id])
+}
+
+model Bill {
+  id        Int      @id @default(autoincrement())
+  orderId   Int      @unique
+  issued_at DateTime @default(now())
+  paid_at   DateTime?
+  amount    Decimal
+
+  order     Order    @relation(fields: [orderId], references: [id])
+}
+
+enum Dietary {
+  veg
+  non_veg
+  vegan
+}
+
+enum PaymentMethod {
+  counter
+  online
+}
+
+enum OrderStatus {
+  pending
+  accepted
+  preparing
+  ready
+  completed
+}
