@@ -16,9 +16,12 @@ export default async function MenuPage({ params }: Props) {
   let cafeData = null;
 
   try {
-    const res = await fetch(`${process.env.BACKEND_API_URL}/api/cafe/${slug}`, {
-      cache: "no-store",
-    });
+    const res = await fetch(
+      `${process.env.BACKEND_API_URL}/api/cafe_banner/${slug}`,
+      {
+        cache: "no-store",
+      }
+    );
 
     if (res.status === 404) {
       // Cafe not found

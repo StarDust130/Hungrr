@@ -4,7 +4,7 @@ import { getCafeInfoBySlug, getCafeMenu } from "../controllers/cafeController";
 
 const router = Router();
 
-router.get("/:slug", getCafeInfoBySlug);
+router.get("/cafe_banner/:slug", getCafeInfoBySlug);
 router.get("/menu/:slug/", getCafeMenu);
 
 export default router;
