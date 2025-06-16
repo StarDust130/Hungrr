@@ -6,7 +6,6 @@ import { Search, X } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import type { MenuData, MenuItem } from "@/types/menu.d.ts";
 
-import CafeBanner from "@/components/menuComp/CafeBanner";
 import CartWidget from "@/components/menuComp/CartWidget";
 import CategoryIcon from "@/components/menuComp/CategoryIcon";
 import SpecialCard from "@/components/menuComp/SpecialCard";
@@ -134,7 +133,6 @@ const MenuPageContent = () => {
       className="font-sans bg-background text-foreground min-h-screen"
       suppressHydrationWarning
     >
-      <CafeBanner />
       {/* Search 😜 */}
       <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-md p-4 border-b border-border">
         <div className="max-w-4xl mx-auto">
