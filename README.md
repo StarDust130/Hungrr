@@ -36,9 +36,8 @@ Hungrr is a full-stack web app that lets customers **scan a QR code**, browse th
 - **Clerk** for user authentication
 
 ### 🔐 Backend
-- **Django** (Python)
+- **Express** (Python)
 - **PostgreSQL** (database)
-- **Django REST Framework** (for APIs)
 
 ### ⚙️ Dev Tools
 - **Concurrently** to run both dev servers
