@@ -16,7 +16,7 @@ export default async function MenuPage({ params }: Props) {
   let cafeData = null;
 
   try {
-    const res = await fetch(`http://localhost:5000/api/cafe/${slug}`, {
+    const res = await fetch(`${process.env.BACKEND_API_URL}/api/cafe/${slug}`, {
       cache: "no-store",
     });
 
@@ -47,8 +47,17 @@ export default async function MenuPage({ params }: Props) {
   } catch (error) {
     console.error("Error loading cafe:", error);
     return (
-      <div className="p-10 h-screen text-center text-xl font-bold text-red-600">
-        🚨 Error loading cafe data. Please try again later.
+      <div className="p-10 flex flex-col justify-center items-center h-[80vh] text-center  font-bold ">
+        <Image
+          src={"/anime-girl-error.png"}
+          alt="Not Found"
+          width={200}
+          height={200}
+        />
+        <p className="text-xl mt-5">
+          Some went Wrong 😢 <br />{" "}
+          <span className="text-sm mt-3">Please try again later.</span>
+        </p>
       </div>
     );
   }
