@@ -2,12 +2,13 @@ import SpecialCard from "@/components/menuComp/SpecialCard";
 import SpecialLabel from "./SpecialLabel";
 import type { MenuItem } from "@/types/menu.d.ts";
 
+
 type Props = {
   items: MenuItem[];
   show: boolean;
 };
 
-const BestSellers = ({ items, show }: Props) => {
+const SpecialCardBox = ({ items, show }: Props) => {
   if (!show || items.length === 0) return null;
 
   return (
@@ -22,4 +23,4 @@ const BestSellers = ({ items, show }: Props) => {
   );
 };
 
-export default BestSellers;
+export default SpecialCardBox;
