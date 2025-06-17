@@ -1,6 +1,5 @@
 // app/menu/[cafe_slug]/page.tsx
 
-
 import CafeBanner from "@/components/menuComp/CafeBanner";
 import CartProvider from "@/components/menuComp/CartProvider";
 import MenuPageContent from "@/components/menuComp/MenuPageContent";
@@ -23,7 +22,7 @@ export default async function MenuPage(props: Props) {
       return (
         <ErrorMessage
           img="/anime-girl-not-found.png"
-          message="❌ No cafe found with name "
+          message="❌ No cafe found with name"
           highlight={cafe_slug}
         />
       );
@@ -31,14 +30,11 @@ export default async function MenuPage(props: Props) {
 
     const menuData = await fetchMenuData(cafe_slug);
 
-    console.log(`Fetching menu for cafe: ${cafe_slug}`, menuData);
-    
-
     if (!menuData || Object.keys(menuData).length === 0) {
       return (
         <ErrorMessage
           img="/anime-girl-sad.png"
-          message="🍽️ No menu items found for cafe "
+          message="🍽️ No menu items found for"
           highlight={cafeData.name}
         />
       );
@@ -47,7 +43,6 @@ export default async function MenuPage(props: Props) {
     return (
       <CartProvider>
         <CafeBanner cafe={cafeData} />
-        {/* <MenuPageContent menuData={menuData} /> */}
         <MenuPageContent cafeSlug={cafe_slug} />
       </CartProvider>
     );
@@ -62,5 +57,3 @@ export default async function MenuPage(props: Props) {
     );
   }
 }
-
-
