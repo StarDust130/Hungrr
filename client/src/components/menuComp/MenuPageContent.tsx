@@ -4,10 +4,12 @@ import { useRef, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import SearchBar from "./SearchBar";
 import CategoryNav from "./CategoryNav";
-import BestSellers from "./BestSellers";
 import CategorySection from "./CategorySection";
 import CartWidget from "@/components/menuComp/CartWidget";
-import { useMenu } from "@/hooks/useMenu"; // ✅ use your custom hook
+import { useMenu } from "@/hooks/useMenu"; // ✅ Your custom hook
+import SpecialCardSkeleton from "./SpecialCardSkeleton";
+import MenuItemCardSkeleton from "./MenuItemCardSkeleton";
+import SpecialCardBox from "./SpecialCardBox";
 
 interface Props {
   cafeSlug: string;
@@ -26,11 +28,13 @@ const MenuPageContent = ({ cafeSlug }: Props) => {
     fetchNextMenuCategory,
     isSpecial,
     hasMore,
-    loadingCategories,
   } = useMenu({ cafeSlug });
 
   const navRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  // ✅ Derive loadingSpecials
+  const loadingSpecials = isSpecial.length === 0 && !searchTerm;
 
   //! ✅ Infinite Scroll to fetch next menu category on scroll
   useEffect(() => {
@@ -47,7 +51,9 @@ const MenuPageContent = ({ cafeSlug }: Props) => {
     return () => observer.disconnect();
   }, [fetchNextMenuCategory, hasMore, searchTerm]);
 
-  //! Scroll to active category
+  
+
+  //! ✅ Scroll to category logic
   const scrollToCategory = async (category: string) => {
     if (searchTerm.trim()) return;
 
@@ -55,7 +61,6 @@ const MenuPageContent = ({ cafeSlug }: Props) => {
 
     setActiveCategory(category);
 
-    // Wait for the element to be available and layout to settle
     let retries = 0;
     const maxRetries = 30;
 
@@ -78,12 +83,10 @@ const MenuPageContent = ({ cafeSlug }: Props) => {
 
     try {
       const el = await waitForElement();
-      // Delay slightly to let layout settle
       setTimeout(() => {
         const offset = el.getBoundingClientRect().top + window.scrollY - 140;
         window.scrollTo({ top: offset, behavior: "smooth" });
 
-        // Reattach observer after scroll
         setTimeout(() => {
           Object.values(sectionRefs.current).forEach((ref) => {
             if (ref) observerRef.current?.observe(ref);
@@ -94,10 +97,8 @@ const MenuPageContent = ({ cafeSlug }: Props) => {
       console.warn("Failed to scroll to category:", error);
     }
   };
-  
-  
 
-  // ✅ Scroll active category into view on nav bar
+  // ✅ Scroll active category nav into view
   useEffect(() => {
     if (searchTerm) return;
     const activeEl = document.getElementById(`nav-${activeCategory}`);
@@ -111,26 +112,36 @@ const MenuPageContent = ({ cafeSlug }: Props) => {
       });
     }
   }, [activeCategory, searchTerm]);
-  
 
   return (
     <div className="font-sans bg-background text-foreground min-h-screen">
       <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+
       <CategoryNav
         categories={visibleCategories}
         activeCategory={activeCategory}
         scrollToCategory={scrollToCategory}
         navRef={navRef}
       />
+
       <main className="max-w-4xl mx-auto px-4 pb-32">
-        <BestSellers items={isSpecial} show={!searchTerm} />
-        <CategorySection
-          filteredMenuData={filteredMenuData}
-          visibleCategories={visibleCategories}
-          searchTerm={searchTerm}
-          sectionRefs={sectionRefs}
-          loadingCategories={loadingCategories} // ✅ Show skeletons if still loading
-        />
+        {loadingSpecials ? (
+          <SpecialCardSkeleton />
+        ) : (
+          <SpecialCardBox items={isSpecial} show={!searchTerm} />
+        )}
+
+        {loadingSpecials ? (
+          <MenuItemCardSkeleton />
+        ) : (
+          <CategorySection
+            filteredMenuData={filteredMenuData}
+            visibleCategories={visibleCategories}
+            searchTerm={searchTerm}
+            sectionRefs={sectionRefs}
+          />
+        )}
+
         <div ref={loadMoreRef} className="h-8 w-full" />
       </main>
       <AnimatePresence>
