@@ -28,6 +28,47 @@ export const getCafeInfoBySlug = async (
   }
 };
 
+export const getCategory = async (req: Request, res: Response) => {
+  const { slug } = req.params;
+
+
+  if (typeof slug !== "string") {
+    return res.status(400).json({ detail: "Invalid slug" });
+  }
+
+  try {
+    const cafe = await prisma.cafe.findFirst({
+      where: { slug, is_active: true },
+      select: { id: true },
+    });
+
+    if (!cafe) {
+      return res.status(404).json({ detail: "Cafe not found" });
+    }
+
+    const categories = await prisma.category.findMany({
+      where: {
+        cafeId: cafe.id,
+        items: {
+          some: {
+            is_active: true,
+          },
+        },
+      },
+      orderBy: { name: "asc" },
+      select: { name: true },
+    });
+
+    const categoryNames = categories.map((cat) => cat.name);
+
+    return res.status(200).json({ categories: categoryNames });
+  } catch (error) {
+    console.error("Error fetching menu categories:", error);
+    return res.status(500).json({ detail: "Internal server error" });
+  }
+};
+
+
 //! Cafe Menu 😋
 export const getCafeMenu = async (req: Request, res: Response): Promise<Response> => {
   try {
