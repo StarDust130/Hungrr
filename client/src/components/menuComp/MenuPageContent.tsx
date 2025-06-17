@@ -126,7 +126,11 @@ const MenuPageContent = ({ cafeSlug }: Props) => {
 
       <main className="max-w-4xl mx-auto px-4 pb-32">
         {loadingSpecials ? (
-          <SpecialCardSkeleton />
+          <div className="flex gap-4 overflow-x-auto no-scrollbar py-4">
+            {[...Array(4)].map((_, i) => (
+              <SpecialCardSkeleton key={i} />
+            ))}
+          </div>
         ) : (
           <SpecialCardBox items={isSpecial} show={!searchTerm} />
         )}
