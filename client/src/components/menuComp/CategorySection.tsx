@@ -15,7 +15,12 @@ const CategorySection = ({
   searchTerm,
   sectionRefs,
 }: Props) => {
-  if (visibleCategories.length === 0) {
+  const hasSearched = searchTerm.trim() !== "";
+  const hasNoResults = visibleCategories.length === 0;
+  const hasFetchedDataOnce = Object.keys(filteredMenuData).length > 0;
+
+  // ✅ Show empty state after search
+  if (hasSearched && hasNoResults && hasFetchedDataOnce) {
     return (
       <div className="text-center flex flex-col justify-start items-center py-8">
         <h3 className="text-xl font-semibold text-foreground">
@@ -36,6 +41,7 @@ const CategorySection = ({
     );
   }
 
+  // ✅ Render actual menu content
   return (
     <>
       {Object.entries(filteredMenuData).map(([category, items]) => (
