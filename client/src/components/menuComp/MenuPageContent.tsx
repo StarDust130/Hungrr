@@ -1,89 +1,68 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { Search, X } from "lucide-react";
-
-import { AnimatePresence } from "framer-motion";
-import type { MenuData, MenuItem } from "@/types/menu.d.ts";
-
-import CartWidget from "@/components/menuComp/CartWidget";
-import CategoryIcon from "@/components/menuComp/CategoryIcon";
-import SpecialCard from "@/components/menuComp/SpecialCard";
+import type { MenuItem } from "@/types/menu.d.ts";
 import menuData from "@/lib/data";
-import MenuItemCard from "@/components/menuComp/MenuItemCard";
-import Image from "next/image";
-import SpecialLabel from "./SpecialLabel";
 
+import SearchBar from "./SearchBar";
+import CategoryNav from "./CategoryNav";
+import BestSellers from "./BestSellers";
+import CategorySection from "./CategorySection";
+import CartWidget from "@/components/menuComp/CartWidget";
+import { AnimatePresence } from "framer-motion";
 
 const MenuPageContent = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const allItems = useMemo(() => {
-    return Object.values(menuData).flat() as MenuItem[];
-  }, []);
-  
-
   const [activeCategory, setActiveCategory] = useState(
-    Object.keys(menuData)[0]
+    Object.keys(menuData)[0] || ""
   );
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const observerRef = useRef<IntersectionObserver | null>(null);
-  const navRef = useRef<HTMLDivElement>(null); // Ref for the nav container
+  const navRef = useRef<HTMLDivElement>(null);
 
-  //! Filter bestsellers from all items
-  // This will return all items that are marked as bestsellers
-  // It uses useMemo to optimize performance by memoizing the result
-  const isSpecial = useMemo(
-    () => allItems.filter((item) => item.isSpecial),
-    [allItems]
-  );
+  const allItems = useMemo(() => {
+    return Object.values(menuData).flat() as MenuItem[];
+  }, []);
 
-  //! Filter menu data based on search term
-  // This will return all items if searchTerm is empty
+  const isSpecial = useMemo(() => {
+    return allItems.filter((item) => item.isSpecial);
+  }, [allItems]);
+
   const filteredMenuData = useMemo(() => {
     if (!searchTerm.trim()) return menuData;
-    const lowercasedFilter = searchTerm.toLowerCase();
-    const filtered: MenuData = {};
-    Object.entries(menuData).forEach(([category, items]) => {
-      const matchingItems = items.filter(
+    const lower = searchTerm.toLowerCase();
+    const filtered: typeof menuData = {};
+    for (const [category, items] of Object.entries(menuData)) {
+      const matched = items.filter(
         (item) =>
-          item.name.toLowerCase().includes(lowercasedFilter) ||
-          item.description.toLowerCase().includes(lowercasedFilter) ||
-          item.tags.some((tag) => tag.toLowerCase().includes(lowercasedFilter))
+          item.name.toLowerCase().includes(lower) ||
+          item.description.toLowerCase().includes(lower) ||
+          item.tags.some((tag) => tag.toLowerCase().includes(lower))
       );
-      if (matchingItems.length > 0) {
-        filtered[category] = matchingItems.map((item) => ({
-          ...item,
-          dietary: item.dietary as "veg" | "non-veg" | "vegan",
-        })) as MenuItem[];;
+      if (matched.length > 0) {
+        filtered[category] = matched;
       }
-    });
+    }
     return filtered;
   }, [searchTerm]);
 
-  // Get the visible categories based on the filtered menu data
-  // This will return an array of categories that have items matching the search term
-  // If no items match, it will return an empty array
   const visibleCategories = Object.keys(filteredMenuData);
 
-  //! Scroll to the selected category in the nav bar
-  // This function will scroll to the section of the selected category
   const scrollToCategory = (category: string) => {
-    if (observerRef.current) observerRef.current.disconnect();
+    if (searchTerm.trim()) return; // ⛔ Disable scroll during search
 
-    const element = sectionRefs.current[category];
-    if (element) {
-      const offset = element.getBoundingClientRect().top + window.scrollY;
-      const navHeight = 140; // Adjust this based on your header + nav height
+    observerRef.current?.disconnect();
 
-      window.scrollTo({
-        top: offset - navHeight,
-        behavior: "smooth",
-      });
+    const el = sectionRefs.current[category];
+    if (el) {
+      const offset = el.getBoundingClientRect().top + window.scrollY - 140;
+      window.scrollTo({ top: offset, behavior: "smooth" });
     }
 
     setActiveCategory(category);
 
+    // Reattach observers after scroll
     setTimeout(() => {
       Object.values(sectionRefs.current).forEach((ref) => {
         if (ref) observerRef.current?.observe(ref);
@@ -91,8 +70,9 @@ const MenuPageContent = () => {
     }, 800);
   };
 
-  //! Auto-scroll the active category into view in the nav bar ☺️
   useEffect(() => {
+    if (searchTerm.trim()) return;
+
     const activeEl = document.getElementById(`nav-${activeCategory}`);
     if (activeEl && navRef.current) {
       navRef.current.scrollTo({
@@ -103,13 +83,15 @@ const MenuPageContent = () => {
         behavior: "smooth",
       });
     }
-  }, [activeCategory]);
+  }, [activeCategory, searchTerm]);
 
-  //! Intersection Observer for active category
-  // This will observe the sections and set the active category based on which section is currently in view
   useEffect(() => {
-    if (observerRef.current) observerRef.current.disconnect();
-    const observerOptions = { rootMargin: "-40% 0px -60% 0px", threshold: 0 };
+    if (searchTerm.trim()) {
+      observerRef.current?.disconnect();
+      return;
+    }
+
+    observerRef.current?.disconnect();
 
     const callback: IntersectionObserverCallback = (entries) => {
       entries.forEach((entry) => {
@@ -119,124 +101,42 @@ const MenuPageContent = () => {
       });
     };
 
-    observerRef.current = new IntersectionObserver(callback, observerOptions);
-    const observer = observerRef.current;
-    Object.values(sectionRefs.current).forEach((ref) => {
-      if (ref) observer.observe(ref);
+    observerRef.current = new IntersectionObserver(callback, {
+      rootMargin: "-40% 0px -60% 0px",
+      threshold: 0,
     });
 
-    return () => observer?.disconnect();
-  }, [filteredMenuData]);
+    Object.values(sectionRefs.current).forEach((ref) => {
+      if (ref) observerRef.current?.observe(ref);
+    });
+
+    return () => {
+      observerRef.current?.disconnect();
+    };
+  }, [filteredMenuData, searchTerm]);
 
   return (
     <div
       className="font-sans bg-background text-foreground min-h-screen"
       suppressHydrationWarning
     >
-      {/* Search 😜 */}
-      <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-md p-4 border-b border-border">
-        <div className="max-w-4xl mx-auto">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search for dishes..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-secondary border border-transparent rounded-full focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
-            />
-            <Search
-              size={20}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
-              >
-                <X size={20} />
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
-      {/* Category 🍜 */}
-      <nav className="sticky top-[75px] z-10 bg-background/80 backdrop-blur-md">
-        <div
-          ref={navRef}
-          className="max-w-4xl mx-auto flex gap-3 overflow-x-auto whitespace-nowrap p-4 border-b border-border no-scrollbar"
-        >
-          {visibleCategories.map((category) => (
-            <button
-              key={category}
-              id={`nav-${category}`}
-              onClick={() => scrollToCategory(category)}
-              className={`flex  items-center gap-2.5 px-4 py-2 text-[10px] font-bold rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 ${
-                activeCategory === category
-                  ? "bg-primary text-primary-foreground shadow-md"
-                  : "bg-secondary text-secondary-foreground hover:bg-muted"
-              }`}
-            >
-              <CategoryIcon categoryName={category} />
-              <span>{category}</span>
-            </button>
-          ))}
-        </div>
-      </nav>
-      <main className="max-w-4xl mx-auto px-4 pb-32">
-        {/* Bestsellers Section */}
-        {isSpecial.length > 0 && !searchTerm && (
-          <section className="py-8">
-            <SpecialLabel />
-            <div className="flex gap-4 pb-4 -mx-4 px-4 overflow-x-auto no-scrollbar">
-              {isSpecial.map((item) => (
-                <SpecialCard
-                  key={`bestseller-${item.id}`}
-                  item={item as MenuItem}
-                />
-              ))}
-            </div>
-          </section>
-        )}
+      <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
-        {/* Menu Items by Category */}
-        {visibleCategories.length > 0 ? (
-          Object.entries(filteredMenuData).map(([category, items]) => (
-            <section
-              key={category}
-              id={category}
-              ref={(el) => {
-                sectionRefs.current[category] = el;
-              }}
-              className="pt-8"
-            >
-              <h2 className="text-2xl font-extrabold text-foreground mb-2 tracking-tight">
-                {category}
-              </h2>
-              <div className="divide-y divide-border">
-                {items.map((item: MenuItem) => (
-                  <MenuItemCard key={`item-${item.id}`} item={item} />
-                ))}
-              </div>
-            </section>
-          ))
-        ) : (
-          <div className="text-center flex flex-col justify-start items-center py-8">
-            <h3 className="text-xl font-semibold text-foreground">
-              No Dishes Found 😿
-            </h3>
-            <Image
-              src={"/anime-girl-sad.png"}
-              alt="Not Found"
-              width={"200"}
-              height={"150"}
-            />
-            <p className="text-muted-foreground text-xs mt-2">
-              Your search for{" "}
-              <span className="text-red-400 font-bold">“{searchTerm}”</span> did
-              not match any dishes.
-            </p>
-          </div>
-        )}
+      <CategoryNav
+        categories={visibleCategories}
+        activeCategory={activeCategory}
+        scrollToCategory={scrollToCategory}
+        navRef={navRef}
+      />
+
+      <main className="max-w-4xl mx-auto px-4 pb-32">
+        <BestSellers items={isSpecial} show={!searchTerm.trim()} />
+        <CategorySection
+          filteredMenuData={filteredMenuData}
+          visibleCategories={visibleCategories}
+          searchTerm={searchTerm}
+          sectionRefs={sectionRefs}
+        />
       </main>
 
       <AnimatePresence>
