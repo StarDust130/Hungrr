@@ -48,7 +48,7 @@ export default async function MenuPage(props: Props) {
       <CartProvider>
         <CafeBanner cafe={cafeData} />
         {/* <MenuPageContent menuData={menuData} /> */}
-        <MenuPageContent  />
+        <MenuPageContent cafeSlug={cafe_slug} />
       </CartProvider>
     );
   } catch (error) {
