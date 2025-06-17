@@ -1,5 +1,3 @@
-// components/menuComp/SpecialCardSkeleton.tsx
-
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles } from "lucide-react";
 
@@ -14,10 +12,11 @@ const SpecialCardSkeleton = () => (
     {/* Image placeholder */}
     <Skeleton className="w-full h-40 md:h-32 rounded-t-2xl" />
 
-    <div className="p-3 space-y-2">
-      <Skeleton className="h-4 w-3/4 rounded" />
-      <Skeleton className="h-3 w-1/2 rounded" />
-      <Skeleton className="h-8 w-full rounded" />
+    {/* Content */}
+    <div className="p-3 space-y-1">
+      <Skeleton className="h-4 w-3/4 rounded" /> {/* Title */}
+      <Skeleton className="h-3 w-1/2 rounded" /> {/* Price */}
+      <Skeleton className="h-9 w-full rounded-md mt-2" /> {/* Add to Cart */}
     </div>
   </div>
 );

@@ -56,7 +56,7 @@ model MenuItem {
   id             Int       @id @default(autoincrement())
   cafeId         Int
   categoryId     Int?
-  name           String
+  name           String   @db.VarChar(17)
   description    String?
   isSpecial      Boolean   @default(false)
   food_image_url String?

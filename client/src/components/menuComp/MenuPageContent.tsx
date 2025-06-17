@@ -126,7 +126,7 @@ const MenuPageContent = ({ cafeSlug }: Props) => {
 
       <main className="max-w-4xl mx-auto px-4 pb-32">
         {loadingSpecials ? (
-          <div className="flex gap-4 overflow-x-auto no-scrollbar py-4">
+          <div className="flex gap-4 pb-4 -mx-4 px-4 overflow-x-auto no-scrollbar">
             {[...Array(4)].map((_, i) => (
               <SpecialCardSkeleton key={i} />
             ))}
@@ -136,7 +136,11 @@ const MenuPageContent = ({ cafeSlug }: Props) => {
         )}
 
         {loadingSpecials ? (
-          <MenuItemCardSkeleton />
+          <div className="flex flex-col gap-6 py-6">
+            {[...Array(6)].map((_, i) => (
+              <MenuItemCardSkeleton key={i} />
+            ))}
+          </div>
         ) : (
           <CategorySection
             filteredMenuData={filteredMenuData}
