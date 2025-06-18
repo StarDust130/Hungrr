@@ -8,7 +8,6 @@ const ImagePlaceholder = ({ className }: { className?: string }) => (
     className={`flex items-center justify-center bg-muted rounded-lg ${className}`}
   >
     <Coffee className="w-8 h-8 text-muted-foreground/50" />
-
   </div>
 );
 
@@ -21,7 +20,7 @@ type SafeImageProps = {
 const SafeImage = ({ src, alt, className }: SafeImageProps) => {
   const [error, setError] = useState(false);
 
-  // If src is empty or only whitespace, don't render Image, show placeholder
+  // blank src or load error → placeholder
   if (!src?.trim() || error) {
     return <ImagePlaceholder className={className} />;
   }
@@ -33,11 +32,11 @@ const SafeImage = ({ src, alt, className }: SafeImageProps) => {
       height={500}
       alt={alt}
       className={className}
-      onError={() => setError(true)}
       loading="lazy"
+      unoptimized // ← ensure the error handler fires
+      onError={() => setError(true)}
     />
   );
 };
-
 
 export default SafeImage;
