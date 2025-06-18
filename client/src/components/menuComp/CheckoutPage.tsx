@@ -14,6 +14,7 @@ import EmptyCart from "./checkoutComp/EmptyCart";
 import SpecialInstructions from "./checkoutComp/SpecialInstructions";
 import PriceSummary from "./checkoutComp/PriceSummary";
 import OrderTypeSelector from "./checkoutComp/OrderTypeSelector";
+import TableSelector from "./checkoutComp/TableSelector";
 
 const CheckoutPage = () => {
   const router = useRouter();
@@ -21,6 +22,8 @@ const CheckoutPage = () => {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [orderType, setOrderType] = useState<"dinein" | "takeaway">("dinein");
+  const [tableNo, setTableNo] = useState("");
+
 
   const {
     cart,
@@ -61,6 +64,7 @@ const CheckoutPage = () => {
       paymentStatus: "pending",
       specialInstructions,
       orderType,
+      tableNo,
     };
 
     sessionStorage.setItem("currentBill", JSON.stringify(billData));
@@ -86,7 +90,10 @@ const CheckoutPage = () => {
       {/* Sticky Bottom Summary */}
       <div className="absolute bottom-0 left-0 right-0 bg-background shadow-[0_-4px_20px_rgba(0,0,0,0.1)] border-t p-4 space-y-4 z-10">
         <div className="mx-auto max-w-lg space-y-4">
-          <OrderTypeSelector orderType={orderType} onChange={setOrderType} />
+          <div className="flex items-center justify-between gap-3">
+            <OrderTypeSelector orderType={orderType} onChange={setOrderType} />
+            <TableSelector tableNo={tableNo} onChange={setTableNo} />
+          </div>
 
           <SpecialInstructions
             value={specialInstructions}
