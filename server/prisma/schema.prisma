@@ -14,6 +14,7 @@ model Cafe {
   slug        String     @unique
   tagline     String?
   openingTime String?    @unique
+  logoUrl     String?
   bannerUrl   String?
   location    String
   rating      Decimal    @default(4.7)
@@ -22,23 +23,9 @@ model Cafe {
   created_at  DateTime   @default(now())
   updated_at  DateTime   @updatedAt
 
-  tables      Table[]
   categories  Category[]
   menu_items  MenuItem[]
   orders      Order[]
-}
-
-model Table {
-  id        Int      @id @default(autoincrement())
-  cafeId    Int
-  number    Int
-  qr_token  String   @unique
-  is_active Boolean  @default(true)
-
-  cafe      Cafe     @relation(fields: [cafeId], references: [id])
-  orders    Order[]
-
-  @@unique([cafeId, number])
 }
 
 model Category {
@@ -71,24 +58,24 @@ model MenuItem {
 }
 
 model Order {
-  id             Int          @id @default(autoincrement())
-  tableId        Int
-  cafeId         Int
-  payment_method PaymentMethod @default(counter)
-  status         OrderStatus   @default(pending)
-  total_price    Decimal      @default(0.00)
-  paid           Boolean      @default(false)
-  specialInstructions  String? @db.VarChar(500)
-  orderType     String? @db.VarChar(50) // e.g., "dine-in", "takeaway", "delivery"
-  payment_url    String?
-  created_at     DateTime     @default(now())
-  updated_at     DateTime     @updatedAt
+  id                  Int             @id @default(autoincrement())
+  tableNo             Int
+  cafeId              Int
+  payment_method      PaymentMethod  @default(counter)
+  status              OrderStatus    @default(pending)
+  total_price         Decimal        @default(0.00)
+  paid                Boolean        @default(false)
+  specialInstructions String?        @db.VarChar(500)
+  orderType           String?        @db.VarChar(50) // dine-in, takeaway
+  payment_url         String?
+  created_at          DateTime       @default(now())
+  updated_at          DateTime       @updatedAt
 
-  table          Table        @relation(fields: [tableId], references: [id])
-  cafe           Cafe         @relation(fields: [cafeId], references: [id])
-  order_items    OrderItem[]
-  bill           Bill?
+  cafe                Cafe           @relation(fields: [cafeId], references: [id])
+  order_items         OrderItem[]
+  bill                Bill?
 }
+
 
 model OrderItem {
   id       Int      @id @default(autoincrement())
