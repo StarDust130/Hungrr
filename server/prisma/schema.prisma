@@ -43,7 +43,7 @@ model MenuItem {
   id             Int       @id @default(autoincrement())
   cafeId         Int
   categoryId     Int?
-  name           String   @db.VarChar(17)
+  name           String   @db.VarChar(100) // See it in Frontend No more that 17 characters
   description    String?
   isSpecial      Boolean   @default(false)
   food_image_url String?
