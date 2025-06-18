@@ -22,6 +22,7 @@ import {
 import QRCode from "react-qr-code";
 import { BillData } from "./BillPage";
 import GenerateReliablePdf from "./GenerateReliablePdf";
+import { useRouter } from "next/navigation"; 
 
 
 // --- Configuration for Your UPI Details ---
@@ -38,6 +39,7 @@ export function BillActions({ bill }: BillActionsProps) {
   const [isDesktop, setIsDesktop] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const userAgent = navigator.userAgent;
@@ -67,7 +69,7 @@ export function BillActions({ bill }: BillActionsProps) {
 
   // This function now handles the redirect
   const handleRedirectToMenu = () => {
-    window.location.href = "/";
+    router.back();
   };
 
   const showPayOnlineButton =
