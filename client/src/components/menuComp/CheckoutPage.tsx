@@ -31,6 +31,7 @@ const CheckoutPage = () => {
     totalPrice = 0,
   } = useCart();
 
+  //! Filter out invalid cart items 😼
   const validCartItems: CartItem[] = Object.values(cart || {}).filter(
     (cartItem): cartItem is CartItem =>
       cartItem &&
@@ -38,11 +39,12 @@ const CheckoutPage = () => {
       !isNaN(Number(cartItem.item.price)) &&
       typeof cartItem.quantity === "number"
   );
-
+//! GST Calculation (Waah Modi ji Waah) 😎
   const gstRate = 0.18;
   const gstAmount = totalPrice * gstRate;
   const grandTotal = totalPrice + gstAmount;
 
+  //! Handle place order 🤩
   const handlePlaceOrder = (paymentMethod: "counter" | "online") => {
     setIsLoading(true);
     setIsRedirecting(true);
