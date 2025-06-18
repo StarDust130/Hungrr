@@ -37,7 +37,7 @@ const TableSelector = ({ tableNo, onChange }: Props) => {
           id="table-number"
           type="text"
           inputMode="numeric"
-          placeholder="12"
+          placeholder="XX"
           value={tableNo}
           onChange={handleChange}
           className="w-10 sm:w-16 bg-transparent border-none text-foreground placeholder:text-muted-foreground focus:outline-none text-center"
