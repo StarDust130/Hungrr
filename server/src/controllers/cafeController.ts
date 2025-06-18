@@ -237,10 +237,6 @@ export const completePayment = async (req: Request, res: Response) => {
 
 
 //! GET /api/bill/:cafeSlug/:tableNo
-
-
-
-
 // GET /api/bill/:cafeSlug/:tableNo
 export const getBillInfo = async (req: Request, res: Response) => {
   const { cafeSlug, tableNo } = req.params;
