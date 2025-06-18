@@ -86,19 +86,31 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   //! Calculate total items and total price using useMemo for performance optimization
   const { totalItems, totalPrice } = useMemo(() => {
-    // Use Object.values to get an array of cart entries and then reduce them
     return Object.values(cart).reduce(
       (acc, entry) => {
-        // Ensure the item and price are valid before adding
-        if (entry && entry.item && typeof entry.item.price === "number") {
+        const price = Number(entry.item?.price);
+        if (entry && entry.item && !isNaN(price)) {
           acc.totalItems += entry.quantity;
-          acc.totalPrice += entry.item.price * entry.quantity;
+          acc.totalPrice += price * entry.quantity;
         }
         return acc;
       },
-      { totalItems: 0, totalPrice: 0 } // Initial values
+      { totalItems: 0, totalPrice: 0 }
     );
-  }, [cart]); // This calculation re-runs only when the cart changes
+  }, [cart]);
+  
+  
+
+  console.log("CartProvider state 😇:", {
+    cart,
+    addToCart,
+    removeFromCart,
+    clearItemFromCart,
+    getQuantity,
+    totalItems,
+    totalPrice,
+    clearCart,
+  });
 
   return (
     <CartContext.Provider
