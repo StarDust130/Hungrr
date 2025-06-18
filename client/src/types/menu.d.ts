@@ -17,7 +17,7 @@ export interface MenuItem {
   name: string;
   price: number;
   description: string;
-  image?: string;
+  food_image_url?: string;
   rating: number;
   dietary: DietaryType;
   tags: string[];
@@ -46,4 +46,16 @@ export interface CartContextType {
   totalItems: number;
   totalPrice: number;
   clearCart: () => void; // ✨ New: Essential for clearing the cart post-order
+}
+
+
+export interface BillData {
+  id: string;
+  timestamp: string;
+  items: CartItem[];
+  totalPrice: number; // subtotal
+  gstAmount: number; // tax
+  grandTotal: number; // final total
+  paymentMethod: "counter" | "online";
+  paymentStatus: "pending" | "paid";
 }
