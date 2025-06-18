@@ -26,7 +26,7 @@ const CartItemsList = ({ items }: Props) => {
         >
           <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border">
             <SafeImage
-              src={item.image || ""}
+              src={item.food_image_url || ""}
               alt={item.name}
               className="h-full w-full object-cover"
             />
