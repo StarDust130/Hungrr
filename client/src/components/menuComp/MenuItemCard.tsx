@@ -43,7 +43,7 @@ const MenuItemCard = ({ item }: { item: MenuItem }) => (
 
     <div className="flex-shrink-0 w-32 flex flex-col items-end justify-between">
       <SafeImage
-        src={item.image ?? ""}
+        src={item.food_image_url ?? ""}
         alt={item.name}
         className="w-full aspect-[4/3] object-cover rounded-lg"
       />
