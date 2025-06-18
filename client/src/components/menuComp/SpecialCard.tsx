@@ -4,7 +4,6 @@ import { MenuItem } from "@/types/menu";
 import { Sparkles } from "lucide-react";
 
 const SpecialCard = ({ item }: { item: MenuItem }) => {
-  console.log("Image URL:", item.food_image_url);  // Debugging line to check image URL
   
   return (
     <div className="relative flex-shrink-0 w-44 md:w-52 rounded-2xl border dark:border-zinc-200/20 backdrop-blur-xl hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)] hover:scale-[1.03] transition-all duration-300 overflow-hidden">

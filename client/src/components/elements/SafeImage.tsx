@@ -33,7 +33,6 @@ const SafeImage = ({ src, alt, className }: SafeImageProps) => {
       alt={alt}
       className={className}
       loading="lazy"
-      unoptimized // ← ensure the error handler fires
       onError={() => setError(true)}
     />
   );
