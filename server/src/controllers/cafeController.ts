@@ -141,40 +141,46 @@ export const upsertBill = async (req: Request, res: Response) => {
     const {
       tableNo,
       cafeId,
-      items, // [{ itemId, quantity }]
-      paymentMethod, // "counter" | "online"
+      items,
+      paymentMethod,
       specialInstructions,
       orderType,
     } = req.body;
 
-    // Validate required fields
+    // ✅ Validate
     if (!tableNo || !cafeId || !items?.length) {
       return res.status(400).json({ message: "Missing required fields." });
     }
 
-    // Check if there is already an active unpaid order
+    // ✅ Ensure correct types
+    const numericCafeId = Number(cafeId);
+    const numericTableNo = Number(tableNo);
+    if (isNaN(numericCafeId) || isNaN(numericTableNo)) {
+      return res.status(400).json({ message: "Invalid cafeId or tableNo" });
+    }
+
     let order = await prisma.order.findFirst({
       where: {
-        tableNo,
-        cafeId,
+        tableNo: numericTableNo,
+        cafeId: numericCafeId,
         paid: false,
       },
       include: { order_items: true },
     });
 
     if (!order) {
-      // ✅ Create new order
+      // ✅ Create order
       order = await prisma.order.create({
         data: {
-          tableNo,
-          cafeId,
+          tableNo: numericTableNo,
+          cafeId: numericCafeId,
           payment_method: paymentMethod || "counter",
           status: "pending",
           specialInstructions,
           orderType,
           order_items: {
             create: items.map((item: any) => ({
-              itemId: item.itemId,
+              itemId: Number(item.itemId),
               quantity: item.quantity,
             })),
           },
@@ -182,17 +188,17 @@ export const upsertBill = async (req: Request, res: Response) => {
         include: { order_items: true },
       });
     } else {
-      // ✅ Patch existing unpaid order with new items
+      // ✅ Add new items
       await prisma.orderItem.createMany({
         data: items.map((item: any) => ({
-          itemId: item.itemId,
+          itemId: Number(item.itemId),
           quantity: item.quantity,
           orderId: order!.id,
         })),
         skipDuplicates: true,
       });
 
-      // Reload the updated order
+      // ✅ Reload
       order = await prisma.order.findUnique({
         where: { id: order.id },
         include: { order_items: true },
@@ -200,11 +206,12 @@ export const upsertBill = async (req: Request, res: Response) => {
     }
 
     res.status(200).json({ order });
-  } catch (err) {
-    console.error("Upsert bill error:", err);
-    res.status(500).json({ message: "Server error" });
+  } catch (err: any) {
+    console.error("Upsert bill error:", err?.message || err);
+    res.status(500).json({ message: "Server error", error: err?.message });
   }
 };
+
 
 /**
  * PATCH the order after payment (mark as paid + create bill)

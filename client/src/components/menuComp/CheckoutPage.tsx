@@ -8,6 +8,7 @@ import { Wallet, CreditCard } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { CartItem } from "@/types/menu";
 import PremiumLoader from "./PremiumLoader";
+import axios from "axios";
 
 import CartItemsList from "./checkoutComp/CartItemsList";
 import EmptyCart from "./checkoutComp/EmptyCart";
@@ -48,29 +49,40 @@ const CheckoutPage = () => {
   const grandTotal = totalPrice + gstAmount;
 
   //! Handle place order 🤩
-  const handlePlaceOrder = (paymentMethod: "counter" | "online") => {
+  const handlePlaceOrder = async (paymentMethod: "counter" | "online") => {
     setIsLoading(true);
     setIsRedirecting(true);
 
     const tempBillId = Date.now().toString();
+
     const billData = {
-      id: tempBillId,
-      timestamp: new Date().toISOString(),
-      items: validCartItems,
-      totalPrice,
-      gstAmount,
-      grandTotal,
+      cafeId: 1, // ✅ Replace this with the actual cafeId
+      items: validCartItems.map((item) => ({
+        itemId: item.item.id,
+        quantity: item.quantity,
+      })),
+      tableNo: Number(tableNo), // Ensure it's a number
       paymentMethod,
-      paymentStatus: "pending",
       specialInstructions,
       orderType,
-      tableNo,
     };
 
+    // 💾 Save to session
     sessionStorage.setItem("currentBill", JSON.stringify(billData));
-    clearCart();
+
+    // 🔁 Redirect early
     router.push(`/bills/${tempBillId}`);
+
+    // 🚀 Send to backend
+    axios
+      .post(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/bill`, billData)
+      .catch((error) => console.error("Failed to save bill:", error));
+
+    console.log("Placing order with data 🤭:", billData);
+
   };
+  
+  
 
   if (!isRedirecting && validCartItems.length === 0) return <EmptyCart />;
   if (isRedirecting) return <PremiumLoader />;
