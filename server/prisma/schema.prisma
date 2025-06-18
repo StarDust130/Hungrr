@@ -78,6 +78,8 @@ model Order {
   status         OrderStatus   @default(pending)
   total_price    Decimal      @default(0.00)
   paid           Boolean      @default(false)
+  specialInstructions  String? @db.VarChar(500)
+  orderType     String? @db.VarChar(50) // e.g., "dine-in", "takeaway", "delivery"
   payment_url    String?
   created_at     DateTime     @default(now())
   updated_at     DateTime     @updatedAt
