@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Caudex, Roboto } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider"
-import { ClerkProvider } from "@clerk/nextjs";
 import Navbar from "@/components/elements/Navbar";
 import Footer from "@/components/elements/Footer";
 
@@ -32,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+   
       <html lang="en" suppressHydrationWarning>
         <body className={`${caudex.variable} ${roboto.variable} antialiased`}>
         <ThemeProvider
@@ -47,6 +46,6 @@ export default function RootLayout({
         </ThemeProvider>
         </body>
       </html>
-    </ClerkProvider>
+  
   );
 }
