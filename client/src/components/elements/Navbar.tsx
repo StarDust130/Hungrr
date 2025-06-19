@@ -1,11 +1,10 @@
 "use client";
 import Image from "next/image";
-import { Button } from "../ui/button";
 import { ModeToggle } from "../ui/ModeToggle";
 import { useState, useEffect } from "react";
 import { Menu,  X } from "lucide-react";
 import Link from "next/link";
-import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -53,17 +52,9 @@ const Navbar = () => {
           <div className="flex items-center space-x-3">
             <ModeToggle />
 
-            <SignedIn>
-              <UserButton afterSignOutUrl="/" />
-            </SignedIn>
+          
 
-            <SignedOut>
-              <div className="hidden md:block">
-                <SignInButton mode="modal">
-                  <Button size={"lg"}>Login</Button>
-                </SignInButton>
-              </div>
-            </SignedOut>
+          
 
             {/* Hamburger menu for mobile */}
             <button
@@ -95,11 +86,7 @@ const Navbar = () => {
                   .join(" ")}
               </Link>
             ))}
-            <SignedOut>
-              <SignInButton mode="modal">
-                <Button className="w-full">Sign In</Button>
-              </SignInButton>
-            </SignedOut>
+            
           </div>
         )}
       </div>
