@@ -87,7 +87,7 @@ export default function BillPage() {
         🐸 Yeah, I know the UI&apos;s ugly—but it&apos;s mobile-first, so I
         saved time being lazy! 😅📱 😁
       </p>
-      <OrderStatusTracker status={bill.status as any} bill={bill} />
+      <OrderStatusTracker  bill={bill} />
       <BillDetails bill={bill} />
       <BillFooter />
       <BillActions bill={bill} />

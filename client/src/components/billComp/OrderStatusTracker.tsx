@@ -10,17 +10,8 @@ import {
   Store,
   Check,
 } from "lucide-react";
-import { BillData } from "@/types/menu"; // Assuming this is the path to your type
+import { BillData, OrderStatus } from "@/types/menu"; // Assuming this is the path to your type
 
-// This should match your Prisma schema enum for consistency
-export type OrderStatus =
-  | "pending"
-  | "accepted"
-  | "preparing"
-  | "ready"
-  | "completed";
-
-// The useCountdown hook remains unchanged
 const useCountdown = (initialMinutes: number, isActive: boolean) => {
   const [totalSeconds, setTotalSeconds] = useState(initialMinutes * 60);
   const totalInitialSeconds = initialMinutes * 60;
