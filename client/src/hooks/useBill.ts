@@ -3,25 +3,30 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { BillData } from "@/types/menu";
 
-export function useBill(cafeId: number | null, tableNo: number | null) {
+export function useBill(cafeKey: string | null, tableNo: number | null) {
   const [bill, setBill] = useState<BillData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("👀 useEffect called with", cafeId, tableNo); // Add this
-    if (!cafeId || tableNo === null) {
-      console.log("❌ Skipping fetch - missing cafeId or tableNo");
-      return;
-    }
+    console.log("📦 useBill hook called with:", cafeKey, tableNo);
+
+    if (!cafeKey || tableNo === null) return;
 
     const fetchBill = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/bill/${cafeId}/${tableNo}`
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/bill/${cafeKey}/${tableNo}`
         );
 
-        const data = response.data;
+        const data = res.data;
+        console.log("✅ Bill data fetched:", data);
+
+        if (!data.order) {
+          console.warn("⚠️ No active order found");
+          setError("No active bill found for this table.");
+          return;
+        }
 
         const billData: BillData = {
           id: data.order.id,
@@ -34,11 +39,12 @@ export function useBill(cafeId: number | null, tableNo: number | null) {
             },
             quantity: item.quantity,
           })),
-          totalPrice: data.order.total_price,
-          gstAmount: data.bill?.gst || 0,
-          grandTotal: data.bill?.grandTotal || data.order.total_price,
+          totalPrice: Number(data.order.total_price),
+          gstAmount: 0,
+          grandTotal: Number(data.bill?.amount || data.order.total_price),
           paymentMethod: data.order.payment_method,
           paymentStatus: data.order.paid ? "paid" : "pending",
+          status: data.order.status,
         };
 
         setBill(billData);
@@ -51,8 +57,7 @@ export function useBill(cafeId: number | null, tableNo: number | null) {
     };
 
     fetchBill();
-  }, [cafeId, tableNo]);
+  }, [cafeKey, tableNo]);
 
   return { bill, loading, error };
 }
-  
