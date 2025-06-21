@@ -250,7 +250,6 @@ export const getBillInfo = async (req: Request, res: Response) => {
 
   try {
     console.log("🔍 cafeKey:", cafeKey, "tableNo:", tableNo);
-
     const isId = /^\d+$/.test(cafeKey);
     console.log("🔎 Interpreting cafeKey as", isId ? "ID" : "slug");
 
@@ -284,13 +283,32 @@ export const getBillInfo = async (req: Request, res: Response) => {
 
     if (!order) {
       console.warn("⚠️ No unpaid order found");
-      return res.status(200).json({
-        message: "No unpaid order found for this table.",
-        order: null,
+      return res
+        .status(200)
+        .json({ message: "No unpaid order found", order: null });
+    }
+
+    // ✅ Calculate total price from items
+    const totalPrice = order.order_items.reduce((sum, oi) => {
+      return sum + Number(oi.item.price) * oi.quantity;
+    }, 0);
+
+    // ✅ Update order total_price if needed
+    if (Number(order.total_price) !== totalPrice) {
+      await prisma.order.update({
+        where: { id: order.id },
+        data: { total_price: totalPrice },
       });
     }
 
-    console.log("✅ Order found:", order);
+    const gstAmount = Number((0.18 * totalPrice).toFixed(2));
+    const grandTotal = Number((totalPrice + gstAmount).toFixed(2));
+
+    console.log("✅ Processed bill totals:", {
+      totalPrice,
+      gstAmount,
+      grandTotal,
+    });
 
     return res.status(200).json({
       cafe: {
@@ -303,25 +321,29 @@ export const getBillInfo = async (req: Request, res: Response) => {
       order: {
         id: order.id,
         status: order.status,
-        total_price: order.total_price,
+        total_price: totalPrice,
         created_at: order.created_at,
         specialInstructions: order.specialInstructions,
         payment_method: order.payment_method,
         orderType: order.orderType,
         paid: order.paid,
         items: order.order_items.map((oi) => ({
-          id: oi.id,
+          id: oi.item.id,
           name: oi.item.name,
           quantity: oi.quantity,
-          price: oi.item.price,
+          price: Number(oi.item.price),
         })),
       },
-      bill: order.bill ?? null,
+      bill: {
+        amount: grandTotal,
+        gst: gstAmount,
+      },
     });
   } catch (error) {
     console.error("💥 getBillInfo error:", error);
     return res.status(500).json({ error: "Server error" });
   }
 };
+
 
 
