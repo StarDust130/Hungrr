@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -9,11 +10,8 @@ import { BillFooter } from "./BillFooter";
 import { BillActions } from "./BillActions";
 
 export default function BillPage() {
-  const [cafeId, setCafeId] = useState<number | null>(null);
+  const [cafeKey, setCafeKey] = useState<string | null>(null); // Use string for slug or id
   const [tableNo, setTableNo] = useState<number | null>(null);
-
-
-  
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -22,7 +20,7 @@ export default function BillPage() {
         try {
           const sessionData = JSON.parse(raw);
           console.log("✅ sessionStorage found:", sessionData);
-          setCafeId(Number(sessionData.cafeId));
+          setCafeKey(String(sessionData.cafeId)); // Use string here
           setTableNo(Number(sessionData.tableNo));
         } catch (err) {
           console.error("❌ Failed to parse sessionStorage:", err);
@@ -33,10 +31,13 @@ export default function BillPage() {
     }
   }, []);
 
-  const { bill, loading, error } = useBill(cafeId, tableNo);
-    console.log("🔍 BillPage" , bill);
+  console.log("🔍 cafeKey:", cafeKey, "tableNo:", tableNo);
 
-  if (loading || cafeId === null || tableNo === null) {
+  const { bill, loading, error } = useBill(cafeKey, tableNo);
+
+  console.log("🔍 BillPage bill:", bill);
+
+  if (loading || cafeKey === null || tableNo === null) {
     return (
       <main className="flex justify-center items-center min-h-screen">
         <Loader className="w-6 h-6 animate-spin" />
@@ -59,7 +60,7 @@ export default function BillPage() {
         🐸 Yeah, I know the UI&apos;s ugly—but it&apos;s mobile-first, so I
         saved time being lazy! 😅📱 😁
       </p>
-      <OrderStatusTracker status={bill.status} bill={bill} />
+      <OrderStatusTracker status={bill.status as any} bill={bill} />
       <BillDetails bill={bill} />
       <BillFooter />
       <BillActions bill={bill} />
