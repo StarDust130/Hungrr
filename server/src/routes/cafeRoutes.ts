@@ -13,14 +13,14 @@ const router = Router();
 
 router.get("/cafe_banner/:slug", getCafeInfoBySlug);
 
-router.get("/menu/:slug/", getCafeMenu);
-router.get("/menu/category/:slug/", getCategory);
+router.get("/menu/:slug/", getCafeMenu as any);
+router.get("/menu/category/:slug/", getCategory as any);
 
-router.post("/bill", upsertBill);       // Create or update order (add items)
+router.post("/bill", upsertBill as any);       // Create or update order (add items)
 router.patch("/bill/complete", completePayment);  // Finalize payment & bill
 
 
-router.get("/bill/:cafeKey/:tableNo", getBillInfo); // ✅ correct
+router.get("/bill/:cafeKey/:tableNo", getBillInfo as any); 
 
 
 
