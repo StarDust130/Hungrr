@@ -12,6 +12,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/api", cafeRoutes); // ✅ Fixed usage
+app.use("/api", cafeRoutes); // ✅ Fixed API for Users
 
 export default app;
