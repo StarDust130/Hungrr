@@ -2,7 +2,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader } from "lucide-react";
 import { useBill } from "@/hooks/useBill";
 import { BillDetails } from "./BillDetails";
 import { OrderStatusTracker } from "./OrderStatusTracker";
