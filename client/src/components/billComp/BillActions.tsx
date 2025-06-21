@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-// import Link from "next/link"; // --- REMOVED this line
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,15 +19,12 @@ import {
   Check,
 } from "lucide-react";
 import QRCode from "react-qr-code";
-import { BillData } from "./BillPage";
 import GenerateReliablePdf from "./GenerateReliablePdf";
-import { useRouter } from "next/navigation"; 
+import { useRouter } from "next/navigation";
+import { BillData } from "@/types/menu";
 
-
-// --- Configuration for Your UPI Details ---
 const YOUR_UPI_ID = "9302903537-2@ybl";
 const YOUR_NAME = "Chandrashekhar";
-// -----------------------------------------
 
 interface BillActionsProps {
   bill: BillData;
@@ -67,14 +63,27 @@ export function BillActions({ bill }: BillActionsProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // This function now handles the redirect
   const handleRedirectToMenu = () => {
     router.back();
   };
 
-  const showPayOnlineButton =
-    bill.paymentMethod === "online" && bill.paymentStatus === "pending";
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+      await GenerateReliablePdf({ bill });
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
+  // ✅ CORRECT LOGIC: This defines exactly when each button should show.
+  const showPayButton =
+    bill.paymentMethod === "online" && bill.paymentStatus === "pending";
+  const showDownloadButton = bill.paymentStatus === "paid";
+
+  // --- Reusable Button Components ---
   const PayButton = ({ isMobile = false }) => (
     <Button
       size={isMobile ? "lg" : undefined}
@@ -91,7 +100,7 @@ export function BillActions({ bill }: BillActionsProps) {
       variant="secondary"
       size={isMobile ? "lg" : undefined}
       className={`flex-1 h-12 ${isMobile ? "rounded-xl" : ""}`}
-      onClick={() => GenerateReliablePdf({ bill, setIsDownloading })}
+      onClick={handleDownload}
       disabled={isDownloading}
     >
       {isDownloading ? (
@@ -99,20 +108,15 @@ export function BillActions({ bill }: BillActionsProps) {
       ) : (
         <Download size={18} className="mr-2" />
       )}
-      {isDownloading
-        ? "Generating..."
-        : `Download ${isMobile ? "Bill" : "Invoice"}`}
+      {isDownloading ? "Generating..." : "Download Bill"}
     </Button>
   );
 
   return (
     <>
-      {/* --- ACTION BUTTONS --- */}
-
       {/* Desktop and Tablet View */}
-      <div className="hidden sm:block p-4 space-y-4 rounded-lg border">
+      <div className="hidden sm:block w-full max-w-lg p-4 space-y-4">
         <div className="flex flex-col sm:flex-row gap-3">
-          {/* MODIFIED: Using onClick for redirect */}
           <Button
             variant="outline"
             className="flex-1 h-12"
@@ -121,13 +125,15 @@ export function BillActions({ bill }: BillActionsProps) {
             <Home size={18} className="mr-2" />
             Back to Menu
           </Button>
-          {showPayOnlineButton ? <PayButton /> : <DownloadButton />}
+
+          {/* Correctly renders buttons based on the logic */}
+          {showPayButton && <PayButton />}
+          {showDownloadButton && <DownloadButton />}
         </div>
       </div>
 
       {/* Fixed Bottom Bar for Mobile */}
       <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-background border-t shadow-[0_-2px_8px_rgba(0,0,0,0.08)] px-4 py-3 rounded-t-2xl z-50 flex gap-3">
-        {/* MODIFIED: Using onClick for redirect */}
         <Button
           variant="outline"
           size="lg"
@@ -137,31 +143,28 @@ export function BillActions({ bill }: BillActionsProps) {
           <ArrowLeft size={18} className="mr-2" />
           Menu
         </Button>
-        {showPayOnlineButton ? (
-          <PayButton isMobile />
-        ) : (
-          <DownloadButton isMobile />
-        )}
+
+        {/* Correctly renders buttons based on the logic */}
+        {showPayButton && <PayButton isMobile />}
+        {showDownloadButton && <DownloadButton isMobile />}
       </div>
 
-      {/* --- QR Code Modal for Desktop (No changes here) --- */}
+      {/* QR Code Modal for Desktop */}
       {isDesktop && (
         <Dialog open={showQrModal} onOpenChange={setShowQrModal}>
           <DialogContent className="sm:max-w-xs">
             <DialogHeader>
               <DialogTitle className="text-center">Scan to Pay</DialogTitle>
               <DialogDescription className="text-center">
-                Use any UPI app to pay the bill amount of ₹{amount}.
+                Use any UPI app to pay ₹{amount}.
               </DialogDescription>
             </DialogHeader>
-            <div className="p-4">
-              <div className=" p-4 rounded-lg w-full max-w-[200px] mx-auto">
-                <QRCode
-                  value={upiUrl}
-                  style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                  viewBox={`0 0 256 256`}
-                />
-              </div>
+            <div className="p-4 bg-white rounded-lg">
+              <QRCode
+                value={upiUrl}
+                style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                viewBox={`0 0 256 256`}
+              />
             </div>
             <div className="text-center text-sm text-muted-foreground">OR</div>
             <div className="flex flex-col gap-2 px-4 pb-4">
