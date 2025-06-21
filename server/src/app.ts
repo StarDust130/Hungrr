@@ -41,6 +41,13 @@ io.on("connection", (socket) => {
     socket.join(roomName);
   });
 
+  // Listen for a ping from the client
+  socket.on("client_ping", () => {
+    // Respond with a pong to let the client know we are still alive
+    console.log(`👂 Received ping from ${socket.id}, sending pong back.`);
+    socket.emit("server_pong");
+  });
+
   socket.on("disconnect", () => {
     console.log("🔌 Client disconnected:", socket.id);
   });
