@@ -44,7 +44,10 @@ export const BillDetails = ({ bill }: { bill: BillData }) => {
           <p className="w-20 text-right">Amount</p>
         </div>
         {bill.items.map(({ item, quantity }) => (
-          <div key={item.id} className="flex items-center text-sm">
+          <div
+            key={`${item.id}-${quantity}`}
+            className="flex items-center text-sm"
+          >
             <p className="flex-grow font-medium">{item.name}</p>
             <p className="w-16 text-center text-muted-foreground">{quantity}</p>
             <p className="w-20 text-right font-mono">
