@@ -35,17 +35,20 @@ export function useBill(cafeKey: string | null, tableNo: number | null) {
             item: {
               id: item.id,
               name: item.name,
-              price: item.price,
+              price: Number(item.price),
             },
             quantity: item.quantity,
           })),
           totalPrice: Number(data.order.total_price),
-          gstAmount: 0,
-          grandTotal: Number(data.bill?.amount || data.order.total_price),
+          gstAmount: Number(data.bill?.gst || 0), // ✅ Fix here
+          grandTotal: Number(data.bill?.amount || data.order.total_price), // ✅ Fix here
           paymentMethod: data.order.payment_method,
           paymentStatus: data.order.paid ? "paid" : "pending",
           status: data.order.status,
         };
+
+        console.log("✅ Bill data processed:", billData);
+        
 
         setBill(billData);
       } catch (err) {
