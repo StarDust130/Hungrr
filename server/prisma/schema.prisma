@@ -16,7 +16,8 @@ model Cafe {
   openingTime String?    @unique
   logoUrl     String?
   bannerUrl   String?
-  location    String
+  address     String?     
+  gstNo       String? @db.VarChar(15) @unique
   rating      Decimal    @default(4.7)
   reviews     Int        @default(969)
   is_active   Boolean    @default(true)
@@ -114,4 +115,5 @@ enum OrderStatus {
   preparing
   ready
   completed
+
 }
