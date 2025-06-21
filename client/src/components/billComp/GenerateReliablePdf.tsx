@@ -1,148 +1,264 @@
 import jsPDF from "jspdf";
-import AmountInWords from "./AmountInWords";
-import { BillData } from "@/types/menu";
+import QRCode from "qrcode";
+import AmountInWords from "./AmountInWords"; // Your existing utility
+import { BillData } from "@/types/menu"; // Your existing type
+
+
+// --- CONFIGURATION ---
+const COMPANY_NAME = "The Great Cafe";
+// ✅ ADD YOUR LOGO URL HERE. Leave as "" to hide the logo.
+const CAFE_LOGO_URL =
+  "https://images.unsplash.com/photo-1602934445884-da0fa1c9d3b3?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTh8fGxvZ298ZW58MHx8MHx8fDA%3D"; // 👈 e.g., "https://i.imgur.com/yourlogo.png"
+
+const COMPANY_DETAILS = {
+  address: "123 Cafe Lane, Food City, Raipur, 492001",
+  GST_NO : "22AABCT1234F1Z5", // 👈 Replace with your actual GST number
+};
+const STYLING = {
+  fontColorNormal: "#1f2937",
+  fontColorLight: "#6b7280",
+  fontSizes: { XL: 12, L: 9, M: 8, S: 7, XS: 6 },
+};
+// --------------------
 
 export interface GenerateReliablePdfProps {
   bill: BillData;
+  pageUrl: string; // The URL of the page to link in the QR code
 }
 
-const GenerateReliablePdf = async ({ bill }: GenerateReliablePdfProps) => {
+const GenerateReliablePdf = async ({
+  bill,
+  pageUrl,
+}: GenerateReliablePdfProps) => {
   try {
-    // --- PAGE SETUP for 80mm POS Receipt Style ---
+    // --- 1. PREPARE DATA ---
+    let tableNumber = bill.tableNo;
+    if (typeof window !== "undefined") {
+      try {
+        const sessionData = JSON.parse(
+          sessionStorage.getItem("currentBill") || "{}"
+        );
+        if (sessionData.tableNo) tableNumber = sessionData.tableNo;
+      } catch (e) {
+        console.error("Could not parse session storage for table number:", e);
+      }
+    }
+
+    const billUrl = pageUrl;
+    const billUrlQrCodeImage = await QRCode.toDataURL(billUrl, {
+      width: 256,
+      margin: 1,
+      errorCorrectionLevel: "H",
+    });
+
+    // --- 2. INITIALIZE PDF DOCUMENT ---
+    // The height is calculated dynamically based on content + logo
+    const logoHeight = CAFE_LOGO_URL ? 20 : 0; // Add 20mm height for the logo if it exists
+    const baseHeight = 150 + logoHeight;
+    const heightPerItem = 9;
+    const calculatedHeight = baseHeight + bill.items.length * heightPerItem;
+
     const doc = new jsPDF({
       orientation: "portrait",
       unit: "mm",
-      format: [80, 200], // 80mm width, 200mm initial height
+      format: [80, calculatedHeight],
     });
-
-    const pageWidth = 70; // Usable width within 80mm paper, leaving margins
-    const margin = 5;
+    const pageWidth = 72;
+    const margin = 4;
     let y = 10;
-    const lineSpacing = 5;
-    const smallLineSpacing = 4;
+    const lineSpacing = 4.2;
+    const smallLineSpacing = 3.2;
 
-    // --- HELPER for dotted lines ---
-    const drawDottedLine = (yPos: number) => {
+    const drawLine = (yPos: number) => {
       doc.setLineDashPattern([0.5, 0.5], 0);
+      doc.setDrawColor(STYLING.fontColorLight);
       doc.line(margin, yPos, margin + pageWidth, yPos);
-      doc.setLineDashPattern([], 0); // Reset dash pattern
+      doc.setLineDashPattern([], 0);
     };
 
-    // --- HEADER ---
-    doc.setFont("courier", "bold");
-    doc.setFontSize(14);
-    doc.text("The Great Cafe", margin + pageWidth / 2, y, { align: "center" });
-    y += lineSpacing;
+    // --- 3. RENDER PDF CONTENT ---
 
+    // --- NEW: Cafe Logo (Conditional) ---
+    if (CAFE_LOGO_URL) {
+      try {
+        const logoDimensions = { width: 18, height: 18 };
+        const logoX = margin + pageWidth / 2 - logoDimensions.width / 2;
+        doc.addImage(
+          CAFE_LOGO_URL,
+          "PNG",
+          logoX,
+          y,
+          logoDimensions.width,
+          logoDimensions.height
+        );
+        y += logoDimensions.height + 4; // Add space after the logo
+      } catch (e) {
+        console.error("Failed to load or add logo image. Skipping logo.", e);
+      }
+    }
+
+    // Header
+    doc.setFont("courier", "bold");
+    doc.setFontSize(STYLING.fontSizes.XL);
+    doc.setTextColor(STYLING.fontColorNormal);
+    doc.text(COMPANY_NAME, margin + pageWidth / 2, y, { align: "center" });
+    y += lineSpacing;
     doc.setFont("courier", "normal");
-    doc.setFontSize(8);
-    doc.text("123 Cafe Lane, Food City", margin + pageWidth / 2, y, {
+    doc.setFontSize(STYLING.fontSizes.S);
+    doc.setTextColor(STYLING.fontColorLight);
+    doc.text("TAX INVOICE", margin + pageWidth / 2, y, { align: "center" });
+    y += lineSpacing;
+    doc.text(COMPANY_DETAILS.address, margin + pageWidth / 2, y, {
       align: "center",
     });
     y += smallLineSpacing;
-    doc.text("Raipur, Chhattisgarh, 492001", margin + pageWidth / 2, y, {
-      align: "center",
-    });
-    y += smallLineSpacing;
-    doc.text("GSTIN: 22AAAAA0000A1Z5", margin + pageWidth / 2, y, {
+    doc.text(COMPANY_DETAILS.GST_NO, margin + pageWidth / 2, y, {
       align: "center",
     });
     y += lineSpacing;
-    drawDottedLine(y);
+    drawLine(y);
     y += lineSpacing;
 
-    // --- BILL DETAILS ---
-    const billNo = `Bill No: #${String(bill.id).slice(-6)}`;
-    const billDate = `Date: ${new Date(bill.timestamp).toLocaleDateString(
-      "en-GB"
-    )}`;
-    doc.text(billNo, margin, y);
-    doc.text(billDate, margin + pageWidth, y, { align: "right" });
-    y += smallLineSpacing;
-    doc.text(`Table: ${bill.tableNo || "N/A"}`, margin, y);
-    y += lineSpacing;
-    drawDottedLine(y);
-    y += lineSpacing;
+    // (The rest of the code is identical to the previous version)
 
-    // --- TABLE HEADER ---
+    // Bill Details
+    doc.setFontSize(STYLING.fontSizes.M);
+    doc.setTextColor(STYLING.fontColorNormal);
+    const billDate = new Date(bill.timestamp).toLocaleString("en-GB", {
+      dateStyle: "short",
+      timeStyle: "short",
+    });
+    doc.text(`Bill #: ${String(bill.id).slice(-6)}`, margin, y);
+    doc.text(`Table: ${tableNumber}`, margin + pageWidth, y, {
+      align: "right",
+    });
+    y += lineSpacing;
+    doc.text(`Date: ${billDate}`, margin, y);
+    y += lineSpacing;
+    drawLine(y);
+    y += smallLineSpacing;
+
+    // Table Header
     doc.setFont("courier", "bold");
-    doc.text("Item", margin, y);
-    doc.text("Qty", margin + 45, y, { align: "center" });
-    doc.text("Price", margin + pageWidth, y, { align: "right" });
+    const itemX = margin;
+    const qtyX = margin + 42;
+    const rateX = margin + 55;
+    const amountX = margin + pageWidth;
+    doc.text("ITEM(S)", itemX, y);
+    doc.text("QTY", qtyX, y);
+    doc.text("RATE", rateX, y, { align: "right" });
+    doc.text("AMOUNT", amountX, y, { align: "right" });
     y += smallLineSpacing;
-    drawDottedLine(y);
+    drawLine(y);
     y += lineSpacing;
 
-    // --- TABLE ITEMS ---
+    // Table Items
     doc.setFont("courier", "normal");
     bill.items.forEach((cartItem) => {
-      const price = cartItem.item.price;
+      const name = cartItem.item.name;
       const quantity = cartItem.quantity ?? 1;
-      const total = price * quantity;
+      const rate = cartItem.item.price;
+      const amount = quantity * rate;
+      const itemLines = doc.splitTextToSize(name, 38);
 
-      // Handle long item names by splitting them
-      const itemNameLines = doc.splitTextToSize(cartItem.item.name, 40); // 40mm width for item name
-
-      doc.text(itemNameLines[0], margin, y); // Print first line of item name
-      doc.text(String(quantity), margin + 47, y, { align: "center" });
-      doc.text(total.toFixed(2), margin + pageWidth, y, { align: "right" });
-
-      // If item name was split, print subsequent lines
-      if (itemNameLines.length > 1) {
-        for (let i = 1; i < itemNameLines.length; i++) {
-          y += smallLineSpacing;
-          doc.text(itemNameLines[i], margin, y);
-        }
-      }
+      doc.text(itemLines[0], itemX, y);
+      doc.text(String(quantity), qtyX + 1, y, { align: "center" });
+      doc.text(rate.toFixed(2), rateX, y, { align: "right" });
+      doc.text(amount.toFixed(2), amountX, y, { align: "right" });
       y += lineSpacing;
+      if (itemLines.length > 1) {
+        for (let i = 1; i < itemLines.length; i++) {
+          doc.text(itemLines[i], itemX, y);
+          y += smallLineSpacing;
+        }
+        y += lineSpacing - smallLineSpacing;
+      }
     });
-    drawDottedLine(y);
+    drawLine(y);
     y += lineSpacing;
 
-    // --- TOTALS ---
-    const totalsXLabel = margin + 35;
+    // Totals
+    const totalsXLabel = margin + 30;
     const totalsXValue = margin + pageWidth;
-
-    const addTotalLine = (label: string, value: number) => {
+    const addTotalLine = (
+      label: string,
+      value: string,
+      isBold: boolean = false
+    ) => {
+      doc.setFont("courier", isBold ? "bold" : "normal");
       doc.text(label, totalsXLabel, y);
-      doc.text(value.toFixed(2), totalsXValue, y, { align: "right" });
+      doc.text(value, totalsXValue, y, { align: "right" });
       y += lineSpacing;
     };
 
-    addTotalLine("Subtotal", bill.totalPrice ?? 0);
-    addTotalLine("GST", bill.gstAmount ?? 0);
-    drawDottedLine(y);
+    addTotalLine("Subtotal", (bill.totalPrice ?? 0).toFixed(2));
+    addTotalLine("GST (18%)", (bill.gstAmount ?? 0).toFixed(2));
+    y += smallLineSpacing / 2;
+    drawLine(y);
     y += lineSpacing;
+    doc.setFontSize(STYLING.fontSizes.L);
+    addTotalLine(
+      "GRAND TOTAL",
+      `Rs. ${(bill.grandTotal ?? 0).toFixed(2)}`,
+      true
+    );
+    doc.setFontSize(STYLING.fontSizes.M);
 
-    doc.setFont("courier", "bold");
-    addTotalLine("GRAND TOTAL", bill.grandTotal ?? 0);
-    y += lineSpacing;
-
-    // --- AMOUNT IN WORDS ---
+    // Amount in Words
     const grandTotalInWords = AmountInWords(bill.grandTotal ?? 0);
     if (grandTotalInWords) {
       doc.setFont("courier", "normal");
+      doc.setFontSize(STYLING.fontSizes.S);
       const words = `In Words: Rupees ${grandTotalInWords} Only`;
-      const splitWords = doc.splitTextToSize(words, pageWidth); // Wrap if needed
+      const splitWords = doc.splitTextToSize(words, pageWidth);
       doc.text(splitWords, margin, y);
       y += splitWords.length * smallLineSpacing;
     }
     y += lineSpacing;
+    drawLine(y);
+    y += lineSpacing;
 
-    // --- FOOTER ---
+    // QR Code Section
+    const qrSize = 28;
+    const qrX = margin + pageWidth / 2 - qrSize / 2;
+    const qrY = y;
+
+    doc.addImage(billUrlQrCodeImage, "PNG", qrX, qrY, qrSize, qrSize);
+    doc.link(qrX, qrY, qrSize, qrSize, { url: billUrl });
+    y += qrSize + 3;
+
+    doc.setFont("courier", "bold");
+    doc.setFontSize(STYLING.fontSizes.S);
+    doc.setTextColor(STYLING.fontColorNormal);
+    const ctaText = "Click or Scan for Digital Bill";
+    doc.textWithLink(ctaText, margin + pageWidth / 2, y, {
+      align: "center",
+      url: billUrl,
+    });
+    y += lineSpacing * 2;
+
+    // Footer
     doc.setFont("courier", "italic");
-    doc.text("Thank you for your visit!", margin + pageWidth / 2, y, {
+    doc.setFontSize(STYLING.fontSizes.M);
+    doc.setTextColor(STYLING.fontColorNormal);
+    doc.text("Thank You & Visit Again!", margin + pageWidth / 2, y, {
       align: "center",
     });
     y += smallLineSpacing;
-    doc.text(
-      "We look forward to seeing you again.",
-      margin + pageWidth / 2,
-      y,
-      { align: "center" }
-    );
 
-    doc.save(`Bill-${String(bill.id).slice(-6)}.pdf`);
+    doc.setFont("courier", "normal");
+    doc.setFontSize(STYLING.fontSizes.XS);
+    doc.setTextColor(STYLING.fontColorLight);
+    doc.text("Terms & Conditions Apply.", margin + pageWidth / 2, y, {
+      align: "center",
+    });
+    y += smallLineSpacing;
+    doc.text("Bill created by hungrr", margin + pageWidth / 2, y, {
+      align: "center",
+    });
+
+    // --- SAVE PDF ---
+    doc.save(`Bill-${tableNumber}-${String(bill.id).slice(-6)}.pdf`);
   } catch (error) {
     console.error("A critical error occurred while generating the PDF:", error);
     throw error;

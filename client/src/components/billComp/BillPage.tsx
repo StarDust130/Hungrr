@@ -15,6 +15,7 @@ export default function BillPage() {
   const [cafeKey, setCafeKey] = useState<string | null>(null);
   const [tableNo, setTableNo] = useState<number | null>(null);
 
+
   // This hook fetches the initial bill data
   const { bill: initialBill, loading, error } = useBill(cafeKey, tableNo);
 
@@ -102,7 +103,7 @@ export default function BillPage() {
       </p>
       {/* ✅ FIX: Both components now receive the SAME live bill data */}
       <OrderStatusTracker bill={liveBill} />
-      <BillDetails bill={liveBill} />
+      <BillDetails bill={liveBill}  />
       <BillFooter />
       <BillActions bill={liveBill} />
     </div>
