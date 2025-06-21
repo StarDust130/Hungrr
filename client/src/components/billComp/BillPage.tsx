@@ -8,10 +8,42 @@ import { OrderStatusTracker } from "./OrderStatusTracker";
 import { BillFooter } from "./BillFooter";
 import { BillActions } from "./BillActions";
 import Loading from "@/app/bills/loading";
+import socket from "@/lib/socket";
 
 export default function BillPage() {
   const [cafeKey, setCafeKey] = useState<string | null>(null); // Use string for slug or id
   const [tableNo, setTableNo] = useState<number | null>(null);
+
+  useEffect(() => {
+    // We only want this to run once.
+
+    // Make sure we have a connection
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    console.log("Setting up 10-minute ping heartbeat...");
+
+    // Set an interval to send a ping every 10 minutes
+    const pingInterval = setInterval(() => {
+      if (socket.connected) {
+        console.log("❤️ Sending ping to server...");
+        socket.emit("client_ping");
+      }
+    }, 10 * 60 * 1000); // 10 minutes in milliseconds
+
+    // Optional: You can listen for the pong to confirm the connection
+    socket.on("server_pong", () => {
+      console.log("❤️ Received pong from server. Connection is alive.");
+    });
+
+    // Important: Clean up the interval when the component unmounts
+    return () => {
+      console.log("Cleaning up ping heartbeat.");
+      clearInterval(pingInterval);
+      socket.off("server_pong"); // Remove the listener
+    };
+  }, []); // The empty array [] ensures this effect runs only once when the app loads.
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -38,7 +70,7 @@ export default function BillPage() {
   console.log("🔍 BillPage bill:", bill);
 
   if (loading || cafeKey === null || tableNo === null) {
-    return <Loading />
+    return <Loading />;
   }
 
   if (error || !bill) {
