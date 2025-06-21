@@ -67,3 +67,12 @@ export interface BillData {
   paymentStatus: "paid" | "pending";
   status: string; // added this if you're using status in OrderStatusTracker
 }
+
+
+export export type OrderStatus =
+  | "pending"
+  | "accepted"
+  | "preparing"
+  | "ready"
+  | "completed";
+  
