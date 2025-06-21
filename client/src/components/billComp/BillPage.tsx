@@ -8,6 +8,7 @@ import { BillDetails } from "./BillDetails";
 import { OrderStatusTracker } from "./OrderStatusTracker";
 import { BillFooter } from "./BillFooter";
 import { BillActions } from "./BillActions";
+import Loading from "@/app/bills/loading";
 
 export default function BillPage() {
   const [cafeKey, setCafeKey] = useState<string | null>(null); // Use string for slug or id
@@ -38,12 +39,7 @@ export default function BillPage() {
   console.log("🔍 BillPage bill:", bill);
 
   if (loading || cafeKey === null || tableNo === null) {
-    return (
-      <main className="flex justify-center items-center min-h-screen">
-        <Loader className="w-6 h-6 animate-spin" />
-        <span className="ml-2">Loading bill...</span>
-      </main>
-    );
+    return <Loading />
   }
 
   if (error || !bill) {
