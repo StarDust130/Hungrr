@@ -1,17 +1,49 @@
 // src/app.ts
+
 import express from "express";
+import http from "http";
+import { Server } from "socket.io";
 import cors from "cors";
-import dotenv from "dotenv";
-
-import cafeRoutes from "./routes/cafeRoutes"; // ✅ ROUTER not a controller!
-
-dotenv.config();
+import cafeRoutes from "./routes/cafeRoutes";
 
 const app = express();
+const server = http.createServer(app);
 
-app.use(cors());
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST", "PATCH"],
+    credentials: true,
+  },
+});
+
+app.set("io", io);
+
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
+
 app.use(express.json());
+app.use("/api", cafeRoutes);
 
-app.use("/api", cafeRoutes); // ✅ Fixed API for Users
+// ✅ FIXED: Standardized room joining logic
+io.on("connection", (socket) => {
+  console.log("🟢 New client connected:", socket.id);
 
-export default app;
+  // The client will send just the order ID (number)
+  socket.on("join_order_room", (orderId: number) => {
+    if (!orderId) return;
+    const roomName = `order_${orderId}`; // ✅ Use a consistent prefix
+    console.log(`📦 Socket ${socket.id} joining room: "${roomName}"`);
+    socket.join(roomName);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("🔌 Client disconnected:", socket.id);
+  });
+});
+
+export { app, server };
