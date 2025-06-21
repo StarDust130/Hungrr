@@ -1,5 +1,3 @@
-// /app/bill/OrderStatusTracker.tsx
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -10,7 +8,8 @@ import {
   PartyPopper,
   Store, // ✨ Import a new icon for the counter instruction
 } from "lucide-react";
-import { BillData } from "./BillPage"; // Make sure this import is correct
+import { BillData } from "@/types/menu";
+
 
 // The OrderStatus type remains the same
 export type OrderStatus =
