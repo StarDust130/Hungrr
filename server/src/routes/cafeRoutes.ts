@@ -20,7 +20,7 @@ router.post("/bill", upsertBill);       // Create or update order (add items)
 router.patch("/bill/complete", completePayment);  // Finalize payment & bill
 
 
-router.get("/bill/:cafeSlug/:tableNo", getBillInfo);  // Finalize payment & bill
+router.get("/bill/:cafeKey/:tableNo", getBillInfo); // ✅ correct
 
 
 
