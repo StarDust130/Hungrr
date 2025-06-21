@@ -243,22 +243,26 @@ export const completePayment = async (req: Request, res: Response) => {
 };
 
 
+
 //! GET /api/bill/:cafeSlug/:tableNo
-// GET /api/bill/:cafeSlug/:tableNo
 export const getBillInfo = async (req: Request, res: Response) => {
-  const { cafeSlug, tableNo } = req.params;
+  const { cafeKey, tableNo } = req.params;
 
   try {
-    // 1. Find the cafe by slug
+    console.log("🔍 cafeKey:", cafeKey, "tableNo:", tableNo);
+
+    const isId = /^\d+$/.test(cafeKey);
+    console.log("🔎 Interpreting cafeKey as", isId ? "ID" : "slug");
+
     const cafe = await prisma.cafe.findUnique({
-      where: { slug: cafeSlug },
+      where: isId ? { id: parseInt(cafeKey, 10) } : { slug: cafeKey },
     });
 
     if (!cafe) {
+      console.warn("❌ Cafe not found");
       return res.status(404).json({ error: "Cafe not found" });
     }
 
-    // 2. Find the latest unpaid order for the given tableNo
     const order = await prisma.order.findFirst({
       where: {
         cafeId: cafe.id,
@@ -279,13 +283,15 @@ export const getBillInfo = async (req: Request, res: Response) => {
     });
 
     if (!order) {
+      console.warn("⚠️ No unpaid order found");
       return res.status(200).json({
         message: "No unpaid order found for this table.",
         order: null,
       });
     }
 
-    // 3. Respond with full bill details
+    console.log("✅ Order found:", order);
+
     return res.status(200).json({
       cafe: {
         name: cafe.name,
@@ -313,7 +319,9 @@ export const getBillInfo = async (req: Request, res: Response) => {
       bill: order.bill ?? null,
     });
   } catch (error) {
-    console.error("getBillInfo error:", error);
+    console.error("💥 getBillInfo error:", error);
     return res.status(500).json({ error: "Server error" });
   }
 };
+
+
