@@ -50,12 +50,20 @@ export interface CartContextType {
 
 
 export interface BillData {
-  id: string;
+  id: number;
   timestamp: string;
-  items: CartItem[];
-  totalPrice: number; // subtotal
-  gstAmount: number; // tax
-  grandTotal: number; // final total
-  paymentMethod: "counter" | "online";
-  paymentStatus: "pending" | "paid";
+  items: {
+    item: {
+      id: number;
+      name: string;
+      price: number;
+    };
+    quantity: number;
+  }[];
+  totalPrice: number;
+  gstAmount: number;
+  grandTotal: number;
+  paymentMethod: string;
+  paymentStatus: "paid" | "pending";
+  status: string; // added this if you're using status in OrderStatusTracker
 }
