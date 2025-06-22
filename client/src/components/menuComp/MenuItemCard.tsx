@@ -7,7 +7,7 @@ import { MenuItem } from "@/types/menu";
 
 const MenuItemCard = ({ item }: { item: MenuItem }) => {
   return (
-    <article className="border-b border-gray-200 dark:border-gray-800 last:border-b-0">
+    <article className="border-b border-gray-200 dark:border-gray-800 last:border-b-0 border-dashed">
       <div className="flex items-start gap-4 py-6">
         {/* Left Section: Details */}
         <div className="flex flex-col flex-grow">
