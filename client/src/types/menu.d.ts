@@ -1,5 +1,5 @@
 
-export const DIETARY_OPTIONS = ["veg", "non-veg", "vegan"] as const;
+export const DIETARY_OPTIONS = ["veg", "non_veg", "vegan"] as const;
 export type DietaryType = (typeof DIETARY_OPTIONS)[number];
 
 export interface CafeInfo {

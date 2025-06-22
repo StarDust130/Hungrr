@@ -27,6 +27,4 @@ router.get("/bill/:cafeKey/:tableNo", getBillInfo as any);
 router.patch("/order/:orderId/status", updateOrderStatus as any);
 
 
-
-
 export default router;
