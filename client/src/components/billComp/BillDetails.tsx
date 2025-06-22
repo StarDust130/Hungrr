@@ -8,7 +8,7 @@ export const BillDetails = ({ bill }: { bill: BillData }) => {
   console.log("Bill 🥰" , bill);
   
   return (
-    <div className="bg-background p-6 sm:p-8 space-y-6 rounded-lg border border-border shadow-sm">
+    <div className="bg-background p-6 sm:p-8 space-y-6 rounded-lg border border-border shadow-sm w-full max-w-2xl mx-auto">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
