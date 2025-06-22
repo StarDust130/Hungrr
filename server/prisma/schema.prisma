@@ -37,7 +37,7 @@ model Category {
   cafe     Cafe     @relation(fields: [cafeId], references: [id])
   items    MenuItem[]
 
-  @@unique([cafeId, name])
+  @@unique([cafeId])
 }
 
 model MenuItem {
