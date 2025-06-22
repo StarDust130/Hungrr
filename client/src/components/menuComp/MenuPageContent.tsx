@@ -30,7 +30,7 @@ const MenuPageContent = ({ cafeSlug }: Props) => {
     hasMore,
   } = useMenu({ cafeSlug });
 
-  const navRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLDivElement | null>(null) as React.RefObject<HTMLDivElement>;
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   // ✅ Derive loadingSpecials
