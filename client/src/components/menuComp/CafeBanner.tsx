@@ -16,7 +16,9 @@ const CafeBanner = ({ cafe }: { cafe: Cafe }) => (
     <Image
       src={cafe.bannerUrl || "/placeholder.jpg"}
       alt="Cafe Banner"
-      fill
+      layout="responsive"
+      width={1600}
+      height={600}
       className="object-cover object-center"
     />
 

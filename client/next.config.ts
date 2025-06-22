@@ -12,11 +12,11 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "source.unsplash.com", // ← Remove later
+        hostname: "source.unsplash.com", // ← Optional, can remove later
       },
       {
         protocol: "https",
-        hostname: "picsum.photos",
+        hostname: "plus.unsplash.com", // ← Optional, can remove later
       },
       {
         protocol: "http",
