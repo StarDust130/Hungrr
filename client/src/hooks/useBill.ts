@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { BillData } from "@/types/menu";
+import { log } from "@/lib/helper";
 
 export function useBill(cafeKey: string | null, tableNo: number | null) {
   const [bill, setBill] = useState<BillData | null>(null);
@@ -9,7 +10,7 @@ export function useBill(cafeKey: string | null, tableNo: number | null) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("📦 useBill hook called with:", cafeKey, tableNo);
+    log("📦 useBill hook called with:", cafeKey, tableNo);
 
     if (!cafeKey || tableNo === null) return;
 
@@ -20,7 +21,7 @@ export function useBill(cafeKey: string | null, tableNo: number | null) {
         );
 
         const data = res.data;
-        console.log("✅ Bill data fetched:", data);
+        log("✅ Bill data fetched:", data);
 
         if (!data.order) {
           console.warn("⚠️ No active order found");
@@ -47,7 +48,7 @@ export function useBill(cafeKey: string | null, tableNo: number | null) {
           status: data.order.status,
         };
 
-        console.log("✅ Bill data processed:", billData);
+        log("✅ Bill data processed:", billData);
         
 
         setBill(billData);

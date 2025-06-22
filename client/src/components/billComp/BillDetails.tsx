@@ -1,11 +1,12 @@
 // components/bill/BillDetails.tsx
 
+import { log } from "@/lib/helper";
 import { BillData } from "@/types/menu";
 import { Atom } from "lucide-react";
 
 
 export const BillDetails = ({ bill }: { bill: BillData }) => {
-  console.log("Bill 🥰" , bill);
+  log("Bill 🥰" , bill);
   
   return (
     <div className="bg-background p-6 sm:p-8 space-y-6 rounded-lg border border-border shadow-sm w-full max-w-2xl mx-auto">

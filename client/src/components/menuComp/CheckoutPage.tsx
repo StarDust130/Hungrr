@@ -16,6 +16,7 @@ import SpecialInstructions from "./checkoutComp/SpecialInstructions";
 import PriceSummary from "./checkoutComp/PriceSummary";
 import OrderTypeSelector from "./checkoutComp/OrderTypeSelector";
 import TableSelector from "./checkoutComp/TableSelector";
+import { log } from "@/lib/helper";
 
 const CheckoutPage = () => {
   const router = useRouter();
@@ -78,7 +79,7 @@ const CheckoutPage = () => {
       .post(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/bill`, billData)
       .catch((error) => console.error("Failed to save bill:", error));
 
-    console.log("Placing order with data 🤭:", billData);
+    log("Placing order with data 🤭:", billData);
 
   };
   

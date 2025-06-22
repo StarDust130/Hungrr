@@ -1,5 +1,6 @@
 "use client";
 
+import { log } from "@/lib/helper";
 import { Cart, CartContextType, MenuItem } from "@/types/menu";
 import {
   useMemo,
@@ -101,7 +102,7 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
   
   
 
-  console.log("CartProvider state 😇:", {
+  log("CartProvider state 😇:", {
     cart,
     addToCart,
     removeFromCart,

@@ -9,6 +9,7 @@ import { BillActions } from "./BillActions";
 import Loading from "@/app/bills/loading";
 import socket from "@/lib/socket";
 import { BillData, OrderStatus } from "@/types/menu"; // Make sure types are imported
+import { log } from "@/lib/helper";
 
 export default function BillPage() {
   const [cafeKey, setCafeKey] = useState<string | null>(null);
@@ -37,7 +38,7 @@ export default function BillPage() {
     socket.emit("join_order_room", liveBill.id);
 
     const handleUpdate = (data: { status?: OrderStatus; paid?: boolean }) => {
-      console.log("✅ Live update received in PARENT component:", data);
+      log("✅ Live update received in PARENT component:", data);
 
       // Update the liveBill state with the new data
       setLiveBill((prevBill) => {
