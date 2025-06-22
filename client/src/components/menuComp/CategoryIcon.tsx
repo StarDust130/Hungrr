@@ -22,6 +22,7 @@ import {
   Candy,
   Hamburger,
   WrapText,
+  CupSoda,
 } from "lucide-react";
 
 const CategoryIcon = ({
@@ -41,13 +42,16 @@ const CategoryIcon = ({
   // 🎯 Unique icons only (no reuse)
   if (name.includes("recommend")) return <Star {...iconProps} />;
   if (name.includes("chef")) return <ChefHat {...iconProps} />;
+  if (name.includes("chief")) return <ChefHat {...iconProps} />;
   if (name.includes("special")) return <Sparkles {...iconProps} />;
 
   // ☕️ Drinks
   if (name.includes("latte") || name.includes("coffee"))
     return <Coffee {...iconProps} />;
   if (name.includes("tea")) return <Martini {...iconProps} />;
+  if (name.includes("drink")) return <CupSoda {...iconProps} />;
   if (name.includes("juice")) return <Apple {...iconProps} />;
+  if (name.includes("healthy")) return <Apple {...iconProps} />;
   if (name.includes("beer")) return <Beer {...iconProps} />;
   if (name.includes("wine")) return <Wine {...iconProps} />;
 
