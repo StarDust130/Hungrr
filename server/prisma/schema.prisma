@@ -37,7 +37,7 @@ model Category {
   cafe     Cafe     @relation(fields: [cafeId], references: [id])
   items    MenuItem[]
 
-  @@unique([cafeId])
+  @@unique([cafeId , name])
 }
 
 model MenuItem {
@@ -50,6 +50,7 @@ model MenuItem {
   food_image_url String?
   price          Decimal
   dietary        Dietary?
+  tags           String[]  @db.VarChar(50) 
   is_available   Boolean   @default(true)
   is_active      Boolean   @default(true)
 
