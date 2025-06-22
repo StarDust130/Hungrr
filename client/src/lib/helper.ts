@@ -5,3 +5,14 @@ export const log = (...args: any[]) => {
     console.log(...args);
   }
 };
+
+
+export const formatPrice = (price: number | string): string => {
+  const priceNumber = typeof price === "string" ? parseFloat(price) : price;
+  return `₹${priceNumber.toFixed(2)}`;
+}
+
+
+export const gstCalculation = (amount: number, rate: number = 0.18): number => {
+  return parseFloat((amount * rate).toFixed(2));
+}

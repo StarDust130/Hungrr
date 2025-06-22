@@ -38,6 +38,9 @@ export function BillActions({ bill }: BillActionsProps) {
   const [copied, setCopied] = useState(false);
   const router = useRouter();
 
+  console.log("BillActions rendered with bill 😛:", bill);
+  
+
     // ✅ . Get the unique ID from the URL
     const params = useParams();
     const billIdFromUrl = params.orderId; // Assumes your file is named [billId].tsx
@@ -153,6 +156,7 @@ export function BillActions({ bill }: BillActionsProps) {
         </Button>
 
         {/* Correctly renders buttons based on the logic */}
+        {bill.paymentMethod === "counter" && <DownloadButton isMobile />}
         {showPayButton && <PayButton isMobile />}
         {showDownloadButton && <DownloadButton isMobile />}
       </div>
