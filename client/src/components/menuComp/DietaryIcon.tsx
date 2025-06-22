@@ -11,7 +11,7 @@ const DietaryIcon = ({ type }: { type: MenuItem["dietary"] }) => {
           bgColor: "bg-green-600",
           textColor: "text-green-600",
         };
-      case "non-veg":
+      case "non_veg":
         return {
           borderColor: "border-red-600",
           bgColor: "bg-red-600",
@@ -22,12 +22,6 @@ const DietaryIcon = ({ type }: { type: MenuItem["dietary"] }) => {
           borderColor: "border-blue-500",
           bgColor: "bg-blue-500",
           textColor: "text-blue-500",
-        };
-      default:
-        return {
-          borderColor: "border-gray-400",
-          bgColor: "bg-gray-400",
-          textColor: "text-gray-500",
         };
     }
   }, [type]);
