@@ -1,4 +1,3 @@
-// app/menu/[cafe_slug]/page.tsx
 
 import CafeBanner from "@/components/menuComp/CafeBanner";
 import MenuPageContent from "@/components/menuComp/MenuPageContent";
