@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState } from "react";
@@ -10,23 +9,21 @@ import { Separator } from "@/components/ui/separator";
 import { CartItem } from "@/types/menu";
 import PremiumLoader from "./PremiumLoader";
 import axios from "axios";
-
 import CartItemsList from "./checkoutComp/CartItemsList";
 import EmptyCart from "./checkoutComp/EmptyCart";
 import SpecialInstructions from "./checkoutComp/SpecialInstructions";
 import PriceSummary from "./checkoutComp/PriceSummary";
 import OrderTypeSelector from "./checkoutComp/OrderTypeSelector";
 import TableSelector from "./checkoutComp/TableSelector";
-import { log } from "@/lib/helper";
 
 const CheckoutPage = () => {
   const router = useRouter();
+  // ✅ Simplified state: We only need one 'isLoading' state.
   const [isLoading, setIsLoading] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [orderType, setOrderType] = useState<"dinein" | "takeaway">("dinein");
   const [tableNo, setTableNo] = useState("");
-
+  const [orderStatus, setOrderStatus] = useState<OrderStatus>("idle");
 
   const {
     cart,
@@ -36,7 +33,6 @@ const CheckoutPage = () => {
     totalPrice = 0,
   } = useCart();
 
-  //! Filter out invalid cart items 😼
   const validCartItems: CartItem[] = Object.values(cart || {}).filter(
     (cartItem): cartItem is CartItem =>
       cartItem &&
@@ -44,15 +40,20 @@ const CheckoutPage = () => {
       !isNaN(Number(cartItem.item.price)) &&
       typeof cartItem.quantity === "number"
   );
-//! GST Calculation (Waah Modi ji Waah) 😎
+
   const gstRate = 0.18;
   const gstAmount = totalPrice * gstRate;
   const grandTotal = totalPrice + gstAmount;
 
-  //! Handle place order 🤩
+  type OrderStatus = "idle" | "placing" | "confirmed" | "error";
+
+  // ✅ This function is now cleaner and more robust.
   const handlePlaceOrder = async (paymentMethod: "counter" | "online") => {
-    if (isLoading) return;
-    setIsLoading(true);
+    // Prevent double-clicks
+    if (orderStatus !== "idle") return;
+
+    // 1. Immediately set the status to 'placing' to show the loader
+    setOrderStatus("placing");
 
     const billData = {
       cafeId: 1,
@@ -67,34 +68,42 @@ const CheckoutPage = () => {
     };
 
     try {
-      // 1. AWAIT the backend response to get the real order data
+      // 2. The component is already showing the loader while this runs.
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/bill`,
         billData
       );
-
-    
-
       const { order } = response.data;
 
-      log("✅ Order placed successfully:", order);
-      if (!order || !order.id) {
-        throw new Error("Backend did not return a valid order.");
+      if (!order || !order.publicId) {
+        throw new Error("Backend did not return a valid publicId.");
       }
 
-      // 4. Redirect to the REAL order URL
-      router.push(`/bills/${order.id}`);
+      // 3. On success, redirect. The loader will disappear when the new page loads.
+      // 3. On success, set status to 'confirmed' to show the checkmark
+      setOrderStatus("confirmed");
+
+      // 4. Wait 1.5 seconds for the user to see the confirmation, then redirect
+      setTimeout(() => {
+        router.push(`/bills/${order.publicId}`);
+      }, 1500);
     } catch (error) {
       console.error("❌ Failed to place order:", error);
       alert("There was an error placing your order. Please try again.");
+      // If there's an error, stop loading so the user can see the form again.
       setIsLoading(false);
     }
   };
-  
-  
 
-  if (!isRedirecting && validCartItems.length === 0) return <EmptyCart />;
-  if (isRedirecting) return <PremiumLoader />;
+  // ✅ This is the new rendering logic based on the order status
+  if (orderStatus === "placing" || orderStatus === "confirmed") {
+    return <PremiumLoader status={orderStatus} />;
+  }
+
+  // Show EmptyCart component if the cart is empty.
+  if (validCartItems.length === 0) {
+    return <EmptyCart />;
+  }
 
   return (
     <div className="relative flex flex-col md:flex-row h-screen overflow-hidden">
