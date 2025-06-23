@@ -10,6 +10,9 @@ import { useMenu } from "@/hooks/useMenu"; // ✅ Your custom hook
 import SpecialCardSkeleton from "./SpecialCardSkeleton";
 import MenuItemCardSkeleton from "./MenuItemCardSkeleton";
 import SpecialCardBox from "./SpecialCardBox";
+import axios from "axios";
+import { OrderFromServer } from "@/types/menu";
+import loadOrderIntoCart from "@/hooks/useCart"; // ✅ Import your cart sync
 
 interface Props {
   cafeSlug: string;
@@ -30,7 +33,9 @@ const MenuPageContent = ({ cafeSlug }: Props) => {
     hasMore,
   } = useMenu({ cafeSlug });
 
-  const navRef = useRef<HTMLDivElement | null>(null) as React.RefObject<HTMLDivElement>;
+  const navRef = useRef<HTMLDivElement | null>(
+    null
+  ) as React.RefObject<HTMLDivElement>;
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   // ✅ Derive loadingSpecials
@@ -51,7 +56,36 @@ const MenuPageContent = ({ cafeSlug }: Props) => {
     return () => observer.disconnect();
   }, [fetchNextMenuCategory, hasMore, searchTerm]);
 
-  
+  // ✅ Add this effect to sync the cart when the page loads
+  useEffect(() => {
+    const syncCartWithServer = async () => {
+      const rawBillData = sessionStorage.getItem("currentBill");
+      if (!rawBillData) return;
+
+      try {
+        const { cafeId, tableNo } = JSON.parse(rawBillData);
+        if (!cafeId || !tableNo) return;
+
+        const response = await axios.get<{ order: OrderFromServer | null }>(
+          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/bill/${cafeId}/${tableNo}`
+        );
+
+        const order = response.data.order;
+
+        // If an unpaid order exists, sync the cart with its items.
+        if (order && order.paid === false) {
+          loadOrderIntoCart(order.items);
+        }
+      } catch (error) {
+        // This is not a critical error, just means there's no active order to sync.
+        console.warn("Could not sync cart with server.", error);
+      }
+    };
+
+    syncCartWithServer();
+  }, []); // The dependency ensures this runs once when the component mounts.
+
+
 
   //! ✅ Scroll to category logic
   const scrollToCategory = async (category: string) => {
