@@ -26,6 +26,7 @@ const getInitialCart = (): Cart => {
 
 const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [cart, setCart] = useState<Cart>(getInitialCart);
+  const [cafeId, setCafeId] = useState<number | null>(null);
 
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
@@ -129,8 +130,9 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
         clearItemFromCart,
         clearCart,
         getQuantity,
-        // We pass the actual function 'loadOrderIntoCart' here.
         loadOrderIntoCart,
+        cafeId,
+        setCafeId,
       }}
     >
       {children}
