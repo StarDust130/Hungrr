@@ -6,33 +6,41 @@ import { BillDetails } from "./BillDetails";
 import { OrderStatusTracker } from "./OrderStatusTracker";
 import { BillFooter } from "./BillFooter";
 import { BillActions } from "./BillActions";
-import Loading from "@/app/bills/loading";
 import socket from "@/lib/socket";
 import { BillData, OrderStatus } from "@/types/menu";
 import { log } from "@/lib/helper";
+import Loading from "@/app/bills/loading";
 
-export default function BillPage() {
-  const [cafeKey, setCafeKey] = useState<string | null>(null);
-  const [tableNo, setTableNo] = useState<number | null>(null);
+// Your page now accepts orderId as a prop
+export default function BillPage({ orderId }: { orderId: string }) {
+  // The hook now directly uses the orderId prop
+  const { bill: initialBill, loading, error } = useBill(orderId);
 
-  const { bill: initialBill, loading, error } = useBill(cafeKey, tableNo);
+  // This state holds the live, socket-updated bill data
   const [liveBill, setLiveBill] = useState<BillData | null>(null);
 
+  // This effect syncs the initial fetched data to the live state
   useEffect(() => {
     if (initialBill) {
       setLiveBill(initialBill);
     }
   }, [initialBill]);
 
-  // ✅ This useEffect is the correct place
+  // This effect handles all socket communication
   useEffect(() => {
+    // Don't connect socket if we don't have a bill yet
     if (!liveBill?.id) return;
 
     socket.connect();
     socket.emit("join_order_room", liveBill.id);
 
     const handleUpdate = (data: { status?: OrderStatus; paid?: boolean }) => {
-      log("✅ Live update received in PARENT component:", data);
+      log("✅ Live update received:", data);
+
+      if (data.paid === true) {
+        localStorage.removeItem("cart");
+        log("✅ Order is paid. Local cart has been cleared.");
+      }
 
       setLiveBill((prevBill) => {
         if (!prevBill) return null;
@@ -48,39 +56,17 @@ export default function BillPage() {
           paymentStatus: newPaymentStatus,
         };
       });
-
-      // ✅ --- THIS IS WHERE YOU ADD THE NEW CODE --- ✅
-      // If the update from the server confirms the order is paid,
-      // remove the cart from localStorage.
-      if (data.paid === true) {
-        localStorage.removeItem("cart");
-        log("✅ Order is paid. Local cart has been cleared.");
-      }
-      // ✅ --- END OF NEW CODE --- ✅
     };
 
     socket.on("order_updated", handleUpdate);
 
     return () => {
       socket.off("order_updated", handleUpdate);
+      socket.disconnect(); // Good practice to disconnect on unmount
     };
-  }, [liveBill?.id]);
+  }, [liveBill?.id]); // This effect depends only on the live bill ID
 
-  // This useEffect for sessionStorage remains the same
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const raw = sessionStorage.getItem("currentBill");
-      if (raw) {
-        try {
-          const sessionData = JSON.parse(raw);
-          setCafeKey(String(sessionData.cafeId));
-          setTableNo(Number(sessionData.tableNo));
-        } catch (err) {
-          console.error("❌ Failed to parse sessionStorage:", err);
-        }
-      }
-    }
-  }, []);
+  // --- All sessionStorage logic is GONE ---
 
   if (loading || !liveBill) {
     return <Loading />;
