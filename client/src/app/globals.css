@@ -165,3 +165,46 @@ body {
 .animate-pulse-local {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+@keyframes hourglass-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  40% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.hourglass-anim {
+  animation: hourglass-spin 5s ease-in-out infinite;
+}
+
+
+
+@keyframes chef-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes basket-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes check-breathe {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.85; }
+}
+
+.chef-anim {
+  animation: chef-bounce 1.4s ease-in-out infinite;
+}
+.basket-anim {
+  animation: basket-pulse 2s ease-in-out infinite;
+}
+.check-anim {
+  animation: check-breathe 2.5s ease-in-out infinite;
+}

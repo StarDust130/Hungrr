@@ -6,12 +6,11 @@ import {
   ShoppingBasket,
   ChevronRight,
   Hourglass,
-  Check,
+  CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 
-// The shape of the order data this component expects
 interface ActiveOrder {
   id: number;
   publicId: string;
@@ -22,64 +21,49 @@ interface ActiveOrdersSectionProps {
   activeOrders: ActiveOrder[];
 }
 
-// A single, self-contained, and beautifully styled row for each active order.
 const OrderRow = ({ order }: { order: ActiveOrder }) => {
   const statusInfo = useMemo(() => {
     switch (order.status) {
       case "accepted":
         return {
-          icon: Check,
-          text: "Your order is confirmed!",
-          color: "text-blue-500",
-          bg: "bg-blue-100 dark:bg-blue-500/20",
-          progress: "25%",
-          progressColor: "bg-blue-500",
+          icon: CheckCircle2,
+          text: "Order Confirmed",
+          baseClasses:
+            "border-emerald-600 text-emerald-600 dark:border-emerald-400 dark:text-emerald-400",
+          bgClasses: "bg-emerald-500/10",
+          iconAnim: "check-anim",
         };
       case "preparing":
         return {
           icon: ChefHat,
-          text: "The chefs are preparing your meal.",
-          color: "text-orange-500",
-          bg: "bg-orange-100 dark:bg-orange-500/20",
-          progress: "60%",
-          progressColor: "bg-orange-500",
+          text: "Your order is being prepared",
+          baseClasses:
+            "border-orange-500 text-orange-600 dark:border-orange-400 dark:text-orange-400",
+          bgClasses: "bg-orange-500/10",
+          iconAnim: "chef-anim",
         };
       case "ready":
         return {
           icon: ShoppingBasket,
-          text: "Your order is ready for pickup!",
-          color: "text-green-500",
-          bg: "bg-green-100 dark:bg-green-500/20",
-          progress: "100%",
-          progressColor: "bg-green-500",
+          text: "Ready for Pickup",
+          baseClasses:
+            "border-sky-600 text-sky-600 dark:border-sky-400 dark:text-sky-400",
+          bgClasses: "bg-sky-500/10",
+          iconAnim: "basket-anim",
         };
       default:
         return {
           icon: Hourglass,
-          text: "Awaiting confirmation...",
-          color: "text-slate-500",
-          bg: "bg-slate-100 dark:bg-slate-700",
-          progress: "5%",
-          progressColor: "bg-slate-500",
+          text: "Awaiting Confirmation.",
+          desc: "👀 We’re watching... for that payment!",
+          baseClasses: "border-slate-500  dark:border-slate-400 ",
+          bgClasses: "bg-slate-400/10",
+          iconAnim: "hourglass-anim",
         };
     }
   }, [order.status]);
 
   const Icon = statusInfo.icon;
-
-  // Animation for the icon based on status
-  const iconAnimation = {
-    initial: { scale: 1 },
-    animate:
-      order.status === "preparing"
-        ? {
-            rotate: [0, 5, -5, 5, 0],
-            transition: { duration: 1.2, repeat: Infinity },
-          }
-        : order.status === "ready"
-        ? { scale: [1, 1.2, 1], transition: { duration: 0.5 } }
-        : { scale: 1 },
-  };
 
   return (
     <Link
@@ -87,46 +71,37 @@ const OrderRow = ({ order }: { order: ActiveOrder }) => {
       passHref
       className="block outline-none"
     >
-      <div className="group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-slate-200/50 bg-gradient-to-br from-white/80 to-white/50 p-4 shadow-lg shadow-black/5 backdrop-blur-lg transition-all duration-300 hover:scale-[1.03] hover:shadow-xl dark:border-slate-700/50 dark:from-slate-800/80 dark:to-slate-900/70 dark:shadow-black/20">
-        {/* Status Icon */}
-        <motion.div
-          className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full ${statusInfo.bg}`}
-          variants={iconAnimation}
-          initial="initial"
-          animate="animate"
+      <motion.div
+        className={`group flex items-center gap-4 rounded-xl border-l-4 ${statusInfo.baseClasses} ${statusInfo.bgClasses} p-3.5 shadow-sm transition-all duration-300 hover:shadow-lg`}
+      >
+        <div
+          className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${statusInfo.bgClasses}`}
         >
-          <Icon className={`h-7 w-7 ${statusInfo.color}`} />
-        </motion.div>
-
-        {/* Text Content */}
-        <div className="flex-grow text-left">
-          <p className="font-semibold text-md text-slate-800 dark:text-slate-100">
-            {statusInfo.text}
-          </p>
-          <p className="font-mono text-xs text-slate-500 dark:text-slate-400">
-            Order #{String(order.id).padStart(6, "0")}
-          </p>
-        </div>
-
-        {/* Chevron */}
-        <ChevronRight className="h-6 w-6 flex-shrink-0 text-slate-400 transition-transform duration-300 group-hover:translate-x-1" />
-
-        {/* Animated Progress Bar */}
-        <div className="absolute bottom-0 left-0 h-1 w-full bg-slate-200/50 dark:bg-slate-700/50">
-          <motion.div
-            className={`h-full rounded-r-full ${statusInfo.progressColor}`}
-            initial={{ width: 0 }}
-            animate={{ width: statusInfo.progress }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
+          <Icon
+            className={`h-5 w-5 ${statusInfo.baseClasses} ${statusInfo.iconAnim}`}
           />
         </div>
-      </div>
+
+        <div className="flex-grow text-left">
+          <p className="font-medium ">
+            {statusInfo.text}
+          </p>
+          {statusInfo.desc && (
+            <p className="text-xs ">
+              {statusInfo.desc}
+            </p>
+          )}
+          <p className="text-sm ">
+            Order Id #{order.id}
+          </p>
+        </div>
+
+        <ChevronRight className="h-5 w-5 flex-shrink-0 text-slate-400 transition-transform group-hover:translate-x-1" />
+      </motion.div>
     </Link>
   );
 };
 
-// This is the main component container.
-// Its job is to animate the rows as they appear.
 export const ActiveOrdersSection = ({
   activeOrders,
 }: ActiveOrdersSectionProps) => {
@@ -138,19 +113,17 @@ export const ActiveOrdersSection = ({
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.1,
-      },
+      transition: { staggerChildren: 0.12 },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 25 },
+    hidden: { opacity: 0, scale: 0.95, y: 20 },
     visible: {
       opacity: 1,
+      scale: 1,
       y: 0,
-      transition: { duration: 0.5, ease: "easeOut" },
+      transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
     },
   };
 
@@ -159,7 +132,7 @@ export const ActiveOrdersSection = ({
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="flex w-full flex-col gap-4 p-2"
+      className="flex w-full flex-col gap-2.5 p-2"
     >
       {activeOrders.map((order) => (
         <motion.div key={order.publicId} variants={itemVariants}>
