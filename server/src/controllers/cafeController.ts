@@ -1,6 +1,7 @@
 // src/controllers/cafeController.ts
 import { Request, Response } from "express";
 import prisma from "../config/prisma";
+import { Prisma } from "@prisma/client";
 
 // ✅ DEFINE THE TYPE HERE to match your Prisma Schema. This resolves the error.
 type OrderStatus = "pending" | "accepted" | "preparing" | "ready" | "completed";
@@ -139,100 +140,123 @@ export const getCafeMenu = async (req: Request, res: Response): Promise<Response
  *  - Adding more items to an existing unpaid order
  *  - Returns the full bill (order + items + total)
  */
-export const upsertBill = async (req: Request, res: Response) => {
+// Define the shape of the incoming request body for type safety
+interface UpsertBillRequestBody {
+  cafeId: number;
+  tableNo: number;
+  items: { itemId: number; quantity: number }[];
+  paymentMethod?: "counter" | "online";
+  specialInstructions?: string;
+  orderType?: string;
+}
+
+export const upsertBill = async (
+  req: Request<{}, {}, UpsertBillRequestBody>,
+  res: Response
+) => {
+  const {
+    tableNo,
+    cafeId,
+    items,
+    paymentMethod,
+    specialInstructions,
+    orderType,
+  } = req.body;
+
+  if (!tableNo || !cafeId || !items?.length) {
+    return res.status(400).json({ message: "Missing required fields." });
+  }
+
   try {
-    const {
-      tableNo,
-      cafeId,
-      items,
-      paymentMethod,
-      specialInstructions,
-      orderType,
-    } = req.body;
-
-    // ... (basic validation remains the same) ...
-    if (!tableNo || !cafeId || !items?.length) {
-      return res.status(400).json({ message: "Missing required fields." });
-    }
-    const numericCafeId = Number(cafeId);
-    const numericTableNo = Number(tableNo);
-    if (isNaN(numericCafeId) || isNaN(numericTableNo)) {
-      return res.status(400).json({ message: "Invalid cafeId or tableNo" });
-    }
-
-    // ✅ FIXED LOGIC: First, find the most recent order for the table, regardless of payment status.
-    const lastOrderForTable = await prisma.order.findFirst({
-      where: {
-        tableNo: numericTableNo,
-        cafeId: numericCafeId,
-      },
-      orderBy: {
-        created_at: "desc",
-      },
+    const lastOrder = await prisma.order.findFirst({
+      where: { cafeId, tableNo },
+      orderBy: { created_at: "desc" },
     });
 
-    // ✅ NEW RULE: If the last order for this table is already paid, block the request.
-    if (lastOrderForTable && lastOrderForTable.paid) {
-      return res.status(409).json({
-        // 409 Conflict is a good status code here
-        message:
-          "This table has a completed and paid order. Please start a new bill if needed.",
-        order: lastOrderForTable,
-      });
-    }
+    let orderToProcess: { id: number };
 
-    let order;
+    // SCENARIO 1: An unpaid order exists.
+    if (lastOrder && lastOrder.paid === false) {
+      orderToProcess = { id: lastOrder.id };
 
-    // If an unpaid order exists, add items to it.
-    if (lastOrderForTable) {
-      // ✅ Order exists and is unpaid — add new items
-      await prisma.orderItem.createMany({
-        data: items.map((item: any) => ({
-          itemId: Number(item.itemId),
-          quantity: item.quantity,
-          orderId: lastOrderForTable.id,
-        })),
-        skipDuplicates: true,
-      });
-
-      // ✅ Fetch updated order
-      order = await prisma.order.findUnique({
-        where: { id: lastOrderForTable.id },
-        include: { order_items: true },
-      });
-    } else {
-      // ✅ No order exists at all — create a new one
-      order = await prisma.order.create({
+      // Also update the order's top-level details if they changed
+      await prisma.order.update({
+        where: { id: orderToProcess.id },
         data: {
-          tableNo: numericTableNo,
-          cafeId: numericCafeId,
+          payment_method: paymentMethod, // ✅ FIX: Update payment method
+          specialInstructions: specialInstructions,
+          orderType: orderType,
+        },
+      });
+
+      // Upsert items: This will create new items or update quantities of existing ones.
+      const transactionItems = items.map((item) =>
+        prisma.orderItem.upsert({
+          where: {
+            orderId_itemId: { orderId: orderToProcess.id, itemId: item.itemId },
+          },
+          // ✅ CRITICAL FIX: Replace the quantity, don't increment it.
+          update: { quantity: item.quantity },
+          create: {
+            orderId: orderToProcess.id,
+            itemId: item.itemId,
+            quantity: item.quantity,
+          },
+        })
+      );
+      await prisma.$transaction(transactionItems);
+    } else {
+      // SCENARIO 2: No active order exists, or the last one was paid. Create a NEW order.
+      const newOrder = await prisma.order.create({
+        data: {
+          tableNo,
+          cafeId,
           payment_method: paymentMethod || "counter",
-          status: "pending",
-          specialInstructions,
-          orderType,
+          specialInstructions: specialInstructions,
+          orderType: orderType,
           order_items: {
-            create: items.map((item: any) => ({
-              itemId: Number(item.itemId),
+            create: items.map((item) => ({
+              itemId: item.itemId,
               quantity: item.quantity,
             })),
           },
         },
-        include: { order_items: true },
       });
+      orderToProcess = { id: newOrder.id };
     }
 
-    if (!order) {
-      return res
-        .status(500)
-        .json({ message: "Order could not be created or fetched." });
+    // The rest of the function remains the same...
+    const fullOrderForTotal = await prisma.order.findUnique({
+      where: { id: orderToProcess.id },
+      include: {
+        order_items: { include: { item: { select: { price: true } } } },
+      },
+    });
+
+    if (!fullOrderForTotal) {
+      throw new Error("Could not find order after upsert operation.");
     }
 
-    return res.status(200).json({ order });
+    const totalPrice = fullOrderForTotal.order_items.reduce((sum, oi) => {
+      return sum + Number(oi.item.price) * oi.quantity;
+    }, 0);
+
+    const finalUpdatedOrder = await prisma.order.update({
+      where: { id: orderToProcess.id },
+      data: {
+        total_price: new Prisma.Decimal(totalPrice.toFixed(2)),
+      },
+      include: {
+        order_items: { include: { item: true } },
+      },
+    });
+
+    return res.status(200).json({ order: finalUpdatedOrder });
   } catch (err: any) {
-    console.error("❌ Upsert bill error:", err?.message || err);
+    console.error("❌ Upsert bill error:", err);
     return res
       .status(500)
-      .json({ message: "Server error", error: err?.message });
+      .json({ message: "Server error", error: err.message });
   }
 };
 
@@ -244,7 +268,14 @@ export const upsertBill = async (req: Request, res: Response) => {
 //! OrderStatus Tracker 😤
 // ✅ Mark order as paid + emit socket
 // ✅ FIXED: Ensure this emits to the correct, prefixed room name
-export const completeOrderPayment = async (req: Request, res: Response) => {
+interface CompletePaymentBody {
+  orderId: number;
+}
+
+export const completeOrderPayment = async (
+  req: Request<{}, {}, CompletePaymentBody>,
+  res: Response
+) => {
   try {
     const { orderId } = req.body;
 
@@ -254,41 +285,78 @@ export const completeOrderPayment = async (req: Request, res: Response) => {
 
     const numericOrderId = Number(orderId);
 
-    // ✅ Mark order as paid and update status
-    const updatedOrder = await prisma.order.update({
-      where: { id: numericOrderId },
-      data: {
-        paid: true,
-        status: "completed", // Or "confirmed" if that's your first step after payment
-      },
-      select: {
-        id: true,
-        status: true,
-        paid: true,
-      },
+    // ✅ Use a transaction to safely update the Order AND create the Bill
+    const { updatedOrder, newBill } = await prisma.$transaction(async (tx) => {
+      // First, fetch the order to get its price and check if it's already paid
+      const order = await tx.order.findUnique({
+        where: { id: numericOrderId },
+        select: { total_price: true, paid: true },
+      });
+
+      if (!order) {
+        throw new Error("Order not found.");
+      }
+      if (order.paid) {
+        // This prevents the function from running twice on the same order
+        throw new Error("This order has already been paid.");
+      }
+
+      // 1. Your existing logic to update the order's status
+      const updatedOrderResult = await tx.order.update({
+        where: { id: numericOrderId },
+        data: {
+          paid: true,
+          status: "completed",
+        },
+        // We select the fields we need for the socket event and the new bill
+        select: {
+          id: true,
+          status: true,
+          paid: true,
+          total_price: true,
+        },
+      });
+
+      // 2. ✅ The new logic: Create the corresponding Bill record
+      const newBillResult = await tx.bill.create({
+        data: {
+          orderId: numericOrderId,
+          amount: updatedOrderResult.total_price, // Use the final total price from the order
+          paid_at: new Date(),
+        },
+      });
+
+      // Return both results from the transaction
+      return { updatedOrder: updatedOrderResult, newBill: newBillResult };
     });
 
-    // ✅ Send live update via socket.io to the correct room
+    // ✅ Your existing socket logic, which runs AFTER the database transaction is successful
     const io = req.app.get("io");
-    const roomName = `order_${numericOrderId}`; // ✅ Use the same consistent room name
+    const roomName = `order_${numericOrderId}`;
     io.to(roomName).emit("order_updated", {
       status: updatedOrder.status,
       paid: updatedOrder.paid,
     });
-
     console.log(`📡 Socket emit sent to room "${roomName}"`);
-    console.log("✅ 😽 Updated order:", updatedOrder);
 
-
-    console.log(`✅ 😽 Event sent for order:`, updatedOrder);
-
+    // Return a complete success message
     return res.status(200).json({
-      message: "Order updated",
+      message: "Order marked as paid and bill created successfully.",
       order: updatedOrder,
+      bill: newBill,
     });
   } catch (err: any) {
     console.error("❌ Error in completeOrderPayment:", err.message || err);
-    return res.status(500).json({ message: "Server error" });
+    // Handle specific, known errors gracefully
+    if (
+      err.message.includes("already been paid") ||
+      err.message.includes("Order not found")
+    ) {
+      return res.status(409).json({ message: err.message }); // 409 Conflict is a good status code here
+    }
+    return res
+      .status(500)
+      .json({ message: "Server error", error: err.message });
   }
 };
 
@@ -299,49 +367,48 @@ export const getBillInfo = async (req: Request, res: Response) => {
   const { cafeKey, tableNo } = req.params;
 
   try {
-    console.log("🔍 Fetching bill for cafeKey:", cafeKey, "tableNo:", tableNo);
     const isId = /^\d+$/.test(cafeKey);
-
     const cafe = await prisma.cafe.findUnique({
       where: isId ? { id: parseInt(cafeKey, 10) } : { slug: cafeKey },
     });
 
     if (!cafe) {
-      console.warn("❌ Cafe not found");
       return res.status(404).json({ error: "Cafe not found" });
     }
 
-    // Find the MOST RECENT order for this table, regardless of payment status.
+    // ✅ IMPROVEMENT: Find the latest order that is NOT yet 'completed'.
     const order = await prisma.order.findFirst({
       where: {
         cafeId: cafe.id,
         tableNo: parseInt(tableNo, 10),
-        // ✅ REMOVED: The line `paid: false` was here.
-        // By removing it, we find the latest order, whether it's paid or not.
-      },
-      orderBy: {
-        created_at: "desc", // This ensures we get the newest one
-      },
-      include: {
-        order_items: {
-          include: {
-            item: true,
-          },
+        status: {
+          not: "completed", // This prevents showing old, finished orders.
         },
+      },
+      orderBy: { created_at: "desc" },
+      include: {
+        order_items: { include: { item: true } },
         bill: true,
       },
     });
+
+    if (!order) {
+      return res
+        .status(404)
+        .json({
+          message: "No active order found for this table.",
+          order: null,
+        });
+    }
 
     // This 'if' block now means NO order has EVER been placed for this table.
     if (!order) {
       console.warn("⚠️ No order found at all for this table.");
       // 404 Not Found is a better status code in this case.
-      return res
-        .status(404)
-        .json({
-          message: "No order has been placed for this table yet.",
-          order: null,
-        });
+      return res.status(404).json({
+        message: "No order has been placed for this table yet.",
+        order: null,
+      });
     }
 
     // The rest of the function for calculating totals is correct and remains the same.
@@ -487,5 +554,36 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
     }
     console.error("❌ Error in updateOrderStatus:", err.message || err);
     return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getBillByOrderId = async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.params;
+    const numericOrderId = Number(orderId);
+
+    if (isNaN(numericOrderId)) {
+      return res.status(400).json({ error: "Invalid Order ID." });
+    }
+
+    const order = await prisma.order.findUnique({
+      where: { id: numericOrderId },
+      include: {
+        order_items: { include: { item: true } },
+        bill: true, // Also include the bill if it exists
+      },
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found.", order: null });
+    }
+
+    // You can add your total/GST calculation here if you want to send it pre-calculated
+    // For now, we will return the raw order object.
+
+    return res.status(200).json({ order });
+  } catch (error) {
+    console.error("💥 getBillByOrderId error:", error);
+    return res.status(500).json({ error: "Server error" });
   }
 };
