@@ -1,6 +1,6 @@
 // components/bill/BillDetails.tsx
 
-import { log } from "@/lib/helper";
+import { Capitilize, log } from "@/lib/helper";
 import { BillData } from "@/types/menu";
 import { Atom } from "lucide-react";
 
@@ -14,9 +14,7 @@ export const BillDetails = ({ bill }: { bill: BillData }) => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">The Great Cafe</h1>
-          <p className="text-sm text-muted-foreground">
-            Order #{bill.id?.toString().slice(0, 8)}
-          </p>
+          <p className="text-muted-foreground">Table No. {bill.tableNo}</p>
         </div>
         <Atom className="h-10 w-10 text-primary" />
       </div>
@@ -24,8 +22,12 @@ export const BillDetails = ({ bill }: { bill: BillData }) => {
       {/* Details */}
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div>
-          <p className="text-muted-foreground">Billed To</p>
-          <p className="font-medium">Valued Customer</p>
+          <p className="text-sm text-muted-foreground">
+            Order #{bill.id?.toString().slice(0, 8)}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Order Type: {Capitilize(bill.orderType || 'unknown')}
+          </p>
         </div>
         <div className="text-right">
           <p className="text-muted-foreground">Date of Issue</p>
