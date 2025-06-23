@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import SearchBar from "./SearchBar";
 import CategoryNav from "./CategoryNav";
@@ -11,14 +11,18 @@ import SpecialCardSkeleton from "./SpecialCardSkeleton";
 import MenuItemCardSkeleton from "./MenuItemCardSkeleton";
 import SpecialCardBox from "./SpecialCardBox";
 import axios from "axios";
-import { OrderFromServer } from "@/types/menu";
-import loadOrderIntoCart from "@/hooks/useCart"; // ✅ Import your cart sync
+import { ActiveOrder, OrderFromServer } from "@/types/menu";
+import {  ActiveOrdersSection } from "./ActiveOrdersBar";
+import { useSearchParams } from "next/navigation";
+import { log } from "@/lib/helper";
+import useCart from "@/hooks/useCart";
 
 interface Props {
   cafeSlug: string;
+  cafeId: string; 
 }
 
-const MenuPageContent = ({ cafeSlug }: Props) => {
+const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
   const {
     searchTerm,
     setSearchTerm,
@@ -32,6 +36,18 @@ const MenuPageContent = ({ cafeSlug }: Props) => {
     isSpecial,
     hasMore,
   } = useMenu({ cafeSlug });
+  const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([]);
+  const searchParams = useSearchParams();
+
+  // ✅ Get the new 'setCafeId' function from our cart context
+  const { loadOrderIntoCart, setCafeId } = useCart();
+
+  // ✅ ADD THIS useEffect to set the cafe ID in the context when the page loads
+  useEffect(() => {
+    if (cafeId) {
+      setCafeId(Number(cafeId));
+    }
+  }, [cafeId, setCafeId]);
 
   const navRef = useRef<HTMLDivElement | null>(
     null
@@ -40,6 +56,30 @@ const MenuPageContent = ({ cafeSlug }: Props) => {
 
   // ✅ Derive loadingSpecials
   const loadingSpecials = isSpecial.length === 0 && !searchTerm;
+
+  // This hook runs when the page loads to check for active orders
+  useEffect(() => {
+    const tableNo = searchParams.get("tableNo");
+
+    if (!cafeId || !tableNo) return; // Cannot search without this info
+
+    const fetchActiveOrders = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/orders/active/${cafeId}/${tableNo}`
+        );
+
+        log("Active orders fetched 🤑:", response.data.activeOrders);
+        if (response.data.activeOrders) {
+          setActiveOrders(response.data.activeOrders);
+        }
+      } catch (error) {
+        console.error("Could not fetch active orders.", error);
+      }
+    };
+
+    fetchActiveOrders();
+  }, [cafeId, searchParams]); // Re-run if params change
 
   //! ✅ Infinite Scroll to fetch next menu category on scroll
   useEffect(() => {
@@ -74,7 +114,7 @@ const MenuPageContent = ({ cafeSlug }: Props) => {
 
         // If an unpaid order exists, sync the cart with its items.
         if (order && order.paid === false) {
-          loadOrderIntoCart();
+          loadOrderIntoCart(order.items);
         }
       } catch (error) {
         // This is not a critical error, just means there's no active order to sync.
@@ -83,9 +123,7 @@ const MenuPageContent = ({ cafeSlug }: Props) => {
     };
 
     syncCartWithServer();
-  }, []); // The dependency ensures this runs once when the component mounts.
-
-
+  }, [loadOrderIntoCart]); // The dependency ensures this runs once when the component mounts.
 
   //! ✅ Scroll to category logic
   const scrollToCategory = async (category: string) => {
@@ -159,6 +197,11 @@ const MenuPageContent = ({ cafeSlug }: Props) => {
       />
 
       <main className="max-w-4xl mx-auto px-4 pb-32">
+        <AnimatePresence>
+          {activeOrders.length > 0 && (
+            <ActiveOrdersSection activeOrders={activeOrders} />
+          )}
+        </AnimatePresence>
         {loadingSpecials ? (
           <div className="flex gap-4 pb-4 -mx-4 px-4 overflow-x-auto no-scrollbar">
             {[...Array(4)].map((_, i) => (
