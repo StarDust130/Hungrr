@@ -61,6 +61,7 @@ model MenuItem {
 
 model Order {
   id                  Int             @id @default(autoincrement())
+  publicId            String          @unique @default(cuid()) // CUID is a great default for unguessable IDs
   tableNo             Int
   cafeId              Int
   payment_method      PaymentMethod  @default(counter)
