@@ -4,6 +4,7 @@ import TagBadge from "./TagBadge";
 import DietaryIcon from "./DietaryIcon";
 import { Sparkles } from "lucide-react";
 import { MenuItem } from "@/types/menu";
+import DescriptionToggle from "./checkoutComp/DescriptionToggle";
 
 const MenuItemCard = ({ item }: { item: MenuItem }) => {
   return (
@@ -19,15 +20,10 @@ const MenuItemCard = ({ item }: { item: MenuItem }) => {
               </div>
             )}
           </div>
-
           <h3 className="text-lg flex items-center justify-start gap-2 font-bold text-gray-900 dark:text-white mt-1.5">
             {item.dietary && <DietaryIcon type={item.dietary} />} {item.name}
           </h3>
-
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 leading-snug line-clamp-2">
-            {item.description}
-          </p>
-
+          <DescriptionToggle text={item.description} />
           {item.tags && item.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-3">
               {item.tags.map((tag) => (
@@ -35,7 +31,6 @@ const MenuItemCard = ({ item }: { item: MenuItem }) => {
               ))}
             </div>
           )}
-
           <p className="text-base font-semibold text-gray-800 dark:text-gray-200 mt-4">
             ₹{item.price}
           </p>
