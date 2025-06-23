@@ -11,10 +11,15 @@ import { BillData, OrderStatus } from "@/types/menu";
 import { log } from "@/lib/helper";
 import Loading from "@/app/bills/loading";
 
-// Your page now accepts orderId as a prop
-export default function BillPage({ orderId }: { orderId: string }) {
-  // The hook now directly uses the orderId prop
-  const { bill: initialBill, loading, error } = useBill(orderId);
+// Your page now accepts publicId as a prop
+export default function BillPage({ publicId }: { publicId: string }) {
+  // The hook now directly uses the publicId prop
+  const { bill: initialBill, loading, error } = useBill(publicId);
+  log("BillPage: Initial bill data:", initialBill);
+  console.log("publicId 🥲" + publicId);
+  
+
+  
 
   // This state holds the live, socket-updated bill data
   const [liveBill, setLiveBill] = useState<BillData | null>(null);
