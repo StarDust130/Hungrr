@@ -26,7 +26,7 @@ const SpecialCard = ({ item }: { item: MenuItem }) => {
           <h3 className="text-[15px] font-semibold font-serif truncate">
             {item.name}
           </h3>
-          <p className="text-[13px] font-medium text-muted-foreground">
+          <p className="text-[13px] font-medium">
             ₹{item.price}
           </p>
         </div>
