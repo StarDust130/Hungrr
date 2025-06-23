@@ -74,7 +74,7 @@ const MenuPageContent = ({ cafeSlug }: Props) => {
 
         // If an unpaid order exists, sync the cart with its items.
         if (order && order.paid === false) {
-          loadOrderIntoCart(order.items);
+          loadOrderIntoCart();
         }
       } catch (error) {
         // This is not a critical error, just means there's no active order to sync.
