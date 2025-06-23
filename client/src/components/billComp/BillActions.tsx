@@ -17,6 +17,7 @@ import {
   Wallet,
   Copy,
   Check,
+  BadgeIndianRupee,
 } from "lucide-react";
 import QRCode from "react-qr-code";
 import GenerateReliablePdf from "./GenerateReliablePdf";
@@ -116,6 +117,15 @@ export function BillActions({ bill }: BillActionsProps) {
     </Button>
   );
 
+  const PayAtCounterInfo = () => (
+    <div className="flex-1 h-12 flex gap-2 items-center justify-center rounded-xl border-2 border-zinc-300 dark:border-zinc-900 text-sm font-semibold tracking-wide text-zinc-800 dark:text-zinc-100 shadow-sm">
+      <BadgeIndianRupee size={20} className="mr-2" />
+      Pay at Counter
+    </div>
+  );
+  
+  
+
   return (
     <>
       {/* Desktop and Tablet View */}
@@ -133,6 +143,7 @@ export function BillActions({ bill }: BillActionsProps) {
           {/* Correctly renders buttons based on the logic */}
           {showPayButton && <PayButton />}
           {showDownloadButton && <DownloadButton />}
+          {!showDownloadButton && <PayAtCounterInfo />}
         </div>
       </div>
 
@@ -149,9 +160,11 @@ export function BillActions({ bill }: BillActionsProps) {
         </Button>
 
         {/* Correctly renders buttons based on the logic */}
-        {bill.paymentMethod === "counter" && <DownloadButton isMobile />}
         {showPayButton && <PayButton isMobile />}
         {showDownloadButton && <DownloadButton isMobile />}
+        {bill.paymentMethod === "counter" && bill.paymentStatus !== "paid" && (
+          <PayAtCounterInfo />
+        )}
       </div>
 
       {/* QR Code Modal for Desktop */}
