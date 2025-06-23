@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState } from "react";
@@ -50,35 +51,44 @@ const CheckoutPage = () => {
 
   //! Handle place order 🤩
   const handlePlaceOrder = async (paymentMethod: "counter" | "online") => {
+    if (isLoading) return;
     setIsLoading(true);
-    setIsRedirecting(true);
-
-    const tempBillId = Date.now().toString();
 
     const billData = {
-      cafeId: 1, // ✅ Replace this with the actual cafeId
+      cafeId: 1,
       items: validCartItems.map((item) => ({
         itemId: item.item.id,
         quantity: item.quantity,
       })),
-      tableNo: Number(tableNo), // Ensure it's a number
+      tableNo: Number(tableNo),
       paymentMethod,
       specialInstructions,
       orderType,
     };
 
-    // 💾 Save to session
-    sessionStorage.setItem("currentBill", JSON.stringify(billData));
+    try {
+      // 1. AWAIT the backend response to get the real order data
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/bill`,
+        billData
+      );
 
-    // 🚀 Send to backend
-    axios
-      .post(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/bill`, billData)
-      .catch((error) => console.error("Failed to save bill:", error));
+    
 
-    log("Placing order with data 🤭:", billData);
+      const { order } = response.data;
 
-    // 🔁 Redirect 
-    router.push(`/bills/${tempBillId}`);
+      log("✅ Order placed successfully:", order);
+      if (!order || !order.id) {
+        throw new Error("Backend did not return a valid order.");
+      }
+
+      // 4. Redirect to the REAL order URL
+      router.push(`/bills/${order.id}`);
+    } catch (error) {
+      console.error("❌ Failed to place order:", error);
+      alert("There was an error placing your order. Please try again.");
+      setIsLoading(false);
+    }
   };
   
   
