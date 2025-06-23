@@ -2,7 +2,7 @@
 import { Router } from "express";
 import {
   completeOrderPayment,
-  getBillByOrderId,
+  getBillByPublicId,
   getBillInfo,
   getCafeInfoBySlug,
   getCafeMenu,
@@ -22,7 +22,7 @@ router.post("/bill", upsertBill as any);       // Create or update order (add it
 router.patch("/bill/complete", completeOrderPayment as any);
 
 
-router.get("/bill/:orderId", getBillByOrderId as any); // ✅ ADD THIS NEW ROUTE
+router.get("/bill/:publicId", getBillByPublicId as any);
 router.get("/bill/:cafeKey/:tableNo", getBillInfo as any); 
 
 router.patch("/order/:orderId/status", updateOrderStatus as any);
