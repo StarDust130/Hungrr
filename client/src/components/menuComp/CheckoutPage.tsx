@@ -32,7 +32,6 @@ const CheckoutPage = () => {
     addToCart,
     removeFromCart,
     clearItemFromCart,
-    clearCart,
     totalPrice = 0,
   } = useCart();
 
@@ -71,9 +70,6 @@ const CheckoutPage = () => {
     // 💾 Save to session
     sessionStorage.setItem("currentBill", JSON.stringify(billData));
 
-    // 🔁 Redirect early
-    router.push(`/bills/${tempBillId}`);
-
     // 🚀 Send to backend
     axios
       .post(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/bill`, billData)
@@ -81,6 +77,8 @@ const CheckoutPage = () => {
 
     log("Placing order with data 🤭:", billData);
 
+    // 🔁 Redirect 
+    router.push(`/bills/${tempBillId}`);
   };
   
   
