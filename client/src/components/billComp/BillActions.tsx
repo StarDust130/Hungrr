@@ -69,7 +69,14 @@ export function BillActions({ bill }: BillActionsProps) {
   };
 
   const handleRedirectToMenu = () => {
-    router.back();
+    if (!bill.cafe?.slug || bill.tableNo === undefined) {
+      // Fallback to a generic home page if data is missing
+      router.back();
+      return;
+    }
+    // Construct the URL: e.g., /menu/buchi-cafe?tableNo=41
+    const menuUrl = `/menu/${bill.cafe.slug}?tableNo=${bill.tableNo}`;
+    router.push(menuUrl);
   };
 
   const handleDownload = async () => {
