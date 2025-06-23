@@ -192,7 +192,11 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
     setHasMounted(true);
   }, []);
 
-  if (!hasMounted) return null; // ⛔️ Prevent SSR rendering
+  if (!hasMounted) {
+    return (
+     <p className="h-screen w-full"></p>
+    );
+  } // ⛔️ Prevent SSR rendering
 
   return (
     <div className="font-sans bg-background text-foreground min-h-screen">

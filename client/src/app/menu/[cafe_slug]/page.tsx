@@ -1,10 +1,10 @@
 // app/menu/[cafe_slug]/page.tsx
 
 import CafeBanner from "@/components/menuComp/CafeBanner";
-import CartProvider from "@/components/menuComp/CartProvider";
 import MenuPageContent from "@/components/menuComp/MenuPageContent";
 import { fetchCafeData, fetchMenuData } from "@/lib/api_calling";
 import ErrorMessage from "@/components/elements/ErrorMessage";
+import ClientOnlyCart from "@/components/menuComp/ClientOnlyCart";
 
 interface Props {
   params: Promise<{
@@ -41,10 +41,10 @@ export default async function MenuPage(props: Props) {
     }
 
     return (
-      <CartProvider>
+      <ClientOnlyCart>
         <CafeBanner cafe={cafeData} />
         <MenuPageContent cafeSlug={cafe_slug} cafeId={cafeData.id} />
-      </CartProvider>
+      </ClientOnlyCart>
     );
   } catch (error) {
     console.error("MenuPage error:", error);
