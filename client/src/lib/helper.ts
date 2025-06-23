@@ -16,3 +16,8 @@ export const formatPrice = (price: number | string): string => {
 export const gstCalculation = (amount: number, rate: number = 0.18): number => {
   return parseFloat((amount * rate).toFixed(2));
 }
+
+export const Capitilize = (str: string): string => {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
