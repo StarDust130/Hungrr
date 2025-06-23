@@ -53,6 +53,8 @@ export interface CartContextType {
   totalPrice: number;
   clearCart: () => void;
   loadOrderIntoCart: (orderItems: BillData["items"]) => void;
+  cafeId: number | null;
+  setCafeId: (id: number) => void;
 }
 
 // --- Bill & Order Types ---
@@ -82,6 +84,10 @@ export interface BillData {
   status: OrderStatus; // Using Prisma type
   tableNo?: number;
   orderType?: string;
+
+  cafe: {
+    slug: string;
+  };
 }
 
 // This is the improved type for the object returned from your API
@@ -92,5 +98,10 @@ export interface OrderFromServer {
   items: CartItem[]; // Reusing CartItem makes this clean and consistent
 }
 
+export interface ActiveOrder {
+  id: number;
+  publicId: string;
+  status: string;
+}
 
 export type OrderStatus = | "pending" | "accepted" | "preparing" | "ready" | "completed";
