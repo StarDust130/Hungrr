@@ -2,6 +2,7 @@
 import { Router } from "express";
 import {
   completeOrderPayment,
+  getActiveOrdersForTable,
   getBillByPublicId,
   getBillInfo,
   getCafeInfoBySlug,
@@ -24,6 +25,7 @@ router.patch("/bill/complete", completeOrderPayment as any);
 
 router.get("/bill/:publicId", getBillByPublicId as any);
 router.get("/bill/:cafeKey/:tableNo", getBillInfo as any); 
+router.get("/orders/active/:cafeId/:tableNo", getActiveOrdersForTable as any);
 
 router.patch("/order/:orderId/status", updateOrderStatus as any);
 
