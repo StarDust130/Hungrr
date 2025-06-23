@@ -579,39 +579,70 @@ export const getBillByPublicId = async (req: Request, res: Response) => {
     const { publicId } = req.params;
 
     if (!publicId) {
-      return res.status(400).json({ error: "Public ID is missing from URL." });
+      return res.status(400).json({ message: "Missing publicId parameter." });
     }
 
-    // Let's first try to find the order with a very simple query.
-    // This will confirm if the basic lookup is working.
     const order = await prisma.order.findUnique({
       where: { publicId },
-    });
-
-    // If the simple query fails to find it, return 404.
-    if (!order) {
-      return res
-        .status(404)
-        .json({ message: `Order with publicId '${publicId}' not found.` });
-    }
-
-    // If the simple query SUCCEEDS, then we run a second query to get all the details.
-    // This helps isolate the error. If the code fails here, the problem is with the relations.
-    const orderWithDetails = await prisma.order.findUnique({
-      where: { publicId },
       include: {
+        // ✅ ADD THIS LINE to include the cafe's slug in the response
+        cafe: { select: { slug: true } },
+
         order_items: { include: { item: true } },
         bill: true,
       },
     });
 
-    // We send the fully detailed order back to the frontend.
-    return res.status(200).json({ order: orderWithDetails });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found.", order: null });
+    }
+
+    return res.status(200).json({ order });
+  } catch (error) {
+    console.error("💥 getBillByPublicId error:", error);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
+
+//! GET /api/cafe/:cafeId/table/:tableNo/active-orders
+// This endpoint fetches all active orders for a specific cafe and table.
+export const getActiveOrdersForTable = async (req: Request, res: Response) => {
+  try {
+    const { cafeId, tableNo } = req.params;
+    const numericCafeId = Number(cafeId);
+    const numericTableNo = Number(tableNo);
+
+    if (isNaN(numericCafeId) || isNaN(numericTableNo)) {
+      return res.status(400).json({ error: "Invalid Cafe or Table ID." });
+    }
+
+    const activeOrders = await prisma.order.findMany({
+      where: {
+        cafeId: numericCafeId,
+        tableNo: numericTableNo,
+        status: {
+          not: "completed", // The key logic: ignore 'completed' orders
+        },
+      },
+      // Only select the data the frontend needs for this feature
+      select: {
+        id: true,
+        publicId: true,
+        status: true,
+      },
+      orderBy: {
+        created_at: "desc", // Get the most recent active order first
+      },
+    });
+
+    console.log(`📦 Fetched ${activeOrders.length} active orders for Cafe ID ${numericCafeId} and Table No ${numericTableNo}`);
+    console.log("Active Orders:", activeOrders);
+    
+
+    return res.status(200).json({ activeOrders });
+
   } catch (error: any) {
-    // This will catch any crash and log it to your backend console.
-    console.error("💥 getBillByPublicId CRITICAL ERROR:", error);
-    return res
-      .status(500)
-      .json({ error: "Internal Server Error", details: error.message });
+    console.error("Error fetching active orders:", error);
+    return res.status(500).json({ error: "Server error" });
   }
 };
