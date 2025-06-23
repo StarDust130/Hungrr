@@ -87,6 +87,7 @@ model OrderItem {
 
   order    Order    @relation(fields: [orderId], references: [id])
   item     MenuItem @relation(fields: [itemId], references: [id])
+  @@unique([orderId, itemId]) //! Ensures that an item can only be ordered once per order
 }
 
 model Bill {
