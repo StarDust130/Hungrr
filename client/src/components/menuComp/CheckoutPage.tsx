@@ -31,6 +31,7 @@ const CheckoutPage = () => {
     removeFromCart,
     clearItemFromCart,
     totalPrice = 0,
+    cafeId,
   } = useCart();
 
   const validCartItems: CartItem[] = Object.values(cart || {}).filter(
@@ -52,11 +53,17 @@ const CheckoutPage = () => {
     // Prevent double-clicks
     if (orderStatus !== "idle") return;
 
+    // Add a check to make sure the cafeId has been set
+    if (!cafeId) {
+      alert("Error: Cafe information is missing. Please refresh the page.");
+      return;
+    }
+
     // 1. Immediately set the status to 'placing' to show the loader
     setOrderStatus("placing");
 
     const billData = {
-      cafeId: 1,
+      cafeId,
       items: validCartItems.map((item) => ({
         itemId: item.item.id,
         quantity: item.quantity,
