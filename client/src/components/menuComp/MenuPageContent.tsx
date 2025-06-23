@@ -38,6 +38,7 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
   } = useMenu({ cafeSlug });
   const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([]);
   const searchParams = useSearchParams();
+  const [hasMounted, setHasMounted] = useState(false);
 
   // ✅ Get the new 'setCafeId' function from our cart context
   const { loadOrderIntoCart, setCafeId } = useCart();
@@ -184,6 +185,14 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
       });
     }
   }, [activeCategory, searchTerm]);
+
+
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  if (!hasMounted) return null; // ⛔️ Prevent SSR rendering
 
   return (
     <div className="font-sans bg-background text-foreground min-h-screen">
