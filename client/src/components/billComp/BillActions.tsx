@@ -22,7 +22,7 @@ import QRCode from "react-qr-code";
 import GenerateReliablePdf from "./GenerateReliablePdf";
 import { useRouter } from "next/navigation";
 import { BillData } from "@/types/menu";
-import { useParams } from "next/navigation";
+import { log } from "@/lib/helper";
 
 const YOUR_UPI_ID = "9302903537-2@ybl";
 const YOUR_NAME = "Chandrashekhar";
@@ -38,15 +38,8 @@ export function BillActions({ bill }: BillActionsProps) {
   const [copied, setCopied] = useState(false);
   const router = useRouter();
 
-  console.log("BillActions rendered with bill 😛:", bill);
+  log("BillActions rendered with bill 😛:", bill);
   
-
-    // ✅ . Get the unique ID from the URL
-    const params = useParams();
-    const billIdFromUrl = params.orderId; // Assumes your file is named [billId].tsx
-  
-    // ✅ . Construct the one true URL for this page
-    const pageUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/bills/${billIdFromUrl}`;
 
   useEffect(() => {
     const userAgent = navigator.userAgent;
@@ -81,7 +74,7 @@ export function BillActions({ bill }: BillActionsProps) {
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
-      await GenerateReliablePdf({ bill, pageUrl });
+      await GenerateReliablePdf({ bill });
     } catch (error) {
       console.error("Failed to generate PDF:", error);
     } finally {

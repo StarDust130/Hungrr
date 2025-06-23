@@ -23,12 +23,10 @@ const STYLING = {
 
 export interface GenerateReliablePdfProps {
   bill: BillData;
-  pageUrl: string; // The URL of the page to link in the QR code
 }
 
 const GenerateReliablePdf = async ({
-  bill,
-  pageUrl,
+  bill
 }: GenerateReliablePdfProps) => {
   try {
     // --- 1. PREPARE DATA ---
@@ -44,7 +42,7 @@ const GenerateReliablePdf = async ({
       }
     }
 
-    const billUrl = pageUrl;
+    const billUrl = window.location.href;
     const billUrlQrCodeImage = await QRCode.toDataURL(billUrl, {
       width: 256,
       margin: 1,
@@ -57,6 +55,7 @@ const GenerateReliablePdf = async ({
     const baseHeight = 150 + logoHeight;
     const heightPerItem = 9;
     const calculatedHeight = baseHeight + bill.items.length * heightPerItem;
+
 
     const doc = new jsPDF({
       orientation: "portrait",
@@ -157,7 +156,7 @@ const GenerateReliablePdf = async ({
     bill.items.forEach((cartItem) => {
       const name = cartItem.item.name;
       const quantity = cartItem.quantity ?? 1;
-      const rate = cartItem.item.price;
+      const rate = Number(cartItem.item.price);
       const amount = quantity * rate;
       const itemLines = doc.splitTextToSize(name, 38);
 
@@ -198,7 +197,7 @@ const GenerateReliablePdf = async ({
     y += lineSpacing;
     doc.setFontSize(STYLING.fontSizes.L);
     addTotalLine(
-      "GRAND TOTAL",
+      "GRAND TOTAL ",
       `Rs. ${(bill.grandTotal ?? 0).toFixed(2)}`,
       true
     );
@@ -209,7 +208,7 @@ const GenerateReliablePdf = async ({
     if (grandTotalInWords) {
       doc.setFont("courier", "normal");
       doc.setFontSize(STYLING.fontSizes.S);
-      const words = `In Words: Rupees ${grandTotalInWords} Only`;
+      const words = `In Words: Rupees ${grandTotalInWords}`;
       const splitWords = doc.splitTextToSize(words, pageWidth);
       doc.text(splitWords, margin, y);
       y += splitWords.length * smallLineSpacing;
