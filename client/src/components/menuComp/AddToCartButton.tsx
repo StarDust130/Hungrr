@@ -26,7 +26,7 @@ const AddToCartButton = ({
             onClick={() => addToCart(item)}
             className="absolute inset-0 flex items-center justify-center gap-1 rounded-full border border-primary text-primary font-semibold text-[13px] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.1)] active:scale-95 transition-all duration-200 px-4"
           >
-            <Plus size={16} strokeWidth={2} />
+            <Plus size={16} strokeWidth={3} />
             <span>Add</span>
           </motion.button>
         ) : (
