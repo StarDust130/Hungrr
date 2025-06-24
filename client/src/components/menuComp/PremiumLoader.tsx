@@ -5,11 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Check } from "lucide-react";
 
 const placingMessages = [
-  "We’re carefully placing your order...",
-  "Making sure everything’s just right...",
-  "Finalizing the delicious details...",
-  "Sealing it with flavor...",
+  "Getting your order ready... 🍔",
+  "Double-checking everything... ✅",
+  "Packing it up nice and neat... 📦",
+  "Sending you to the bill... 🧾",
 ];
+
 
 interface PremiumLoaderProps {
   status: "placing" | "confirmed";
