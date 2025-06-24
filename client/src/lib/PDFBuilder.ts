@@ -133,7 +133,7 @@ export class PDFBuilder {
   drawItemsTable() {
     this.doc.setFont("helvetica", "bold").setFontSize(8);
     const itemX = this.margin;
-    const qtyX = this.margin + 42;
+    const qtyX = this.margin + 38;
     const rateX = this.margin + 55;
     const amountX = this.margin + this.pageWidth;
     this.doc.text("ITEM(S)", itemX, this.y);
