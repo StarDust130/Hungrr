@@ -86,7 +86,7 @@ model OrderItem {
   itemId   Int
   quantity Int      @default(1)
 
-  order    Order    @relation(fields: [orderId], references: [id])
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   item     MenuItem @relation(fields: [itemId], references: [id])
   @@unique([orderId, itemId]) //! Ensures that an item can only be ordered once per order
 }
