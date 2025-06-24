@@ -132,7 +132,7 @@ export const ActiveOrdersSection = ({
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="flex w-full flex-col gap-2.5 p-2"
+      className="flex w-full flex-col gap-2.5 p-1 mt-3"
     >
       {activeOrders.map((order) => (
         <motion.div key={order.publicId} variants={itemVariants}>
