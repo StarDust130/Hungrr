@@ -15,8 +15,12 @@ export default function NotFound() {
         width={200}
         height={200}
       />
-      <h2 className="mt-5 text-bold text-3xl mb-2">Not Found</h2>
-      <p>Could not find requested resource</p>
+      <h2 className="mt-5 text-2xl font-bold mb-5">Oops! Page Not Found</h2>
+      <p className="text-xs text-gray-500 ">
+        We couldn&apos;t find what you were looking for. <br /> It may have been moved
+        or deleted.
+      </p>
+
       <Button
         variant={"outline"}
         onClick={() => router.back()}
