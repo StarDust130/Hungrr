@@ -25,8 +25,7 @@ import { useRouter } from "next/navigation";
 import { BillData } from "@/types/menu";
 import { log } from "@/lib/helper";
 
-const YOUR_UPI_ID = "9302903537-2@ybl";
-const YOUR_NAME = "Chandrashekhar";
+
 
 interface BillActionsProps {
   bill: BillData;
@@ -40,7 +39,10 @@ export function BillActions({ bill }: BillActionsProps) {
   const router = useRouter();
 
   log("BillActions rendered with bill 😛:", bill);
-  
+
+  const YOUR_UPI_ID = bill.payment_url ?? "9302903537-2@ybl" // Default UPI ID if not provided
+  const YOUR_NAME = bill.cafeName || "Restaurant"
+  const description = `Table No. ${bill.tableNo} + Order ID: #${bill.id}`;
 
   useEffect(() => {
     const userAgent = navigator.userAgent;
@@ -52,7 +54,8 @@ export function BillActions({ bill }: BillActionsProps) {
   const amount = bill.grandTotal.toFixed(2);
   const upiUrl = `upi://pay?pa=${YOUR_UPI_ID}&pn=${encodeURIComponent(
     YOUR_NAME
-  )}&am=${amount}&cu=INR`;
+  )}&am=${amount}&cu=INR&tn=${encodeURIComponent(description)}`;
+
 
   const handlePayment = () => {
     if (isDesktop) {
