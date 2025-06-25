@@ -17,7 +17,27 @@ export const gstCalculation = (amount: number, rate: number = 0.18): number => {
   return parseFloat((amount * rate).toFixed(2));
 }
 
-export const Capitilize = (str: string): string => {
+export const Capitalize = (str: string): string => {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+export function DateFormat(
+  date: string | Date,
+  format: "full" | "date" | "time" = "full"
+) {
+  const d = new Date(date);
+  const options: Intl.DateTimeFormatOptions =
+    format === "date"
+      ? { year: "numeric", month: "short", day: "numeric" }
+      : format === "time"
+      ? { hour: "2-digit", minute: "2-digit" }
+      : {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        };
+  return d.toLocaleString("en-IN", options);
 }
