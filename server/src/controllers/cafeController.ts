@@ -273,7 +273,7 @@ export const getBillByPublicId = async (req: Request, res: Response) => {
       where: { publicId },
       include: {
         // ✅ ADD THIS LINE to include the cafe's slug in the response
-        cafe: { select: { slug: true } },
+        cafe: { select: { slug: true  , name: true  , gstNo: true , logoUrl: true  , payment_url: true , address: true} },
 
         order_items: { include: { item: true } },
         bill: true,
