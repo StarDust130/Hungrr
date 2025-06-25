@@ -83,7 +83,13 @@ export interface BillData {
   paymentStatus: "paid" | "pending";
   status: OrderStatus; // Using Prisma type
   tableNo?: number;
+  cafeName?: string;
   orderType?: string;
+  logoUrl?: string;
+  gstNo?: string;
+  payment_url?: string;
+  address?: string;
+  publicId?: string; // Optional, used for sharing bills
   cafe?: {
     slug: string;
   };
