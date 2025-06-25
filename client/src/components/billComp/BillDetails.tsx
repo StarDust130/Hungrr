@@ -1,86 +1,138 @@
-// components/bill/BillDetails.tsx
+"use client";
 
-import { Capitilize, log } from "@/lib/helper";
 import { BillData } from "@/types/menu";
-import { Atom } from "lucide-react";
+import {  Capitalize, log } from "@/lib/helper"; // Assuming capitalize is a function like 'text' => 'Text'
+import { Calendar, Clock, Hash, ShoppingBag } from "lucide-react";
+import Image from "next/image";
 
+// A small, reusable component for displaying details like Order #, Date, etc.
+const DetailItem = ({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) => (
+  <div className="flex flex-col">
+    <dt className="text-xs text-muted-foreground flex items-center gap-1.5">
+      {icon}
+      {label}
+    </dt>
+    <dd className="font-semibold text-sm text-foreground">{value}</dd>
+  </div>
+);
 
 export const BillDetails = ({ bill }: { bill: BillData }) => {
-  log("Bill 🥰" , bill);
-  
+  log("Bill Details Rendered With:", bill);
+
+  // Fallback for missing logo: A colored circle with the first letter of the cafe name
+  const CafeLogoFallback = () => (
+    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+      <span className="text-2xl font-bold">
+        {bill.cafeName?.charAt(0).toUpperCase()}
+      </span>
+    </div>
+  );
+
   return (
-    <div className="bg-background p-6 sm:p-8 space-y-6 rounded-lg border border-border shadow-sm w-full max-w-2xl mx-auto">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+    <div className="w-full max-w-2xl mx-auto space-y-6 rounded-2xl border border-border bg-background p-6 sm:p-8 shadow-sm font-sans">
+      {/* --- HEADER --- */}
+      <header className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">The Great Cafe</h1>
+          <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
+            {bill.cafeName}
+          </h1>
           <p className="text-muted-foreground">Table No. {bill.tableNo}</p>
         </div>
-        <Atom className="h-10 w-10 text-primary" />
-      </div>
+        {bill.logoUrl ? (
+          <Image
+            src={bill.logoUrl}
+            alt={`${bill.cafeName} Logo`}
+            className="h-16 w-16 rounded-full object-cover border-2 border-border"
+            width={64}
+            height={64}
+          />
+        ) : (
+          <CafeLogoFallback />
+        )}
+      </header>
 
-      {/* Details */}
-      <div className="grid grid-cols-2 gap-4 text-sm">
-        <div>
-          <p className="text-sm text-muted-foreground">
-            Order #{bill.id?.toString().slice(0, 8)}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Order Type: {Capitilize(bill.orderType || 'unknown')}
-          </p>
+      {/* --- ORDER & DATE DETAILS --- */}
+      <section className="grid grid-cols-2 sm:grid-cols-4 gap-4 rounded-lg bg-muted/50 p-4 border border-border">
+        <DetailItem
+          icon={<Hash size={14} />}
+          label="Order #"
+          value={String(bill.id).padStart(6, "0")}
+        />
+        <DetailItem
+          icon={<ShoppingBag size={14} />}
+          label="Order Type"
+          value={Capitalize(bill.orderType || "Dine-In")}
+        />
+        <DetailItem
+          icon={<Calendar size={14} />}
+          label="Date"
+          value={new Date(bill.timestamp).toLocaleDateString("en-GB")}
+        />
+        <DetailItem
+          icon={<Clock size={14} />}
+          label="Time"
+          value={new Date(bill.timestamp).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        />
+      </section>
+
+      {/* --- ITEMS TABLE --- */}
+      <section>
+        <div className="flex pb-2 text-sm font-semibold text-muted-foreground border-b border-border">
+          <p className="flex-grow">DESCRIPTION</p>
+          <p className="w-24 text-right">TOTAL</p>
         </div>
-        <div className="text-right">
-          <p className="text-muted-foreground">Date of Issue</p>
-          <p className="font-medium">
-            {new Date(bill.timestamp).toLocaleDateString()}
-          </p>
+        <div className="space-y-4 pt-4">
+          {bill.items.map(({ item, quantity }) => (
+            <div
+              key={item.id}
+              className="flex items-start justify-between gap-4 text-sm"
+            >
+              <div className="flex-grow">
+                <p className="font-semibold text-foreground">{item.name}</p>
+                <p className="text-muted-foreground font-mono text-xs">
+                  {quantity} x ₹{Number(item.price).toFixed(2)}
+                </p>
+              </div>
+              <p className="w-24 text-right font-mono text-foreground">
+                ₹{(Number(item.price) * quantity).toFixed(2)}
+              </p>
+            </div>
+          ))}
         </div>
-      </div>
+      </section>
 
-      <hr className="border-dashed border-border" />
-
-      {/* Items Table */}
-      <div className="space-y-4">
-        <div className="flex text-sm font-medium text-muted-foreground">
-          <p className="flex-grow">Description</p>
-          <p className="w-16 text-center">Qty</p>
-          <p className="w-20 text-right">Amount</p>
-        </div>
-        {bill.items.map(({ item, quantity }) => (
-          <div
-            key={`${item.id}-${quantity}`}
-            className="flex items-center text-sm"
-          >
-            <p className="flex-grow font-medium">{item.name}</p>
-            <p className="w-16 text-center text-muted-foreground">{quantity}</p>
-            <p className="w-20 text-right font-mono">
-              ₹{(item.price * quantity).toFixed(2)}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* Totals Section */}
-      <div className="space-y-4 pt-4 border-t border-dashed border-border">
+      {/* --- TOTALS SECTION --- */}
+      <section className="space-y-2 pt-4 border-t-2 border-dashed border-border">
         <div className="flex justify-between text-sm">
           <p className="text-muted-foreground">Subtotal</p>
-          <p className="font-mono">
-            ₹{bill.totalPrice ? Number(bill.totalPrice).toFixed(2) : "0.00"}
-          </p>
+          <p className="font-mono">₹{Number(bill.totalPrice).toFixed(2)}</p>
         </div>
         <div className="flex justify-between text-sm">
-          <p className="text-muted-foreground">Taxes & Charges (GST)</p>
-          <p className="font-mono">
-            ₹{bill.totalPrice ? Number(bill.gstAmount).toFixed(2) : "0.00"}
-          </p>
+          <p className="text-muted-foreground">GST</p>
+          <p className="font-mono">₹{Number(bill.gstAmount).toFixed(2)}</p>
         </div>
-        <div className="flex justify-between items-center text-xl font-bold">
+        <div className="flex justify-between items-center text-lg font-bold p-4 mt-2 rounded-lg bg-primary/10 text-primary">
           <p>Grand Total</p>
-          <p className="font-mono text-primary">
-            ₹{bill.totalPrice ? Number(bill.grandTotal).toFixed(2) : "0.00"}
-          </p>
+          <p className="font-mono">₹{Number(bill.grandTotal).toFixed(2)}</p>
         </div>
-      </div>
+      </section>
+
+      {/* --- FOOTER DETAILS --- */}
+      <footer className="text-center text-xs text-muted-foreground pt-4 border-t border-border">
+        <p>GSTIN: {bill.gstNo || "N/A"}</p>
+        <p className="mt-1">Thank you for your order!</p>
+      </footer>
     </div>
   );
 };
