@@ -15,6 +15,7 @@ const STYLING = {
 
 /**
  * A robust class for building the bill PDF document, designed for professional results.
+ * Note: Assumes `BillData` type includes an `orderType` property.
  */
 export class PDFBuilder {
   private doc: jsPDF;
@@ -81,10 +82,7 @@ export class PDFBuilder {
       .setFont("helvetica", "normal")
       .setFontSize(7)
       .setTextColor(STYLING.fontColorLight);
-    this.doc.text("TAX INVOICE", this.margin + this.pageWidth / 2, this.y, {
-      align: "center",
-    });
-    this.y += this.lineSpacing;
+    // --- CHANGE: "TAX INVOICE" line has been removed. ---
     this.doc.text(
       COMPANY_DETAILS.address,
       this.margin + this.pageWidth / 2,
@@ -103,6 +101,7 @@ export class PDFBuilder {
     this.y += this.lineSpacing;
   }
 
+  // --- CHANGE: This method is updated for the new layout. ---
   drawBillDetails() {
     this.doc
       .setFont("helvetica", "normal")
@@ -112,11 +111,14 @@ export class PDFBuilder {
       dateStyle: "short",
       timeStyle: "short",
     });
+
+    // Left side: Bill #
     this.doc.text(
       `Bill #: ${String(this.bill.id).slice(-6)}`,
       this.margin,
       this.y
     );
+    // Right side: Table No
     this.doc.text(
       `Table: ${this.bill.tableNo}`,
       this.margin + this.pageWidth,
@@ -124,8 +126,18 @@ export class PDFBuilder {
       { align: "right" }
     );
     this.y += this.lineSpacing;
+
+    // Left side: Date
     this.doc.text(`Date: ${billDate}`, this.margin, this.y);
+    // Right side: Order Type
+    this.doc.text(
+      `Order: ${this.bill.orderType}`, // Added orderType
+      this.margin + this.pageWidth,
+      this.y,
+      { align: "right" }
+    );
     this.y += this.lineSpacing;
+
     this.drawLine();
     this.y += this.smallLineSpacing;
   }
@@ -170,7 +182,6 @@ export class PDFBuilder {
     this.y += this.lineSpacing;
   }
 
-  // ✅ This method has been completely rewritten for perfect alignment.
   drawTotals() {
     const drawTotalLine = (
       label: string,
@@ -182,11 +193,9 @@ export class PDFBuilder {
         .setFont("helvetica", isBold ? "bold" : "normal")
         .setFontSize(isLarge ? 9.5 : 8);
 
-      // Position the labels in a "column" on the left side of the totals block
       const labelX = this.margin + 48;
       this.doc.text(label, labelX, this.y, { align: "right" });
 
-      // Position the values perfectly aligned to the right edge of the page
       const valueX = this.margin + this.pageWidth;
       this.doc.text(value, valueX, this.y, { align: "right" });
       this.y += this.lineSpacing;
@@ -198,7 +207,6 @@ export class PDFBuilder {
     this.drawLine();
     this.y += this.lineSpacing;
 
-    // We construct the value string with "Rs. " for guaranteed compatibility and spacing.
     const grandTotalString = `Rs. ${(this.bill.grandTotal ?? 0).toFixed(2)}`;
     drawTotalLine("GRAND TOTAL", grandTotalString, {
       isBold: true,
@@ -207,7 +215,6 @@ export class PDFBuilder {
   }
 
   drawFooter(qrCodeDataUrl: string) {
-    // This logic remains the same, but we ensure the font is consistent.
     this.doc.setFont("helvetica", "normal");
     const grandTotalInWords = AmountInWords(this.bill.grandTotal ?? 0);
     if (grandTotalInWords) {
