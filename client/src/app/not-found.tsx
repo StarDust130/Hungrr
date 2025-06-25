@@ -10,7 +10,7 @@ export default function NotFound() {
   return (
     <div className="p-10 flex flex-col justify-center items-center h-[80vh] text-center  font-bold ">
       <Image
-        src={"/anime-girl-not-found.png"}
+        src={"/anime-girl-hot.png"}
         alt="Not Found"
         width={200}
         height={200}
