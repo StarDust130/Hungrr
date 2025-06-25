@@ -16,10 +16,8 @@ export default function BillPage({ publicId }: { publicId: string }) {
   // The hook now directly uses the publicId prop
   const { bill: initialBill, loading, error } = useBill(publicId);
   log("BillPage: Initial bill data:", initialBill);
-  console.log("publicId 🥲" + publicId);
-  
+ 
 
-  
 
   // This state holds the live, socket-updated bill data
   const [liveBill, setLiveBill] = useState<BillData | null>(null);
