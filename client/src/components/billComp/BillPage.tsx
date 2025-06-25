@@ -58,7 +58,7 @@ export default function BillPage({ publicId }: { publicId: string }) {
       socket.off("order_updated", handleUpdate);
       socket.disconnect();
     };
-  }, [liveBill?.id]);
+  }, [liveBill?.id, error]);
 
 
   // 1. Show loading indicator while the initial data is being fetched.
