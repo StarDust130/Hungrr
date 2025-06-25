@@ -10,6 +10,7 @@ import socket from "@/lib/socket";
 import { BillData, OrderStatus } from "@/types/menu";
 import { log } from "@/lib/helper";
 import Loading from "@/app/bills/loading";
+import OrderNotFound from "./OrderNotFound";
 
 // Your page now accepts publicId as a prop
 export default function BillPage({ publicId }: { publicId: string }) {
@@ -69,19 +70,17 @@ export default function BillPage({ publicId }: { publicId: string }) {
     };
   }, [liveBill?.id]); // This effect depends only on the live bill ID
 
-  // --- All sessionStorage logic is GONE ---
+
+
+  if (error || initialBill === null) {
+    return <OrderNotFound error={error || "Unknown error occurred."} />;
+  }
 
   if (loading || !liveBill) {
     return <Loading />;
   }
 
-  if (error) {
-    return (
-      <main className="flex justify-center items-center min-h-screen text-red-500">
-        <p>{error}</p>
-      </main>
-    );
-  }
+
 
   return (
     <div className="flex flex-col max-w-3xl mx-auto items-center justify-center min-h-screen p-4 gap-3">
