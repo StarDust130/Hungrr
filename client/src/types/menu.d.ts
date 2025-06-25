@@ -84,8 +84,7 @@ export interface BillData {
   status: OrderStatus; // Using Prisma type
   tableNo?: number;
   orderType?: string;
-
-  cafe: {
+  cafe?: {
     slug: string;
   };
 }
