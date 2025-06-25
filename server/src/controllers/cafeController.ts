@@ -281,7 +281,12 @@ export const getBillByPublicId = async (req: Request, res: Response) => {
     });
 
     if (!order) {
-      return res.status(404).json({ message: "Order not found.", order: null });
+      return res
+        .status(404)
+        .json({
+          message: "Order not found or has expired.",
+          order: null,
+        });
     }
 
     return res.status(200).json({ order });
