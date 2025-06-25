@@ -8,8 +8,5 @@ export interface UpsertBillRequestBody {
   orderType?: string;
 }
 
-export interface CompletePaymentBody {
-  orderId: number;
-}
 
 export type OrderStatus = "pending" | "accepted" | "preparing" | "ready" | "completed";
