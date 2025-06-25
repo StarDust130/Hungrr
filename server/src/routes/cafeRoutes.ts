@@ -20,13 +20,8 @@ router.get("/orders/active/:cafeId/:tableNo", getActiveOrdersForTable as any);
 
 //! Bill Page 📜
 router.get("/bill/:publicId", getBillByPublicId as any);
-// router.get("/bill/:cafeKey/:tableNo", getBillInfo as any); 
 
 router.post("/bill", upsertBill as any);  // Create or update order (add items)
-
-
-
-
 
 
 
