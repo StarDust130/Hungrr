@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import { BillData } from "@/types/menu";
+import { DateFormat } from "./helper";
 
 
 const STYLING = {
@@ -237,7 +238,7 @@ export class PDFBuilder {
 
   save() {
     this.doc.save(
-      `Bill-${this.bill.tableNo}-${String(this.bill.id).slice(-6)}.pdf`
+      `${this.bill.cafeName} Bill ${DateFormat(new Date().toLocaleDateString()) }.pdf`
     );
   }
 }
