@@ -1,13 +1,7 @@
 import jsPDF from "jspdf";
 import { BillData } from "@/types/menu";
-import AmountInWords from "./AmountInWords";
 
-// --- CONFIGURATION ---
-const COMPANY_NAME = "The Great Cafe";
-const COMPANY_DETAILS = {
-  address: "123 Cafe Lane, Food City, Raipur, 492001",
-  GST_NO: "22AABCT1234F1Z5",
-};
+
 const STYLING = {
   fontColorNormal: "#1f2937",
   fontColorLight: "#6b7280",
@@ -74,7 +68,7 @@ export class PDFBuilder {
       .setFont("helvetica", "bold")
       .setFontSize(12)
       .setTextColor(STYLING.fontColorNormal);
-    this.doc.text(COMPANY_NAME, this.margin + this.pageWidth / 2, this.y, {
+    this.doc.text(this.bill.cafeName!, this.margin + this.pageWidth / 2, this.y, {
       align: "center",
     });
     this.y += this.lineSpacing;
@@ -82,16 +76,15 @@ export class PDFBuilder {
       .setFont("helvetica", "normal")
       .setFontSize(7)
       .setTextColor(STYLING.fontColorLight);
-    // --- CHANGE: "TAX INVOICE" line has been removed. ---
     this.doc.text(
-      COMPANY_DETAILS.address,
+      this.bill.address!,
       this.margin + this.pageWidth / 2,
       this.y,
       { align: "center" }
     );
     this.y += this.smallLineSpacing;
     this.doc.text(
-      `GSTIN: ${COMPANY_DETAILS.GST_NO}`,
+      `GSTIN: ${this.bill.gstNo || "N/A"}`,
       this.margin + this.pageWidth / 2,
       this.y,
       { align: "center" }
@@ -101,7 +94,6 @@ export class PDFBuilder {
     this.y += this.lineSpacing;
   }
 
-  // --- CHANGE: This method is updated for the new layout. ---
   drawBillDetails() {
     this.doc
       .setFont("helvetica", "normal")
@@ -112,13 +104,11 @@ export class PDFBuilder {
       timeStyle: "short",
     });
 
-    // Left side: Bill #
     this.doc.text(
       `Bill #: ${String(this.bill.id).slice(-6)}`,
       this.margin,
       this.y
     );
-    // Right side: Table No
     this.doc.text(
       `Table: ${this.bill.tableNo}`,
       this.margin + this.pageWidth,
@@ -127,11 +117,9 @@ export class PDFBuilder {
     );
     this.y += this.lineSpacing;
 
-    // Left side: Date
     this.doc.text(`Date: ${billDate}`, this.margin, this.y);
-    // Right side: Order Type
     this.doc.text(
-      `Order: ${this.bill.orderType}`, // Added orderType
+      `Order: ${this.bill.orderType}`,
       this.margin + this.pageWidth,
       this.y,
       { align: "right" }
@@ -214,21 +202,13 @@ export class PDFBuilder {
     });
   }
 
+  // --- CHANGE: This method is updated to remove "Amount in Words" and resize the QR code. ---
   drawFooter(qrCodeDataUrl: string) {
-    this.doc.setFont("helvetica", "normal");
-    const grandTotalInWords = AmountInWords(this.bill.grandTotal ?? 0);
-    if (grandTotalInWords) {
-      this.doc.setFontSize(7);
-      const words = `In Words: Rupees ${grandTotalInWords} Only`;
-      const splitWords = this.doc.splitTextToSize(words, this.pageWidth);
-      this.doc.text(splitWords, this.margin, this.y);
-      this.y += splitWords.length * this.smallLineSpacing;
-    }
-    this.y += this.lineSpacing;
-    this.drawLine();
+    // Add some space after the totals.
     this.y += this.lineSpacing;
 
-    const qrSize = 28;
+    // QR code size reduced.
+    const qrSize = 22;
     const qrX = this.margin + this.pageWidth / 2 - qrSize / 2;
     this.doc.addImage(qrCodeDataUrl, "PNG", qrX, this.y, qrSize, qrSize);
     this.doc.link(qrX, this.y, qrSize, qrSize, { url: window.location.href });
