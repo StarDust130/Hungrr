@@ -1,138 +1,105 @@
-"use client";
-
+import {  DateFormat, log } from "@/lib/helper";
 import { BillData } from "@/types/menu";
-import {  Capitalize, log } from "@/lib/helper"; // Assuming capitalize is a function like 'text' => 'Text'
-import { Calendar, Clock, Hash, ShoppingBag } from "lucide-react";
+import { Atom } from "lucide-react";
 import Image from "next/image";
 
-// A small, reusable component for displaying details like Order #, Date, etc.
-const DetailItem = ({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) => (
-  <div className="flex flex-col">
-    <dt className="text-xs text-muted-foreground flex items-center gap-1.5">
-      {icon}
-      {label}
-    </dt>
-    <dd className="font-semibold text-sm text-foreground">{value}</dd>
-  </div>
-);
-
 export const BillDetails = ({ bill }: { bill: BillData }) => {
-  log("Bill Details Rendered With:", bill);
-
-  // Fallback for missing logo: A colored circle with the first letter of the cafe name
-  const CafeLogoFallback = () => (
-    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-      <span className="text-2xl font-bold">
-        {bill.cafeName?.charAt(0).toUpperCase()}
-      </span>
-    </div>
-  );
+  log("Bill 🥰", bill);
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-6 rounded-2xl border border-border bg-background p-6 sm:p-8 shadow-sm font-sans">
-      {/* --- HEADER --- */}
-      <header className="flex items-start justify-between gap-4">
+    <div className="p-6 sm:p-8 space-y-6 rounded-xl border border-border shadow-sm w-full max-w-2xl mx-auto transition-all">
+      {/* Header */}
+      <div className="flex justify-between items-center border-b border-dashed pb-5">
         <div>
-          <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
-            {bill.cafeName}
-          </h1>
-          <p className="text-muted-foreground">Table No. {bill.tableNo}</p>
+          <h2 className="text-2xl font-bold tracking-tight">{bill.cafeName}</h2>
+          <p className="text-sm mt-1 dark:text-muted-foreground">
+            Table No. <span className="font-medium">{bill.tableNo}</span>
+          </p>
         </div>
         {bill.logoUrl ? (
           <Image
             src={bill.logoUrl}
             alt={`${bill.cafeName} Logo`}
-            className="h-16 w-16 rounded-full object-cover border-2 border-border"
-            width={64}
-            height={64}
+            className="h-14 w-14 rounded-md object-cover ring-1 ring-border"
+            width={56}
+            height={56}
           />
         ) : (
-          <CafeLogoFallback />
+          <Atom className="h-10 w-10 text-primary" />
         )}
-      </header>
+      </div>
 
-      {/* --- ORDER & DATE DETAILS --- */}
-      <section className="grid grid-cols-2 sm:grid-cols-4 gap-4 rounded-lg bg-muted/50 p-4 border border-border">
-        <DetailItem
-          icon={<Hash size={14} />}
-          label="Order #"
-          value={String(bill.id).padStart(6, "0")}
-        />
-        <DetailItem
-          icon={<ShoppingBag size={14} />}
-          label="Order Type"
-          value={Capitalize(bill.orderType || "Dine-In")}
-        />
-        <DetailItem
-          icon={<Calendar size={14} />}
-          label="Date"
-          value={new Date(bill.timestamp).toLocaleDateString("en-GB")}
-        />
-        <DetailItem
-          icon={<Clock size={14} />}
-          label="Time"
-          value={new Date(bill.timestamp).toLocaleTimeString("en-US", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        />
-      </section>
+      {/* Order Meta */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+        <p className="dark:text-muted-foreground">Order ID</p>
+        <p className="text-right font-medium">
+          #{bill.id?.toString().slice(0, 8)}
+        </p>
 
-      {/* --- ITEMS TABLE --- */}
-      <section>
-        <div className="flex pb-2 text-sm font-semibold text-muted-foreground border-b border-border">
-          <p className="flex-grow">DESCRIPTION</p>
-          <p className="w-24 text-right">TOTAL</p>
+        <p className="dark:text-muted-foreground">Order Type</p>
+        <p className="text-right font-medium">
+          {" "}
+          {bill.orderType === "takeaway" ? "Takeaway" : "Dine In"}
+        </p>
+
+        <p className="dark:text-muted-foreground">Date</p>
+        <p className="text-right font-medium">
+          {DateFormat(bill.timestamp, "date")}
+        </p>
+
+        <p className="dark:text-muted-foreground">Time</p>
+        <p className="text-right font-medium">
+          {DateFormat(bill.timestamp, "time")}
+        </p>
+      </div>
+
+      {/* Items */}
+      <div className="space-y-4">
+        <div className="flex text-sm font-medium border-b border-dashed pb-2">
+          <p className="flex-grow">Item</p>
+          <p className="w-16 text-center">Qty</p>
+          <p className="w-20 text-right">Amount</p>
         </div>
-        <div className="space-y-4 pt-4">
-          {bill.items.map(({ item, quantity }) => (
-            <div
-              key={item.id}
-              className="flex items-start justify-between gap-4 text-sm"
-            >
-              <div className="flex-grow">
-                <p className="font-semibold text-foreground">{item.name}</p>
-                <p className="text-muted-foreground font-mono text-xs">
-                  {quantity} x ₹{Number(item.price).toFixed(2)}
-                </p>
-              </div>
-              <p className="w-24 text-right font-mono text-foreground">
-                ₹{(Number(item.price) * quantity).toFixed(2)}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
 
-      {/* --- TOTALS SECTION --- */}
-      <section className="space-y-2 pt-4 border-t-2 border-dashed border-border">
+        {bill.items.map(({ item, quantity }) => (
+          <div
+            key={`${item.id}-${quantity}`}
+            className="flex text-sm items-center"
+          >
+            <p className="flex-grow">{item.name}</p>
+            <p className="w-16 text-center">{quantity}</p>
+            <p className="w-20 text-right font-mono">
+              ₹{(item.price * quantity).toFixed(2)}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Totals */}
+      <div className="pt-5 border-t border-dashed space-y-2">
         <div className="flex justify-between text-sm">
-          <p className="text-muted-foreground">Subtotal</p>
-          <p className="font-mono">₹{Number(bill.totalPrice).toFixed(2)}</p>
+          <p className="dark:text-muted-foreground">Subtotal</p>
+          <p className="font-mono">
+            ₹{Number(bill.totalPrice || 0).toFixed(2)}
+          </p>
         </div>
         <div className="flex justify-between text-sm">
-          <p className="text-muted-foreground">GST</p>
-          <p className="font-mono">₹{Number(bill.gstAmount).toFixed(2)}</p>
+          <p className="dark:text-muted-foreground">Taxes & Charges (GST)</p>
+          <p className="font-mono">₹{Number(bill.gstAmount || 0).toFixed(2)}</p>
         </div>
-        <div className="flex justify-between items-center text-lg font-bold p-4 mt-2 rounded-lg bg-primary/10 text-primary">
+        <div className="flex justify-between border-t border-dashed  items-center pt-2 mt-2 text-lg font-semibold">
           <p>Grand Total</p>
-          <p className="font-mono">₹{Number(bill.grandTotal).toFixed(2)}</p>
+          <p className="font-mono text-primary text-xl">
+            ₹{Number(bill.grandTotal || 0).toFixed(2)}
+          </p>
         </div>
-      </section>
+      </div>
 
-      {/* --- FOOTER DETAILS --- */}
-      <footer className="text-center text-xs text-muted-foreground pt-4 border-t border-border">
-        <p>GSTIN: {bill.gstNo || "N/A"}</p>
-        <p className="mt-1">Thank you for your order!</p>
-      </footer>
+      {/* Footer */}
+      <div className="pt-6 text-center text-xs space-y-1">
+        <p>Thank you for your visit!</p>
+        {bill.gstNo && <p>GST No: {bill.gstNo}</p>}
+      </div>
     </div>
   );
 };
