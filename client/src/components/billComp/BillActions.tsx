@@ -153,7 +153,8 @@ export function BillActions({ bill }: BillActionsProps) {
           {/* Correctly renders buttons based on the logic */}
           {showPayButton && <PayButton />}
           {showDownloadButton && <DownloadButton />}
-          {!showDownloadButton && <PayAtCounterInfo />}
+          {bill.paymentMethod === "counter" &&
+            bill.paymentStatus !== "paid" && <PayAtCounterInfo />}
         </div>
       </div>
 
