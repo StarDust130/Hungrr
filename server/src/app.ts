@@ -5,9 +5,10 @@ import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import cafeRoutes from "./routes/cafeRoutes";
-import { cleanupPendingOrders } from "./controllers/cafeController";
+import adminRoutes from "./routes/adminRoutes";
 import cron from "node-cron";
 import dotenv from "dotenv";
+import { cleanupPendingOrders } from "./controllers/cronjobController";
 dotenv.config();
 
 const app = express();
@@ -15,14 +16,13 @@ const server = http.createServer(app);
 
 
 
-const CLIENT_URL = process.env.CLIENT_URL 
-console.log(`✅ Client URL is set to: ${CLIENT_URL}`);
+const CLIENT_URL = process.env.CLIENT_URL;
 
 
 const io = new Server(server, {
   cors: {
     origin: CLIENT_URL,
-    methods: ["GET", "POST", "PATCH"],
+    methods: ["GET", "POST", "PATCH" , "DELETE"],
     credentials: true,
   },
 });
@@ -37,9 +37,14 @@ app.use(
 );
 
 app.use(express.json());
+
+//! Customer API Routes
 app.use("/api", cafeRoutes);
 
-// ✅ 3. Schedule the cron job to run every minute
+//! Admin API Routes
+app.use("/api/admin", adminRoutes);
+
+// ✅ Schedule the cron job to run every minute
 cron.schedule("* * * * *", async () => {
   // The '*' characters mean "every minute of every hour of every day..."
   console.log("⏰ Cron job triggered by schedule.");
