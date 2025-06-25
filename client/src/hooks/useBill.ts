@@ -30,6 +30,9 @@ export function useBill(publicId: string | null) {
           throw new Error("No active order found.");
         }
 
+        console.log("📦 Fetched order by public ID:", order);
+        
+
         // Transform the backend order into the frontend BillData type
         const totalPrice = Number(order.total_price);
         const gstAmount = Number((totalPrice * 0.18).toFixed(2));
@@ -47,7 +50,11 @@ export function useBill(publicId: string | null) {
           status: order.status,
           tableNo: order.tableNo,
           orderType: order.orderType,
-          
+          cafeName: order.cafe.name,
+          logoUrl: order.cafe.logoUrl || "",
+          gstNo: order.cafe.gstNo || "",
+          payment_url: order.cafe.payment_url || "",
+          address: order.cafe.address || "",
         };
 
         log("✅ Bill data fetched by ID:", billData);
