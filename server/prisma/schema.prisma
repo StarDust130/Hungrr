@@ -16,6 +16,7 @@ model Cafe {
   openingTime String?    @unique
   logoUrl     String?
   bannerUrl   String?
+  payment_url String?
   address     String?     
   gstNo       String? @db.VarChar(15) @unique
   rating      Decimal    @default(4.7)
@@ -70,7 +71,6 @@ model Order {
   paid                Boolean        @default(false)
   specialInstructions String?        @db.VarChar(500)
   orderType           String?        @db.VarChar(50) // dine-in, takeaway
-  payment_url         String?
   created_at          DateTime       @default(now())
   updated_at          DateTime       @updatedAt
 
