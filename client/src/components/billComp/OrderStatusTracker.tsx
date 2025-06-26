@@ -13,9 +13,44 @@ import {
   Bell,
   Wallet,
 } from "lucide-react";
+import { Button } from "../ui/button";
+import { useSessionToken } from "@/hooks/useSessionToken";
+import axios from "axios";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+
+
+
+
+const handleCancelOrder = async (
+  orderPublicId: string,
+  sessionToken: string,
+  callback: () => void
+) => {
+  if (confirm("Are you sure you want to cancel this order?")) {
+    try {
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/orders/${orderPublicId}`,
+        {
+          headers: { "x-session-token": sessionToken },
+        }
+      );
+      toast("Your order has been canceled!");
+      callback();
+      // You would then redirect the user or refresh the active orders list.
+    } catch (error) {
+      console.error("Failed to cancel order:", error);
+      toast(
+        "Could not cancel this order. It may have already been accepted by the kitchen."
+      );
+    }
+  }
+};
 
 // The main component with the new design
 export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
+
+
   // --- STATE & LOGIC ---
   // Using the stable logic from your working version
   const [status, setStatus] = useState<OrderStatus>(bill.status as OrderStatus);
@@ -25,6 +60,10 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
     status === "preparing"
   );
   const hasFiredConfetti = useRef(isPaid);
+
+  const sessionToken = useSessionToken();
+  const orderPublicId = bill.publicId;
+  const router = useRouter();
 
   // Your working socket logic - unchanged
   useEffect(() => {
@@ -142,63 +181,66 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
     }
   }, [status, isPaid, percentage, bill.paymentMethod]);
 
+  if (!bill || !bill.id) {
+    return (
+      <div className="w-full max-w-md p-6 rounded-3xl border border-border dark:border-white/10 space-y-5 shadow-xl bg-gray-50/80 dark:bg-black/20 backdrop-blur-lg">
+        <p className="text-center text-gray-500 dark:text-gray-400">
+          No order details available.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-md font-sans p-6 rounded-3xl border border-black/10 dark:border-white/10 space-y-5 shadow-2xl shadow-black/10 bg-gray-50/80 dark:bg-black/20 backdrop-blur-lg"
+      className="w-full max-w-md p-6 rounded-3xl border border-border dark:border-white/10 space-y-5 shadow-xl bg-gray-50/80 dark:bg-black/20 backdrop-blur-lg"
     >
-      {/* Header with Title, Subtitle, and Icon */}
+      {/* Header */}
       <div className="flex justify-between items-center">
-        <div className="flex-1">
-          <AnimatePresence mode="wait">
-            <motion.h3
-              key={details.title}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-              className="font-bold text-xl text-gray-900 dark:text-white"
-            >
-              {details.title}
-            </motion.h3>
-          </AnimatePresence>
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={details.subtitle}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-              className="text-sm text-gray-500 dark:text-gray-400"
-            >
-              {details.subtitle}
-            </motion.p>
-          </AnimatePresence>
+        <div>
+          <motion.h3
+            key={details.title}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
+            className="font-bold text-xl text-gray-900 dark:text-white"
+          >
+            {details.title}
+          </motion.h3>
+          <motion.p
+            key={details.subtitle}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="text-sm text-gray-500 dark:text-gray-400"
+          >
+            {details.subtitle}
+          </motion.p>
         </div>
         <motion.div
-          key={status} // Animate when the status changes
+          key={status}
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 400, damping: 20 }}
-          className={`flex-shrink-0 ml-4 p-3 rounded-full bg-white dark:bg-black/20 shadow-md ${details.color}`}
+          className={`p-3 rounded-full bg-white dark:bg-black/20 shadow-md ${details.color}`}
         >
           <details.Icon size={24} />
         </motion.div>
       </div>
 
-      {/* Countdown Timer (only when preparing) */}
+      {/* Countdown Timer */}
       <AnimatePresence>
         {details.isPreparing && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-            className="text-left"
+            transition={{ duration: 0.4 }}
           >
-            <p
-              className={`font-mono font-bold text-4xl tracking-tighter ${details.color}`}
-            >
+            <p className={`font-mono font-bold text-4xl ${details.color}`}>
               {String(minutes).padStart(2, "0")}:
               {String(seconds).padStart(2, "0")}
             </p>
@@ -206,17 +248,17 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
         )}
       </AnimatePresence>
 
-      {/* Progress Bar */}
+      {/* Progress */}
       <div className="space-y-2">
         <div className="w-full bg-gray-200/80 dark:bg-gray-800/80 rounded-full h-2">
           <motion.div
             className={`h-2 rounded-full bg-gradient-to-r ${details.gradient}`}
             initial={{ width: "0%" }}
             animate={{ width: `${details.progress}%` }}
-            transition={{ duration: 1, ease: "circOut" }}
+            transition={{ duration: 1 }}
           />
         </div>
-        <div className="flex justify-between text-xs font-medium text-gray-400 dark:text-gray-500">
+        <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500">
           <span>Placed</span>
           <span>Ready</span>
         </div>
@@ -241,6 +283,27 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
           {isPaid ? "PAID" : "PENDING"}
         </motion.div>
       </div>
+
+      {/* Cancel Button if NOT paid */}
+      {!isPaid && (
+        <div className="pt-1 text-right w-full mx-auto flex-col flex justify-center items-center">
+          <Button
+            variant="destructive"
+            size="sm"
+            className="text-sm bg-red-500"
+            onClick={() =>
+              handleCancelOrder(orderPublicId!, sessionToken!, () =>
+                router.back()
+              )
+            }
+          >
+            Cancel Order
+          </Button>
+          <p className="text-xs text-center mt-2 text-gray-500 dark:text-gray-400">
+            After Payemnt you can&apos;t cancel Order
+          </p>
+        </div>
+      )}
     </motion.div>
   );
 };
