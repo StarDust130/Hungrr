@@ -144,7 +144,12 @@ export const upsertBill = async (
     paymentMethod,
     specialInstructions,
     orderType,
+    sessionToken,
   } = req.body;
+
+  if (!sessionToken) {
+    return res.status(400).json({ message: "Session token is required." });
+  }
 
   if (!tableNo || !cafeId || !items?.length) {
     return res.status(400).json({ message: "Missing required fields." });
@@ -152,7 +157,7 @@ export const upsertBill = async (
 
   try {
     const lastOrder = await prisma.order.findFirst({
-      where: { cafeId, tableNo },
+      where: { cafeId, tableNo, sessionToken , paid: false },
       orderBy: { created_at: "desc" },
     });
 
@@ -166,7 +171,8 @@ export const upsertBill = async (
       await prisma.order.update({
         where: { id: orderToProcess.id },
         data: {
-          payment_method: paymentMethod, // ✅ FIX: Update payment method
+          sessionToken: sessionToken, 
+          payment_method: paymentMethod, 
           specialInstructions: specialInstructions,
           orderType: orderType,
         },
@@ -194,6 +200,7 @@ export const upsertBill = async (
         data: {
           tableNo,
           cafeId,
+          sessionToken,
           payment_method: paymentMethod || "counter",
           specialInstructions: specialInstructions,
           orderType: orderType,
@@ -301,6 +308,15 @@ export const getActiveOrdersForTable = async (req: Request, res: Response) => {
   try {
     // 1) Extract cafeId and tableNo from request param and Validate them
     const { cafeId, tableNo } = req.params;
+
+    const sessionToken = req.headers["x-session-token"] as string;
+
+    // ✅ 1.2. Add a security check. If there's no token, return no orders.
+    if (!sessionToken) {
+      // Return an empty array instead of an error to handle this gracefully
+      return res.status(200).json({ activeOrders: [] });
+    }
+
     const numericCafeId = Number(cafeId);
     const numericTableNo = Number(tableNo);
 
@@ -313,6 +329,7 @@ export const getActiveOrdersForTable = async (req: Request, res: Response) => {
       where: {
         cafeId: numericCafeId,
         tableNo: numericTableNo,
+        sessionToken: sessionToken, // Ensure the session token matches
         status: {
           not: "completed", // The key logic: ignore 'completed' orders
         },
@@ -340,3 +357,61 @@ export const getActiveOrdersForTable = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Server error" });
   }
 };
+
+//! 7) Delete order (only in pending stage)
+export const deleteOrder = async(req: Request, res: Response) => {
+  try {
+    // i need table no. + cafe slug + order Id + session Id ( to delete it)
+
+    // 1) Extract cafeId and tableNo from request param and Validate them
+    const { cafeId, tableNo } = req.params;
+
+    const sessionToken = req.headers["x-session-token"] as string;
+
+    // ✅ 1.2. Add a security check. If there's no token, return no orders.
+    if (!sessionToken) {
+      // Return an empty array instead of an error to handle this gracefully
+      return res.status(200).json({ activeOrders: [] });
+    }
+
+    const numericCafeId = Number(cafeId);
+    const numericTableNo = Number(tableNo);
+
+    if (isNaN(numericCafeId) || isNaN(numericTableNo)) {
+      return res.status(400).json({ error: "Invalid Cafe or Table ID." });
+    }
+
+    // 2) Find Order
+    const Orders = await prisma.order.findMany({
+      where: {
+        status: "pending",
+        paid: false,
+        tableNo: numericTableNo,
+        sessionToken,
+        cafeId: numericCafeId,
+      },
+      select: {
+        id: true, // We only need the IDs for deletion
+      },
+    });
+
+    const orderIdsToDelete = Orders.map((order) => order.id);
+
+    // 3) Delete Order
+         const deleteResult = await prisma.order.deleteMany({
+           where: {
+             id: {
+               in: orderIdsToDelete,
+             },
+           },
+         });
+
+         if(deleteResult){
+          return res.status(200).json({ message: `Successfully deleted ${deleteResult.count} order(s).` });
+         }
+  } catch (error) {
+    console.error("Error fetching active orders:", error);
+    return res.status(500).json({ error: "Server error: Failed to Delete Order" });
+    
+  }
+}
