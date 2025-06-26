@@ -6,6 +6,7 @@ export interface UpsertBillRequestBody {
   paymentMethod?: "counter" | "online";
   specialInstructions?: string;
   orderType?: string;
+  sessionToken: string; 
 }
 
 
