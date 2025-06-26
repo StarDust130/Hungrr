@@ -87,7 +87,10 @@ export default function BillPage({ publicId }: { publicId: string }) {
         </p>
         <OrderStatusTracker bill={liveBill} />
         <BillDetails bill={liveBill} />
-        <BillFooter />
+        {
+          liveBill.status !== "pending" && <BillFooter />
+        }
+        
         <BillActions bill={liveBill} />
       </div>
     );
