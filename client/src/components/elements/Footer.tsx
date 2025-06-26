@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 const Footer = () => (
-  <footer className="w-full py-8 px-6 border-t border-border">
+  <footer className="w-full mt-5 py-8 px-6 border-t border-border">
     <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center md:justify-between gap-6">
       {/* Logo */}
       <Link href="/" className="flex items-center space-x-3">
