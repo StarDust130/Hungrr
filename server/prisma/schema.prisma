@@ -18,7 +18,10 @@ model Cafe {
   bannerUrl   String
   payment_url String
   address     String     
-  gstNo       String @db.VarChar(15) @unique
+  gstNo       String? @db.VarChar(15) @unique
+  gstPercentage Int? @default(5) // GST rate (e.g., 5 or 18) applied to items in this cafe
+  phone       String? @db.VarChar(15) @unique
+  email       String? @db.VarChar(100) @unique
   rating      Decimal?    @default(4.7)
   reviews     Int?        @default(969)
   is_active   Boolean    @default(true)
