@@ -13,14 +13,14 @@ model Cafe {
   name        String
   slug        String     @unique
   tagline     String?
-  openingTime String?    @unique
-  logoUrl     String?
-  bannerUrl   String?
-  payment_url String?
-  address     String?     
-  gstNo       String? @db.VarChar(15) @unique
-  rating      Decimal    @default(4.7)
-  reviews     Int        @default(969)
+  openingTime String?    
+  logoUrl     String
+  bannerUrl   String
+  payment_url String
+  address     String     
+  gstNo       String @db.VarChar(15) @unique
+  rating      Decimal?    @default(4.7)
+  reviews     Int?        @default(969)
   is_active   Boolean    @default(true)
   created_at  DateTime   @default(now())
   updated_at  DateTime   @updatedAt
@@ -44,7 +44,7 @@ model Category {
 model MenuItem {
   id             Int       @id @default(autoincrement())
   cafeId         Int
-  categoryId     Int?
+  categoryId     Int
   name           String   @db.VarChar(100) // See it in Frontend No more that 17 characters
   description    String?
   isSpecial      Boolean   @default(false)
