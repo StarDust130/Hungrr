@@ -299,6 +299,7 @@ export const getBillByPublicId = async (req: Request, res: Response) => {
 //! 6) Get Active Orders for a Table  📦
 export const getActiveOrdersForTable = async (req: Request, res: Response) => {
   try {
+    // 1) Extract cafeId and tableNo from request param and Validate them
     const { cafeId, tableNo } = req.params;
     const numericCafeId = Number(cafeId);
     const numericTableNo = Number(tableNo);
@@ -307,6 +308,7 @@ export const getActiveOrdersForTable = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid Cafe or Table ID." });
     }
 
+    // 2) Fetch active orders for the given cafeId and tableNo
     const activeOrders = await prisma.order.findMany({
       where: {
         cafeId: numericCafeId,
@@ -330,6 +332,7 @@ export const getActiveOrdersForTable = async (req: Request, res: Response) => {
     console.log("Active Orders:", activeOrders);
     
 
+    // 3) Return the active orders
     return res.status(200).json({ activeOrders });
 
   } catch (error: any) {
