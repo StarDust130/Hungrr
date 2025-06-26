@@ -55,6 +55,7 @@ export function useBill(publicId: string | null) {
           gstNo: order.cafe.gstNo || "",
           payment_url: order.cafe.payment_url || "",
           address: order.cafe.address || "",
+          publicId: order.publicId || "",
         };
 
         log("✅ Bill data fetched by ID:", billData);
