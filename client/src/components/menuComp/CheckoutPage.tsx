@@ -68,7 +68,9 @@ const CheckoutPage = () => {
 
     // Add a check to make sure the cafeId has been set
     if (!cafeId) {
-      alert("Error: Cafe information is missing. Please refresh the page.");
+      toast.error(
+        "Error: Cafe information is missing. Please refresh the page."
+      );
       return;
     }
 
