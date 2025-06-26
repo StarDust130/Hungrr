@@ -45,12 +45,13 @@ const handleCancelOrder = async (
           headers: { "x-session-token": sessionToken },
         }
       );
-      toast("Your order has been canceled!");
+      toast.success("Your order has been canceled!");
+      sessionStorage.removeItem("cart");
       callback();
       // You would then redirect the user or refresh the active orders list.
     } catch (error) {
       console.error("Failed to cancel order:", error);
-      toast(
+      toast.error(
         "Could not cancel this order. It may have already been accepted by the kitchen."
       );
     }
