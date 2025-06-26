@@ -55,7 +55,9 @@ const CheckoutPage = () => {
   type OrderStatus = "idle" | "placing" | "confirmed" | "error";
 
   if (!sessionToken) {
-    router.refresh();
+    toast.error(
+      "Error: Session token is missing. Please refresh the page.  "
+    );
     return;
   }
 
