@@ -359,59 +359,50 @@ export const getActiveOrdersForTable = async (req: Request, res: Response) => {
 };
 
 //! 7) Delete order (only in pending stage)
-export const deleteOrder = async(req: Request, res: Response) => {
+export const cancelPendingOrder = async (req: Request, res: Response) => {
   try {
-    // i need table no. + cafe slug + order Id + session Id ( to delete it)
-
-    // 1) Extract cafeId and tableNo from request param and Validate them
-    const { cafeId, tableNo } = req.params;
-
+    // 1. Get the order's public ID from the URL and the user's secret token from the header.
+    const { publicId } = req.params;
     const sessionToken = req.headers["x-session-token"] as string;
 
-    // ✅ 1.2. Add a security check. If there's no token, return no orders.
+    // 2. CRITICAL: If the user's session token is missing, deny the request.
     if (!sessionToken) {
-      // Return an empty array instead of an error to handle this gracefully
-      return res.status(200).json({ activeOrders: [] });
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: Missing session token." });
     }
 
-    const numericCafeId = Number(cafeId);
-    const numericTableNo = Number(tableNo);
-
-    if (isNaN(numericCafeId) || isNaN(numericTableNo)) {
-      return res.status(400).json({ error: "Invalid Cafe or Table ID." });
-    }
-
-    // 2) Find Order
-    const Orders = await prisma.order.findMany({
+    // 3. Perform a single, atomic delete operation.
+    // This is more efficient and safer than finding then deleting.
+    const deletedOrder = await prisma.order.delete({
+      // The 'where' clause is our security check. It will only find a record
+      // to delete if ALL of these conditions are true.
       where: {
-        status: "pending",
-        paid: false,
-        tableNo: numericTableNo,
-        sessionToken,
-        cafeId: numericCafeId,
-      },
-      select: {
-        id: true, // We only need the IDs for deletion
+        publicId: publicId, // It must be the correct order.
+        sessionToken: sessionToken, // It must belong to the user making the request.
+        status: "pending", // It must still be in the 'pending' state.
+        paid: false, // It must be unpaid.
       },
     });
 
-    const orderIdsToDelete = Orders.map((order) => order.id);
+    // If we reach here, the delete was successful.
+    console.log(
+      `✅ Order ${deletedOrder.id} was successfully canceled by the user.`
+    );
+    return res.status(200).json({ message: "Order successfully canceled." });
+  } catch (error: any) {
+    // Prisma throws a specific error (P2025) if no record was found to delete.
+    // This is perfect for handling cases where the order doesn't exist, has already
+    // been accepted by the kitchen, or belongs to another user.
+    if (error.code === "P2025") {
+      return res
+        .status(404)
+        .json({ message: "Order not found, or it can no longer be canceled." });
+    }
 
-    // 3) Delete Order
-         const deleteResult = await prisma.order.deleteMany({
-           where: {
-             id: {
-               in: orderIdsToDelete,
-             },
-           },
-         });
-
-         if(deleteResult){
-          return res.status(200).json({ message: `Successfully deleted ${deleteResult.count} order(s).` });
-         }
-  } catch (error) {
-    console.error("Error fetching active orders:", error);
-    return res.status(500).json({ error: "Server error: Failed to Delete Order" });
-    
+    console.error("❌ Error canceling order:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error: Could not cancel order." });
   }
-}
+};
