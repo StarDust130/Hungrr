@@ -71,12 +71,15 @@ model Order {
   paid                Boolean        @default(false)
   specialInstructions String?        @db.VarChar(500)
   orderType           String?        @db.VarChar(50) // dine-in, takeaway
+  sessionToken        String
   created_at          DateTime       @default(now())
   updated_at          DateTime       @updatedAt
 
   cafe                Cafe           @relation(fields: [cafeId], references: [id])
   order_items         OrderItem[]
   bill                Bill?
+
+  @@index([sessionToken])
 }
 
 

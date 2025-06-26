@@ -1,7 +1,18 @@
-node_modules
-# Keep environment variables out of version control
+# Node modules
+node_modules/
+
+# Environment files
 .env
 
-/src/generated/prisma
+# Prisma generated files (if you're generating types or client elsewhere)
+src/generated/prisma/
 
+# Optional: logs or temp files
+*.log
+
+# Don't ignore migration files
+# Don't ignore prisma/schema.prisma
+# Don't ignore prisma/migrations/**
+
+# Project todos or temp files
 TODO.md
