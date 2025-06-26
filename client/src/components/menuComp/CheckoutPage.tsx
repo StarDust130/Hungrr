@@ -15,8 +15,14 @@ import SpecialInstructions from "./checkoutComp/SpecialInstructions";
 import PriceSummary from "./checkoutComp/PriceSummary";
 import OrderTypeSelector from "./checkoutComp/OrderTypeSelector";
 import TableSelector from "./checkoutComp/TableSelector";
+import { toast } from "sonner";
+import { useSessionToken } from "@/hooks/useSessionToken";
+import { log } from "@/lib/helper";
 
 const CheckoutPage = () => {
+  const sessionToken = useSessionToken();
+
+ 
   const router = useRouter();
   // ✅ Simplified state: We only need one 'isLoading' state.
   const [isLoading, setIsLoading] = useState(false);
@@ -48,10 +54,17 @@ const CheckoutPage = () => {
 
   type OrderStatus = "idle" | "placing" | "confirmed" | "error";
 
+  if (!sessionToken) {
+    router.refresh();
+    return;
+  }
+
   // ✅ This function is now cleaner and more robust.
   const handlePlaceOrder = async (paymentMethod: "counter" | "online") => {
     // Prevent double-clicks
     if (orderStatus !== "idle") return;
+
+
 
     // Add a check to make sure the cafeId has been set
     if (!cafeId) {
@@ -72,6 +85,7 @@ const CheckoutPage = () => {
       paymentMethod,
       specialInstructions,
       orderType,
+      sessionToken: sessionToken,
     };
 
     try {
@@ -95,10 +109,12 @@ const CheckoutPage = () => {
         router.push(`/bills/${order.publicId}`);
       }, 1500);
     } catch (error) {
-      console.error("❌ Failed to place order:", error);
-      alert("There was an error placing your order. Please try again.");
-      // If there's an error, stop loading so the user can see the form again.
+      log("❌ Failed to place order:", error);
+
+      toast.error("😵‍💫 Something went wrong. Please try again shortly.");
+
       setIsLoading(false);
+      setOrderStatus("error");
     }
   };
 
