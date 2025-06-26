@@ -7,6 +7,7 @@ import {
   getCafeMenu,
   getCategory,
   upsertBill,
+  cancelPendingOrder,
 } from "../controllers/cafeController";
 
 const router = Router();
@@ -24,7 +25,6 @@ router.get("/bill/:publicId", getBillByPublicId as any);
 router.post("/bill", upsertBill as any);  // Create or update order (add items)
 
 
-
-
+router.delete("/orders/:publicId", cancelPendingOrder as any); // Cancel pending order
 
 export default router;
