@@ -16,10 +16,10 @@ export const CartContext = createContext<CartContextType | null>(null);
 const getInitialCart = (): Cart => {
   if (typeof window === "undefined") return {};
   try {
-    const storedCart = localStorage.getItem("cart");
+    const storedCart = sessionStorage.getItem("cart");
     return storedCart ? JSON.parse(storedCart) : {};
   } catch (error) {
-    console.error("Failed to parse cart from localStorage", error);
+    console.error("Failed to parse cart from sessionStorage", error);
     return {};
   }
 };
@@ -29,7 +29,7 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [cafeId, setCafeId] = useState<number | null>(null);
 
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
+    sessionStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
   // The type BillData['items'] ensures we expect an array of items

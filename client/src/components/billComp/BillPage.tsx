@@ -32,7 +32,7 @@ export default function BillPage({ publicId }: { publicId: string }) {
       log("✅ Live update received:", data);
 
       if (data.paid === true) {
-        localStorage.removeItem("cart");
+        sessionStorage.removeItem("cart");
         log("✅ Order is paid. Local cart has been cleared.");
       }
 
@@ -59,7 +59,6 @@ export default function BillPage({ publicId }: { publicId: string }) {
       socket.disconnect();
     };
   }, [liveBill?.id, error]);
-
 
   // 1. Show loading indicator while the initial data is being fetched.
   if (loading) {
