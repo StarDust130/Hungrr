@@ -19,6 +19,17 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 
 
@@ -27,7 +38,6 @@ const handleCancelOrder = async (
   sessionToken: string,
   callback: () => void
 ) => {
-  if (confirm("Are you sure you want to cancel this order?")) {
     try {
       await axios.delete(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/orders/${orderPublicId}`,
@@ -44,7 +54,6 @@ const handleCancelOrder = async (
         "Could not cancel this order. It may have already been accepted by the kitchen."
       );
     }
-  }
 };
 
 // The main component with the new design
@@ -286,21 +295,44 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
 
       {/* Cancel Button if NOT paid */}
       {!isPaid && (
-        <div className="pt-1 text-right w-full mx-auto flex-col flex justify-center items-center">
-          <Button
-            variant="destructive"
-            size="sm"
-            className="text-sm bg-red-500"
-            onClick={() =>
-              handleCancelOrder(orderPublicId!, sessionToken!, () =>
-                router.back()
-              )
-            }
-          >
-            Cancel Order
-          </Button>
-          <p className="text-xs text-center mt-2 text-gray-500 dark:text-gray-400">
-            After Payemnt you can&apos;t cancel Order
+        <div className="pt-1 text-right w-full mx-auto flex flex-col items-center">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="text-sm"
+              >
+                Cancel Order
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-xl">
+                  Payment pending 💸
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-sm text-muted-foreground">
+                  You haven’t paid yet, so your order isn’t accepted. Feel free
+                  to cancel — the kitchen’s still chillin&apos; 😌
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Keep My Order</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() =>
+                    handleCancelOrder(orderPublicId!, sessionToken!, () =>
+                      router.back()
+                    )
+                  }
+                  className="bg-destructive"
+                >
+                  Yes, Cancel It
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <p className="text-xs mt-2 text-gray-500 dark:text-gray-400 text-center">
+            Orders can’t be canceled after payment 💳
           </p>
         </div>
       )}
