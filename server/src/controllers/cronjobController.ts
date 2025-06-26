@@ -1,7 +1,7 @@
 import prisma from "../config/prisma";
 
 
-//! Cron Job to delete pending orders (After 10 min)
+//! Cron Job to delete pending orders (After 7 min) (why 7 Thala for Reason 😎)
 export const cleanupPendingOrders = async () => {
     console.log("----------------------------------------");
     console.log("🧹 Running scheduled job: Cleaning up pending orders...");
