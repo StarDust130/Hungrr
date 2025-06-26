@@ -16,6 +16,7 @@ import {  ActiveOrdersSection } from "./ActiveOrdersBar";
 import { useSearchParams } from "next/navigation";
 import { log } from "@/lib/helper";
 import useCart from "@/hooks/useCart";
+import { useSessionToken } from "@/hooks/useSessionToken";
 
 interface Props {
   cafeSlug: string;
@@ -23,6 +24,7 @@ interface Props {
 }
 
 const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
+  const sessionToken = useSessionToken();
   const {
     searchTerm,
     setSearchTerm,
@@ -62,12 +64,18 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
   useEffect(() => {
     const tableNo = searchParams.get("tableNo");
 
-    if (!cafeId || !tableNo) return; // Cannot search without this info
+    if (!cafeId || !tableNo || !sessionToken) return; // Cannot search without this info
 
     const fetchActiveOrders = async () => {
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/orders/active/${cafeId}/${tableNo}`
+          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/orders/active/${cafeId}/${tableNo}`,
+          {
+            // ✅ Add the headers object with the token
+            headers: {
+              "x-session-token": sessionToken,
+            },
+          }
         );
 
         log("Active orders fetched 🤑:", response.data.activeOrders);
@@ -80,7 +88,7 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
     };
 
     fetchActiveOrders();
-  }, [cafeId, searchParams]); // Re-run if params change
+  }, [cafeId, searchParams, sessionToken]); // Re-run if params change
 
   //! ✅ Infinite Scroll to fetch next menu category on scroll
   useEffect(() => {
