@@ -22,14 +22,13 @@ model Cafe {
   isOnboarded   Boolean    @default(false)  // ✅ One-time onboarding flag   
   gstNo       String? @db.VarChar(15) @unique
   gstPercentage Int? @default(5) // GST rate (e.g., 5 or 18) applied to items in this cafe
-  phone       String? @db.VarChar(15) @unique
-  email       String? @db.VarChar(100) @unique
+  phone       String @db.VarChar(15) @unique
+  email       String @db.VarChar(100) @unique
   rating      Decimal?    @default(4.7)
   reviews     Int?        @default(969)
   is_active   Boolean    @default(true)
   created_at  DateTime   @default(now())
   updated_at  DateTime   @updatedAt
-
   categories  Category[]
   menu_items  MenuItem[]
   orders      Order[]
