@@ -1,12 +1,15 @@
 import { Router } from "express";
-import { createCafe, getCafeByOwnerId, updateOrderStatus } from "../controllers/adminController";
+import { createCafe, getCafeByOwnerId, updateCafe, updateOrderStatus } from "../controllers/adminController";
 
 
 const router = Router();
 
-//! Cafe Admin Panel Routes 📋
-router.get("/cafe/:ownerId", getCafeByOwnerId as any); // Get Cafe info for Cafe Owner
-router.post("/cafe/create", createCafe as any); // Get Cafe info for Cafe Owner
+//! 📋 Cafe Admin Panel Routes
+
+
+router.get("/cafe/owner/:ownerId", getCafeByOwnerId as any); // 🔍 Get cafe by owner ID
+router.post("/cafe", createCafe as any);  // ➕ Create a new cafe (used during onboarding)
+router.patch("/cafe/:ownerId", updateCafe as any); // ✏️ Update existing cafe for an owner
 
 
 
