@@ -9,7 +9,7 @@ import slugify from "slugify";
 
   
 
-//! 1 CAFE  (Create , Read , Update) by Admin 🧁
+//! 1) CAFE  (Create , Read , Update) by Admin 🧁
 
 // 1.1) Get Cafe Details by ownerID
 export const getCafeByOwnerId = async (req: Request, res: Response) => {
@@ -225,10 +225,10 @@ export const updateCafe = async (req: Request, res: Response) => {
 };
 
 
-//! 2 DASHBOARD (Admin Panel) 📊
+//! 2) DASHBOARD (Admin Panel) 📊
 
 
-//! 3 Order Management (Get all orders , updateOrderStatus) 🥘
+//! 3) Order Management (Get all orders , updateOrderStatus) 🥘
 
 // 3.1️ Get All Orders for Admin Dashboard or Order Page
 export const getOrdersByCafe = async (req: Request, res: Response) => {
@@ -432,3 +432,211 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+//! 4) Menu Management (Get ,Add, Update, Delete) 🍽️
+
+// 4.1) Get Menu Items by Cafe ID
+// This endpoint fetches menu items for a specific cafe with pagination and optional search/filtering.
+export const getMenuItemsByCafe = async (req: Request, res: Response) => {
+  try {
+    // 1️⃣ Extract query params
+    const { cafeId } = req.params;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const page = parseInt(req.query.page as string) || 1;
+    const search = req.query.search as string;
+    const categoryId = parseInt(req.query.categoryId as string) || undefined;
+
+    // 2️⃣ Validate cafeId
+    if (!cafeId) {
+      return res.status(400).json({ message: "🚫 Cafe ID is required." });
+    }
+
+    const skip = (page - 1) * limit;
+
+    // 3️⃣ Build dynamic filter
+    const whereFilter: any = {
+      cafeId: Number(cafeId),
+      is_active: true,
+    };
+
+    if (search) {
+      whereFilter.name = { contains: search, mode: "insensitive" };
+    }
+
+    if (categoryId) {
+      whereFilter.categoryId = categoryId;
+    }
+
+    // 4️⃣ Fetch filtered + paginated items
+    const [items, total] = await Promise.all([
+      prisma.menuItem.findMany({
+        where: whereFilter,
+        orderBy: { id: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.menuItem.count({ where: whereFilter }),
+    ]);
+
+    // 5️⃣ Send response
+    return res.status(200).json({
+      message: "✅ Menu items fetched successfully!",
+      pageInfo: {
+        currentPage: page,
+        limit,
+        totalItems: total,
+        totalPages: Math.ceil(total / limit),
+      },
+      items,
+    });
+  } catch (err: any) {
+    console.error("❌ Error in getMenuItemsByCafe:", err.message || err);
+    return res.status(500).json({ message: "🚨 Server error fetching menu." });
+  }
+};
+
+
+// 4.2) Create a new Menu Item
+export const createMenuItem = async (req: Request, res: Response) => {
+  try {
+    // 1️⃣ Destructure request body
+    const {
+      cafeId,
+      categoryId,
+      name,
+      price,
+      description,
+      food_image_url,
+      isSpecial,
+      dietary,
+      tags,
+    } = req.body;
+
+    // 2️⃣ Validate required fields
+    if (!cafeId || !categoryId || !name || !price) {
+      return res.status(400).json({
+        message: "🚫 Required: cafeId, categoryId, name, price.",
+      });
+    }
+
+    // 3️⃣ Create item
+    const newItem = await prisma.menuItem.create({
+      data: {
+        cafeId,
+        categoryId,
+        name,
+        price,
+        description,
+        food_image_url,
+        isSpecial: isSpecial || false,
+        dietary,
+        tags: tags || [],
+        is_active: true,
+        is_available: true,
+      },
+    });
+
+    // 4️⃣ Send response
+    return res.status(201).json({
+      message: "✅ Menu item created successfully!",
+      item: newItem,
+    });
+  } catch (err: any) {
+    console.error("❌ Error in createMenuItem:", err.message || err);
+    return res.status(500).json({ message: "🚨 Failed to create menu item." });
+  }
+};
+
+// 4.3) Update an existing Menu Item
+export const updateMenuItem = async (req: Request, res: Response) => {
+  try {
+    // 1️⃣ Extract itemId
+    const { itemId } = req.params;
+
+    // 2️⃣ Update item with provided fields
+    const updated = await prisma.menuItem.update({
+      where: { id: Number(itemId) },
+      data: req.body, // client must send only allowed fields
+    });
+
+    // 3️⃣ Send response
+    return res.status(200).json({
+      message: "✏️ Menu item updated successfully!",
+      item: updated,
+    });
+  } catch (err: any) {
+    console.error("❌ Error in updateMenuItem:", err.message || err);
+    return res.status(500).json({ message: "🚨 Failed to update menu item." });
+  }
+};
+
+// 4.4) Delete a Menu Item (Soft Delete)
+export const deleteMenuItem = async (req: Request, res: Response) => {
+  try {
+    // 1️⃣ Extract itemId
+    const { itemId } = req.params;
+
+    // 2️⃣ Mark item as inactive (soft delete)
+    await prisma.menuItem.update({
+      where: { id: Number(itemId) },
+      data: { is_active: false },
+    });
+
+    // 3️⃣ Send response
+    return res.status(200).json({ message: "🗑️ Menu item deleted (soft)!" });
+  } catch (err: any) {
+    console.error("❌ Error in deleteMenuItem:", err.message || err);
+    return res.status(500).json({ message: "🚨 Failed to delete menu item." });
+  }
+};
+
+// 4.5) Toggle Menu Item Availability
+export const toggleMenuItemAvailability = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    // 1️⃣ Extract menu item ID from URL
+    const { itemId } = req.params;
+
+    if (!itemId) {
+      return res.status(400).json({ message: "🚫 Item ID is required." });
+    }
+
+    // 2️⃣ Fetch existing item
+    const item = await prisma.menuItem.findUnique({
+      where: { id: Number(itemId) },
+      select: { is_available: true },
+    });
+
+    if (!item) {
+      return res.status(404).json({ message: "❌ Menu item not found." });
+    }
+
+    // 3️⃣ Toggle is_available
+    const updatedItem = await prisma.menuItem.update({
+      where: { id: Number(itemId) },
+      data: {
+        is_available: !item.is_available,
+      },
+    });
+
+    // 4️⃣ Respond with success
+    return res.status(200).json({
+      message: `✅ Item is now ${
+        updatedItem.is_available ? "available ✅" : "unavailable ⛔"
+      }.`,
+      item: updatedItem,
+    });
+  } catch (err: any) {
+    console.error(
+      "❌ Error in toggleMenuItemAvailability:",
+      err.message || err
+    );
+    return res
+      .status(500)
+      .json({ message: "🚨 Server error toggling availability." });
+  }
+};
+
+
