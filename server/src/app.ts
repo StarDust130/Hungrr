@@ -6,7 +6,6 @@ import { Server } from "socket.io";
 import cors from "cors";
 import cafeRoutes from "./routes/cafeRoutes";
 import adminRoutes from "./routes/adminRoutes";
-import dashSummaryRoutes from "./routes/dashSummaryRoutes";
 import statsRoutes from "./routes/statsRoutes";
 import cron from "node-cron";
 import dotenv from "dotenv";
@@ -45,7 +44,6 @@ app.use("/api", cafeRoutes);
 
 //! Admin API Routes
 app.use("/api/admin", adminRoutes);
-app.use("/api/dash", dashSummaryRoutes); // ✅ Dashboard Summary Routes
 app.use("/api/stats", statsRoutes); // ✅ Stats page Routes
 
 // ✅ Schedule the cron job to run every minute
