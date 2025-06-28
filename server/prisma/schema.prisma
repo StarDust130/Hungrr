@@ -59,7 +59,7 @@ model MenuItem {
   is_active      Boolean   @default(true)
 
   cafe           Cafe      @relation(fields: [cafeId], references: [id])
-  category       Category? @relation(fields: [categoryId], references: [id])
+  category       Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   order_items    OrderItem[]
 }
 
