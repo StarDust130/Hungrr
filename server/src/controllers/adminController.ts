@@ -640,3 +640,131 @@ export const toggleMenuItemAvailability = async (
 };
 
 
+//! 5) 🧾 Category Controllers (CRUD)
+
+// 5.1)Get All Categories for a Cafe
+export const getCategoriesByCafe = async (req: Request, res: Response) => {
+  try {
+    const { cafeId } = req.params;
+
+    // 1️⃣ Validate cafe ID
+    if (!cafeId) {
+      return res.status(400).json({ message: "🚫 Cafe ID is required." });
+    }
+
+    // 2️⃣ Fetch categories
+    const categories = await prisma.category.findMany({
+      where: { cafeId: Number(cafeId) },
+      orderBy: { id: "asc" },
+    });
+
+    // 3️⃣ Respond
+    return res.status(200).json({
+      message: "📦 Categories fetched successfully!",
+      categories,
+    });
+  } catch (err: any) {
+    console.error("❌ Error in getCategoriesByCafe:", err.message || err);
+    return res
+      .status(500)
+      .json({ message: "🚨 Server error fetching categories." });
+  }
+};
+
+// 5.2) Create a new Category
+export const createCategory = async (req: Request, res: Response) => {
+  try {
+    const { name, cafeId } = req.body;
+
+    // 1️⃣ Validate
+    if (!name || !cafeId) {
+      return res.status(400).json({ message: "🚫 Required: name and cafeId." });
+    }
+
+    // 2️⃣ Prevent duplicate name in same cafe
+    const existing = await prisma.category.findFirst({
+      where: {
+        name,
+        cafeId: Number(cafeId),
+      },
+    });
+
+    if (existing) {
+      return res
+        .status(409)
+        .json({ message: "⚠️ Category name already exists for this cafe." });
+    }
+
+    // 3️⃣ Create category
+    const newCategory = await prisma.category.create({
+      data: {
+        name,
+        cafeId: Number(cafeId),
+      },
+    });
+
+    // 4️⃣ Respond
+    return res.status(201).json({
+      message: "✅ Category created successfully!",
+      category: newCategory,
+    });
+  } catch (err: any) {
+    console.error("❌ Error in createCategory:", err.message || err);
+    return res
+      .status(500)
+      .json({ message: "🚨 Server error creating category." });
+  }
+};
+
+// 5.3) Update an existing Category
+export const updateCategory = async (req: Request, res: Response) => {
+  try {
+    const { categoryId } = req.params;
+    const { name } = req.body;
+
+    // 1️⃣ Validate input
+    if (!name) {
+      return res.status(400).json({ message: "🚫 Category name is required." });
+    }
+
+    // 2️⃣ Update category
+    const updated = await prisma.category.update({
+      where: { id: Number(categoryId) },
+      data: { name },
+    });
+
+    // 3️⃣ Respond
+    return res.status(200).json({
+      message: "✏️ Category updated successfully!",
+      category: updated,
+    });
+  } catch (err: any) {
+    console.error("❌ Error in updateCategory:", err.message || err);
+    return res
+      .status(500)
+      .json({ message: "🚨 Server error updating category." });
+  }
+};
+
+// 5.4) Delete a Category (Soft Delete)
+export const deleteCategory = async (req: Request, res: Response) => {
+  try {
+    const { categoryId } = req.params;
+
+    // 1️⃣ Delete category (also deletes related menu items due to cascade)
+    await prisma.category.delete({
+      where: { id: Number(categoryId) },
+    });
+
+    // 2️⃣ Respond
+    return res
+      .status(200)
+      .json({ message: "🗑️ Category deleted successfully!" });
+  } catch (err: any) {
+    console.error("❌ Error in deleteCategory:", err.message || err);
+    return res
+      .status(500)
+      .json({ message: "🚨 Server error deleting category." });
+  }
+};
+
