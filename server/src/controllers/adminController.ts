@@ -2,9 +2,10 @@
 import { Request, Response } from "express";
 import prisma from "../config/prisma";
 import {  OrderStatus } from "../utils/types";
+import slugify from "slugify";
 
 
-//! 1) Update Order Status (Socket io Live Status Show) 📦
+//!  Update Order Status (Socket io Live Status Show) 📦
 export const updateOrderStatus = async (req: Request, res: Response) => {
   try {
     const { orderId } = req.params;
@@ -94,4 +95,118 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
 };
   
 
+//! 1 CAFE CURD 🧁
 
+// 1.1) Get Cafe Details by ownerID
+export const getCafeByOwnerId = async (req: Request, res: Response) => {
+  try {
+    const { ownerId } = req.params;
+
+    // Validate ownerId
+    if (!ownerId) {
+      return res.status(400).json({ message: "Owner ID is required" });
+    }
+
+    const cafe = await prisma.cafe.findFirst({
+      where: { owner_id: ownerId },
+    });
+
+    if (!cafe) {
+      return res.status(404).json({ message: "Cafe not found" });
+    }
+
+    return res.status(200).json(cafe);
+  } catch (err: any) {
+    console.error("❌ Error in getCafeByOwnerId:", err.message || err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// 1.2) Create a new Café (Admin Onboarding Panel)
+export const createCafe = async (req: Request, res: Response) => {
+  try {
+    // 1️⃣ Destructure request body
+    const {
+      name,
+      owner_id,
+      address,
+      openingTime,
+      email,
+      phone,
+      tagline,
+      logoUrl,
+      bannerUrl,
+      payment_url,
+      rating,
+      reviews,
+      gstPercentage,
+      gstNo,
+    } = req.body;
+
+    // 2️⃣ Validate required fields
+    if (!name || !owner_id || !address || !phone || !email || !payment_url) {
+      return res.status(400).json({
+        message: "🚫 Required fields: Cafe name, owner_id, address, phone , email and payment URL.",
+      });
+    }
+
+    // 3️⃣ Prevent duplicate café for the same owner
+    const existingCafe = await prisma.cafe.findUnique({
+      where: { owner_id },
+    });
+
+    if (existingCafe) {
+      return res.status(409).json({
+        message: "⚠️ Cafe already exists for this owner.",
+        cafe: existingCafe,
+      });
+    }
+
+    // 5️⃣ Generate a unique slug from the name
+    let baseSlug = slugify(name, { lower: true, strict: true });
+    let slug = baseSlug;
+    let count = 1;
+
+    while (
+      await prisma.cafe.findUnique({
+        where: { slug },
+      })
+    ) {
+      count++;
+      slug = `${baseSlug}-${count}`;
+    }
+
+    // 6️⃣ Create new café
+    const newCafe = await prisma.cafe.create({
+      data: {
+        name,
+        owner_id,
+        address,
+        phone,
+        openingTime,
+        tagline,
+        email,
+        logoUrl,
+        bannerUrl,
+        payment_url,
+        slug,
+        rating: rating || 4.7, // fallback default
+        reviews: reviews || 969,
+        gstPercentage: gstPercentage || 5,
+        gstNo,
+        isOnboarded: true, // mark onboarding as complete
+      },
+    });
+
+    // 7️⃣ Respond success
+    return res.status(201).json({
+      message: "✅ Cafe created successfully!",
+      cafe: newCafe,
+    });
+  } catch (err: any) {
+    console.error("❌ Error in createCafe:", err.message || err);
+    return res.status(500).json({
+      message: "🚨 Server error while creating cafe.",
+    });
+  }
+};
