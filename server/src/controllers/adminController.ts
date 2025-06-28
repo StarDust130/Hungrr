@@ -95,32 +95,46 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
 };
   
 
-//! 1 CAFE CURD 🧁
+//! 1 CAFE  (Create , Read , Update) by Admin 🧁
 
 // 1.1) Get Cafe Details by ownerID
 export const getCafeByOwnerId = async (req: Request, res: Response) => {
   try {
+    // 1️⃣ Extract owner ID from request params
     const { ownerId } = req.params;
 
-    // Validate ownerId
+    // 2️⃣ Validate input
     if (!ownerId) {
-      return res.status(400).json({ message: "Owner ID is required" });
+      return res.status(400).json({
+        message: "🚫 Owner ID is required in the URL.",
+      });
     }
 
+    // 3️⃣ Fetch cafe using owner_id
     const cafe = await prisma.cafe.findFirst({
       where: { owner_id: ownerId },
     });
 
+    // 4️⃣ Handle not found
     if (!cafe) {
-      return res.status(404).json({ message: "Cafe not found" });
+      return res.status(404).json({
+        message: "❌ No cafe found for this owner.",
+      });
     }
 
-    return res.status(200).json(cafe);
+    // 5️⃣ Success
+    return res.status(200).json({
+      message: "✅ Cafe fetched successfully!",
+      cafe,
+    });
   } catch (err: any) {
-    console.error("❌ Error in getCafeByOwnerId:", err.message || err);
-    return res.status(500).json({ message: "Server error" });
+    console.error("💥 Error in getCafeByOwnerId:", err.message || err);
+    return res.status(500).json({
+      message: "🚨 Server error while fetching cafe.",
+    });
   }
 };
+
 
 // 1.2) Create a new Café (Admin Onboarding Panel)
 export const createCafe = async (req: Request, res: Response) => {
@@ -210,3 +224,89 @@ export const createCafe = async (req: Request, res: Response) => {
     });
   }
 };
+
+// 1.3) Update an existing Café (Admin Panel)
+export const updateCafe = async (req: Request, res: Response) => {
+  try {
+    // 1️⃣ Extract owner_id from route or auth context
+    const { owner_id } = req.params;
+
+    // 2️⃣ Check if cafe exists
+    const existingCafe = await prisma.cafe.findUnique({
+      where: { owner_id },
+    });
+
+    if (!existingCafe) {
+      return res.status(404).json({
+        message: "❌ Cafe not found for this owner.",
+      });
+    }
+
+    // 3️⃣ Destructure updatable fields from body
+    const {
+      name,
+      address,
+      phone,
+      email,
+      openingTime,
+      tagline,
+      logoUrl,
+      bannerUrl,
+      payment_url,
+      rating,
+      reviews,
+      gstPercentage,
+      gstNo,
+    } = req.body;
+
+    // 4️⃣ Optionally regenerate slug if name is updated
+    let slug = existingCafe.slug;
+    if (name && name !== existingCafe.name) {
+      let baseSlug = slugify(name, { lower: true, strict: true });
+      slug = baseSlug;
+      let count = 1;
+
+      while (
+        await prisma.cafe.findUnique({
+          where: { slug },
+        })
+      ) {
+        count++;
+        slug = `${baseSlug}-${count}`;
+      }
+    }
+
+    // 5️⃣ Update cafe
+    const updatedCafe = await prisma.cafe.update({
+      where: { owner_id },
+      data: {
+        name,
+        address,
+        phone,
+        email,
+        openingTime,
+        tagline,
+        logoUrl,
+        bannerUrl,
+        payment_url,
+        slug,
+        rating,
+        reviews,
+        gstPercentage,
+        gstNo,
+      },
+    });
+
+    // 6️⃣ Respond success
+    return res.status(200).json({
+      message: "✅ Cafe updated successfully!",
+      cafe: updatedCafe,
+    });
+  } catch (err: any) {
+    console.error("❌ Error in updateCafe:", err.message || err);
+    return res.status(500).json({
+      message: "🚨 Server error while updating cafe.",
+    });
+  }
+};
+
