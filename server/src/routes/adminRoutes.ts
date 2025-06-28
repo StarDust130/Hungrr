@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createCafe, createCategory, createMenuItem, deleteCategory, deleteMenuItem, getCafeByOwnerId, getCategoriesByCafe, getMenuItemsByCafe, getOrdersByCafe, toggleMenuItemAvailability, updateCafe, updateCategory, updateMenuItem, updateOrderStatus } from "../controllers/adminController";
+import { createCafe, createCategory, createMenuItem, deleteCategory, deleteMenuItem, getCafeByOwnerId, getCategoriesByCafe, getDashboardSummary, getMenuItemsByCafe, getOrdersByCafe, toggleMenuItemAvailability, updateCafe, updateCategory, updateMenuItem, updateOrderStatus } from "../controllers/adminController";
 
 
 const router = Router();
@@ -29,6 +29,8 @@ router.patch("/category/:categoryId", updateCategory as any); // ✏️ Update a
 router.delete("/category/:categoryId", deleteCategory as any); // ❌ Delete a category (SOFT DELETE)
 
 
+//! 5) Admin Dashboard Routes
+router.get("/summary/:cafeId", getDashboardSummary as any); // 🔍 Get dashboard summary for a specific cafe
 
 
 
