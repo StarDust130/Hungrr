@@ -225,12 +225,10 @@ export const updateCafe = async (req: Request, res: Response) => {
 };
 
 
-//! 2) DASHBOARD (Admin Panel) 📊
 
+//! 2) Order Management (Get all orders , updateOrderStatus) 🥘
 
-//! 3) Order Management (Get all orders , updateOrderStatus) 🥘
-
-// 3.1️ Get All Orders for Admin Dashboard or Order Page
+// 2.1️ Get All Orders for Admin Dashboard or Order Page
 export const getOrdersByCafe = async (req: Request, res: Response) => {
   try {
     // 1️⃣ Extract cafeId and query params
@@ -344,7 +342,7 @@ export const getOrdersByCafe = async (req: Request, res: Response) => {
 };
 
 
-// 3.2 Update Order Status (Socket io Live Status Show) 📦
+// 2.2 Update Order Status (Socket io Live Status Show) 📦
 export const updateOrderStatus = async (req: Request, res: Response) => {
   try {
     const { orderId } = req.params;
@@ -433,9 +431,9 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
   }
 };
 
-//! 4) Menu Management (Get ,Add, Update, Delete) 🍽️
+//! 3) Menu Management (Get ,Add, Update, Delete) 🍽️
 
-// 4.1) Get Menu Items by Cafe ID
+// 3.1) Get Menu Items by Cafe ID
 // This endpoint fetches menu items for a specific cafe with pagination and optional search/filtering.
 export const getMenuItemsByCafe = async (req: Request, res: Response) => {
   try {
@@ -496,7 +494,7 @@ export const getMenuItemsByCafe = async (req: Request, res: Response) => {
 };
 
 
-// 4.2) Create a new Menu Item
+// 3.2) Create a new Menu Item
 export const createMenuItem = async (req: Request, res: Response) => {
   try {
     // 1️⃣ Destructure request body
@@ -547,7 +545,7 @@ export const createMenuItem = async (req: Request, res: Response) => {
   }
 };
 
-// 4.3) Update an existing Menu Item
+// 3.3) Update an existing Menu Item
 export const updateMenuItem = async (req: Request, res: Response) => {
   try {
     // 1️⃣ Extract itemId
@@ -570,7 +568,7 @@ export const updateMenuItem = async (req: Request, res: Response) => {
   }
 };
 
-// 4.4) Delete a Menu Item (Soft Delete)
+// 3.4) Delete a Menu Item (Soft Delete)
 export const deleteMenuItem = async (req: Request, res: Response) => {
   try {
     // 1️⃣ Extract itemId
@@ -590,7 +588,7 @@ export const deleteMenuItem = async (req: Request, res: Response) => {
   }
 };
 
-// 4.5) Toggle Menu Item Availability
+// 3.5) Toggle Menu Item Availability
 export const toggleMenuItemAvailability = async (
   req: Request,
   res: Response
@@ -640,9 +638,9 @@ export const toggleMenuItemAvailability = async (
 };
 
 
-//! 5) 🧾 Category Controllers (CRUD)
+//! 4) 🧾 Category Controllers (CRUD)
 
-// 5.1)Get All Categories for a Cafe
+// 4.1)Get All Categories for a Cafe
 export const getCategoriesByCafe = async (req: Request, res: Response) => {
   try {
     const { cafeId } = req.params;
@@ -671,7 +669,7 @@ export const getCategoriesByCafe = async (req: Request, res: Response) => {
   }
 };
 
-// 5.2) Create a new Category
+// 4.2) Create a new Category
 export const createCategory = async (req: Request, res: Response) => {
   try {
     const { name, cafeId } = req.body;
@@ -716,7 +714,7 @@ export const createCategory = async (req: Request, res: Response) => {
   }
 };
 
-// 5.3) Update an existing Category
+// 4.3) Update an existing Category
 export const updateCategory = async (req: Request, res: Response) => {
   try {
     const { categoryId } = req.params;
@@ -746,7 +744,7 @@ export const updateCategory = async (req: Request, res: Response) => {
   }
 };
 
-// 5.4) Delete a Category (Soft Delete)
+// 4.4) Delete a Category (Soft Delete)
 export const deleteCategory = async (req: Request, res: Response) => {
   try {
     const { categoryId } = req.params;
