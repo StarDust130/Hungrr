@@ -3,8 +3,8 @@ import { Request, Response } from "express";
 import prisma from "../config/prisma";
 import {  OrderStatus } from "../utils/types";
 import slugify from "slugify";
-import { startOfDay, startOfWeek } from "date-fns";
-import { generateDashboardPrompt } from "../utils/dashboardSummaryPrompt";
+import { startOfDay, startOfWeek, format } from "date-fns";
+import {  generateTodayAISummaryPrompt } from "../utils/dashboardSummaryPrompt";
 import { groq } from "../utils/groqClient";
 
 
@@ -766,6 +766,8 @@ export const deleteCategory = async (req: Request, res: Response) => {
 };
 
 //! 5) Dashboard Stats  📊
+
+// 5.1) Get Dashboard Summary for a Cafe
 export const getDashboardSummary = async (req: Request, res: Response) => {
   try {
     // 1️⃣ Get inputs
@@ -832,30 +834,97 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
       }, {} as Record<string, number>),
     };
 
-    // 3️⃣ Build prompt + get AI response
-    const prompt = generateDashboardPrompt(stats, range);
-
-    const chat = await groq.chat.completions.create({
-      messages: [{ role: "user", content: prompt }],
-      model: "llama3-70b-8192",
-      temperature: 0.9,
-      max_tokens: 300,
-      top_p: 1,
-      stream: false,
-    });
-
-    const aiInsight = chat.choices[0]?.message?.content || "No AI insight.";
-
-    // 4️⃣ Send response
+    // 3️⃣ Send response
     return res.status(200).json({
       message: "✅ Dashboard summary ready!",
       stats,
-      aiInsight,
     });
   } catch (err: any) {
     console.error("❌ Error in getDashboardSummary:", err.message || err);
     return res.status(500).json({
       message: "🚨 Failed to generate summary.",
     });
+  }
+};
+
+// 5.2) Generate AI Insights for Dashboard
+export const getTodayAISummary = async (req: Request, res: Response) => {
+  try {
+    // 1️⃣ Get cafe ID
+    const { cafeId } = req.params;
+    if (!cafeId) {
+      return res.status(400).json({ message: "🚫 Cafe ID is required." });
+    }
+
+    const now = new Date();
+    const todayFilter = { gte: startOfDay(now) };
+
+    // 2️⃣ Get basic today info
+    const [orderCount, revenue, topItemData] = await Promise.all([
+      prisma.order.count({
+        where: { cafeId: Number(cafeId), created_at: todayFilter },
+      }),
+      prisma.order.aggregate({
+        where: {
+          cafeId: Number(cafeId),
+          created_at: todayFilter,
+          paid: true,
+        },
+        _sum: { total_price: true },
+      }),
+      prisma.orderItem.groupBy({
+        by: ["itemId"],
+        where: {
+          order: {
+            cafeId: Number(cafeId),
+            created_at: todayFilter,
+          },
+        },
+        _sum: { quantity: true },
+        orderBy: { _sum: { quantity: "desc" } },
+        take: 1,
+      }),
+    ]);
+
+    let topItemName = "N/A";
+    if (topItemData.length > 0) {
+      const item = await prisma.menuItem.findUnique({
+        where: { id: topItemData[0].itemId },
+        select: { name: true },
+      });
+      topItemName = item?.name || "N/A";
+    }
+
+    const currentTime = format(now, "HH:mm");
+    const totalRevenue = revenue._sum.total_price?.toFixed(2) || "0.00";
+
+    // 3️⃣ Generate prompt
+    const prompt = generateTodayAISummaryPrompt({
+      orderCount,
+      totalRevenue,
+      topItem: topItemName,
+      currentTime,
+    });
+
+    // 4️⃣ Call AI
+    const chat = await groq.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "llama3-70b-8192",
+      temperature: 0.9,
+      max_tokens: 250,
+      stream: false,
+    });
+
+    const aiInsight = chat.choices[0]?.message?.content || "No AI insight.";
+
+    // 5️⃣ Respond
+    return res.status(200).json({
+      aiInsight,
+    });
+  } catch (err: any) {
+    console.error("❌ AI Summary Error:", err.message || err);
+    return res
+      .status(500)
+      .json({ message: "🚨 Failed to generate AI insight." });
   }
 };

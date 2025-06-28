@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createCafe, createCategory, createMenuItem, deleteCategory, deleteMenuItem, getCafeByOwnerId, getCategoriesByCafe, getDashboardSummary, getMenuItemsByCafe, getOrdersByCafe, toggleMenuItemAvailability, updateCafe, updateCategory, updateMenuItem, updateOrderStatus } from "../controllers/adminController";
+import { createCafe, createCategory, createMenuItem, deleteCategory, deleteMenuItem, getCafeByOwnerId, getCategoriesByCafe, getDashboardSummary, getMenuItemsByCafe, getOrdersByCafe, getTodayAISummary, toggleMenuItemAvailability, updateCafe, updateCategory, updateMenuItem, updateOrderStatus } from "../controllers/adminController";
 
 
 const router = Router();
@@ -31,6 +31,7 @@ router.delete("/category/:categoryId", deleteCategory as any); // ❌ Delete a c
 
 //! 5) Admin Dashboard Routes
 router.get("/summary/:cafeId", getDashboardSummary as any); // 🔍 Get dashboard summary for a specific cafe
+router.get("/summary/ai/:cafeId", getTodayAISummary as any); // 🔍 Get dashboard summary for a specific cafe
 
 
 
