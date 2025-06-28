@@ -1,8 +1,14 @@
 import { Router } from "express";
-import { updateOrderStatus } from "../controllers/adminController";
+import { createCafe, getCafeByOwnerId, updateOrderStatus } from "../controllers/adminController";
 
 
 const router = Router();
+
+//! Cafe Admin Panel Routes 📋
+router.get("/cafe/:ownerId", getCafeByOwnerId as any); // Get Cafe info for Cafe Owner
+router.post("/cafe/create", createCafe as any); // Get Cafe info for Cafe Owner
+
+
 
 
 
