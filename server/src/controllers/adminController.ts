@@ -859,7 +859,21 @@ export const getTodayAISummary = async (req: Request, res: Response) => {
     const now = new Date();
     const todayFilter = { gte: startOfDay(now) };
 
-    // 2️⃣ Get basic today info
+    // 2️⃣ Fetch cafe info
+    const cafe = await prisma.cafe.findUnique({
+      where: { id: Number(cafeId) },
+      select: {
+        name: true,
+        tagline: true,
+        openingTime: true,
+      },
+    });
+
+    if (!cafe) {
+      return res.status(404).json({ message: "❌ Cafe not found." });
+    }
+
+    // 3️⃣ Get today's order data
     const [orderCount, revenue, topItemData] = await Promise.all([
       prisma.order.count({
         where: { cafeId: Number(cafeId), created_at: todayFilter },
@@ -895,29 +909,33 @@ export const getTodayAISummary = async (req: Request, res: Response) => {
       topItemName = item?.name || "N/A";
     }
 
-    const currentTime = format(now, "HH:mm");
+    const currentTime = format(now, "hh:mm a");
     const totalRevenue = revenue._sum.total_price?.toFixed(2) || "0.00";
 
-    // 3️⃣ Generate prompt
+    // 4️⃣ Build AI prompt with cafe context
     const prompt = generateTodayAISummaryPrompt({
       orderCount,
       totalRevenue,
       topItem: topItemName,
       currentTime,
+      cafeName: cafe.name,
+      cafeTagline: cafe.tagline || "",
+      openingTime: cafe.openingTime || "09:00 AM",
     });
 
-    // 4️⃣ Call AI
+    // 5️⃣ Get AI response
     const chat = await groq.chat.completions.create({
       messages: [{ role: "user", content: prompt }],
       model: "llama3-70b-8192",
       temperature: 0.9,
-      max_tokens: 250,
+      max_tokens: 300,
       stream: false,
     });
 
-    const aiInsight = chat.choices[0]?.message?.content || "No AI insight.";
+    const aiInsight =
+      chat.choices[0]?.message?.content?.trim() || "No AI insight.";
 
-    // 5️⃣ Respond
+    // 6️⃣ Respond to frontend
     return res.status(200).json({
       aiInsight,
     });
