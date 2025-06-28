@@ -6,7 +6,7 @@ import { Server } from "socket.io";
 import cors from "cors";
 import cafeRoutes from "./routes/cafeRoutes";
 import adminRoutes from "./routes/adminRoutes";
-import dashSummaryRoutes from "./routes/dashSummary";
+import dashSummaryRoutes from "./routes/dashSummaryRoutes";
 import statsRoutes from "./routes/statsRoutes";
 import cron from "node-cron";
 import dotenv from "dotenv";
