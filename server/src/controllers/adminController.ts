@@ -48,8 +48,52 @@ export const getCafeByOwnerId = async (req: Request, res: Response) => {
   }
 };
 
+// 1.2 Get Cafe name and logo URl
+export const getCafeNameandLogoURL = async (req: Request, res: Response) => {
+  try {
+    // 1️⃣ Extract owner ID from request params
+    const { ownerId } = req.params;
 
-// 1.2) Create a new Café (Admin Onboarding Panel)
+    // 2️⃣ Validate input
+    if (!ownerId) {
+      return res.status(400).json({
+        message: "🚫 Owner ID is required in the URL.",
+      });
+    } 
+
+    const cafe = await prisma.cafe.findFirst({
+      where: { owner_id: ownerId },
+      select: {
+        name: true,
+        logoUrl: true,
+      },
+    });
+
+    // 4️⃣ Handle not found
+    if (!cafe) {
+      return res.status(404).json({
+        message: "❌ No cafe found for this owner.",
+      });
+    }
+
+    // 5️⃣ Success
+    return res.status(200).json({
+      message: "✅ Cafe fetched successfully!",
+      cafe,
+    });
+  } catch (error) {
+    console.error("💥 Error to Get Cafe Name ")
+    return res.status(500).json({
+      message: "😿 Server error while fetching cafe.",
+    });
+
+    
+  }
+  
+}
+
+
+// 1.3) Create a new Café (Admin Onboarding Panel)
 export const createCafe = async (req: Request, res: Response) => {
   try {
     // 1️⃣ Destructure request body
@@ -138,7 +182,7 @@ export const createCafe = async (req: Request, res: Response) => {
   }
 };
 
-// 1.3) Update an existing Café (Admin Panel)
+// 1.4) Update an existing Café (Admin Panel)
 export const updateCafe = async (req: Request, res: Response) => {
   try {
     // 1️⃣ Extract owner_id from route or auth context

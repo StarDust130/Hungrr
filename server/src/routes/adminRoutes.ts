@@ -1,11 +1,12 @@
 import { Router } from "express";
-import { createCafe, createCategory, createMenuItem, deleteCategory, deleteMenuItem, getCafeByOwnerId, getCategoriesByCafe, getDashboardSummary, getMenuItemsByCafe, getOrdersByCafe, getTodayAISummary, toggleMenuItemAvailability, updateCafe, updateCategory, updateMenuItem, updateOrderStatus } from "../controllers/adminController";
+import { createCafe, createCategory, createMenuItem, deleteCategory, deleteMenuItem, getCafeByOwnerId, getCafeNameandLogoURL, getCategoriesByCafe, getDashboardSummary, getMenuItemsByCafe, getOrdersByCafe, getTodayAISummary, toggleMenuItemAvailability, updateCafe, updateCategory, updateMenuItem, updateOrderStatus } from "../controllers/adminController";
 
 
 const router = Router();
 
 //! 1) 📋 Cafe Admin Panel Routes
 router.get("/cafe/owner/:ownerId", getCafeByOwnerId as any); // 🔍 Get cafe by owner ID
+router.get("/cafe/name/:ownerId", getCafeNameandLogoURL as any); // 🔍 Get cafe name 
 router.post("/cafe", createCafe as any);  // ➕ Create a new cafe (used during onboarding)
 router.patch("/cafe/:ownerId", updateCafe as any); // ✏️ Update existing cafe for an owner
 
