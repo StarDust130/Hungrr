@@ -1,5 +1,24 @@
 import { Router } from "express";
-import { createCafe, createCategory, createMenuItem, deleteCategory, deleteMenuItem, getCafeByOwnerId, getCafeNameandLogoURL, getCategoriesByCafe, getDashboardSummary, getMenuItemsByCafe, getOrdersByCafe, getTodayAISummary, toggleMenuItemAvailability, updateCafe, updateCategory, updateMenuItem, updateOrderStatus } from "../controllers/adminController";
+import {
+  createCafe,
+  createCategory,
+  createMenuItem,
+  deleteCategory,
+  deleteMenuItem,
+  getCafeByOwnerId,
+  getCafeNameandLogoURL,
+  getCategoriesByCafe,
+  getDashboardSummary,
+  getMenuItemsByCafe,
+  getOrdersByCafe,
+  getTodayAISummary,
+  toggleMenuItemAvailability,
+  updateCafe,
+  updateCategory,
+  updateMenuItem,
+  updateOrderStatus,
+  getMenuStats,
+} from "../controllers/adminController";
 
 
 const router = Router();
@@ -21,7 +40,7 @@ router.post("/menu", createMenuItem as any); // ➕ Create a new menu item
 router.patch("/menu/:itemId", updateMenuItem as any); // ✏️ Update an existing menu item
 router.delete("/menu/:itemId", deleteMenuItem as any); // ❌ Delete a menu item(SOFT DELETE)
 router.patch("/menu/:itemId/toggle-availability", toggleMenuItemAvailability as any); // 🔄 Toggle availability of a menu item
-
+router.get("/stats/menu/:cafeId", getMenuStats as any); // 📊 Get all menu stats for a cafe
 
 //! 4) Category Management Routes
 router.get("/category/cafe/:cafeId", getCategoriesByCafe as any); // 🔍 Get all categories for a specific cafe

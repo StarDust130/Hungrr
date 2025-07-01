@@ -680,6 +680,66 @@ export const toggleMenuItemAvailability = async (
   }
 };
 
+// 3.6) Get Menu Stats for a Cafe
+export const getMenuStats = async (req: Request, res: Response) => {
+  try {
+    const { cafeId } = req.params;
+
+    if (!cafeId) {
+      return res.status(400).json({ message: "🚫 Cafe ID is required." });
+    }
+
+    const id = Number(cafeId);
+
+    // 1️⃣ Fetch all counts in parallel for efficiency
+    const [
+      totalItems,
+      availableItems,
+      specialItems,
+      unavailableItems, // This now correctly counts soft-deleted items
+      totalCategories,
+      allItemsForTags,
+    ] = await Promise.all([
+      // ✨ FIX: Changed to count all active items for the cafe.
+      prisma.menuItem.count({ where: { cafeId: id } }),
+      prisma.menuItem.count({
+        where: { cafeId: id, is_active: true, is_available: true },
+      }),
+      prisma.menuItem.count({
+        where: { cafeId: id, is_active: true, isSpecial: true },
+      }),
+      prisma.menuItem.count({ where: { cafeId: id, is_active: false } }),
+      prisma.category.count({ where: { cafeId: id } }),
+      prisma.menuItem.findMany({
+        where: { cafeId: id, is_active: true },
+        select: { tags: true },
+      }),
+    ]);
+
+    // 2️⃣ Calculate unique tags
+    const allTags = allItemsForTags.flatMap((item) => item.tags);
+    const uniqueTagsCount = new Set(allTags).size;
+
+    // 3️⃣ Send response
+    return res.status(200).json({
+      message: "✅ Menu stats fetched successfully!",
+      stats: {
+        totalItems,
+        availableItems,
+        specialItems,
+        unavailableItems,
+        totalCategories,
+        totalTags: uniqueTagsCount,
+      },
+    });
+  } catch (err: any) {
+    console.error("❌ Error in getMenuStats:", err.message || err);
+    return res
+      .status(500)
+      .json({ message: "🚨 Server error fetching menu stats." });
+  }
+};
+
 
 //! 4) 🧾 Category Controllers (CRUD)
 
