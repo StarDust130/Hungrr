@@ -23,19 +23,29 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 const CLIENT_URL = process.env.CLIENT_URL;
+const ADMIN_URL = process.env.ADMIN_URL;
+const KITCHEN_URL = process.env.KITCHEN_URL;
+
+const allowedOrigins = [CLIENT_URL, ADMIN_URL, KITCHEN_URL];
 
 // =============================================
 // MIDDLEWARE
 // =============================================
 // ✅ FIX: Call express.json() and express.urlencoded() ONLY ONCE
 // with the desired limit. This MUST come before your routes.
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb", extended: true }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 // Then, configure CORS
 app.use(
   cors({
-    origin: CLIENT_URL,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
