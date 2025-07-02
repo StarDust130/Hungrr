@@ -66,6 +66,7 @@ export const getCafeNameandLogoURL = async (req: Request, res: Response) => {
       select: {
         name: true,
         logoUrl: true,
+        id: true, // Include ID for potential future use
       },
     });
 
@@ -537,10 +538,9 @@ export const getMenuItemsByCafe = async (req: Request, res: Response) => {
 };
 
 
-// 3.2) Create a new Menu Item
+// 3.2) Create a new Menu Item (Corrected)
 export const createMenuItem = async (req: Request, res: Response) => {
   try {
-    // 1️⃣ Destructure request body
     const {
       cafeId,
       categoryId,
@@ -550,34 +550,33 @@ export const createMenuItem = async (req: Request, res: Response) => {
       food_image_url,
       isSpecial,
       dietary,
-      tags,
+      tags, // This is an array of strings like ["Spicy", "Bestseller"]
     } = req.body;
 
-    // 2️⃣ Validate required fields
     if (!cafeId || !categoryId || !name || !price) {
       return res.status(400).json({
         message: "🚫 Required: cafeId, categoryId, name, price.",
       });
     }
 
-    // 3️⃣ Create item
+    // ✨ FIX: Convert string IDs to numbers and handle tag array
     const newItem = await prisma.menuItem.create({
       data: {
-        cafeId,
-        categoryId,
+        cafeId: Number(cafeId),
+        categoryId: Number(categoryId),
         name,
-        price,
+        price: Number(price),
         description,
         food_image_url,
         isSpecial: isSpecial || false,
         dietary,
+        // Prisma expects an array of enum values for a field defined as ItemTag[]
         tags: tags || [],
         is_active: true,
         is_available: true,
       },
     });
 
-    // 4️⃣ Send response
     return res.status(201).json({
       message: "✅ Menu item created successfully!",
       item: newItem,
@@ -588,19 +587,38 @@ export const createMenuItem = async (req: Request, res: Response) => {
   }
 };
 
-// 3.3) Update an existing Menu Item
+// 3.3) Update an existing Menu Item (Corrected)
 export const updateMenuItem = async (req: Request, res: Response) => {
   try {
-    // 1️⃣ Extract itemId
     const { itemId } = req.params;
+    const {
+        name,
+        price,
+        description,
+        isSpecial,
+        dietary,
+        tags, // This is an array of strings
+        categoryId,
+        is_available,
+        food_image_url
+    } = req.body;
 
-    // 2️⃣ Update item with provided fields
     const updated = await prisma.menuItem.update({
       where: { id: Number(itemId) },
-      data: req.body, // client must send only allowed fields
+      data: {
+        name,
+        price: price ? Number(price) : undefined,
+        description,
+        isSpecial,
+        dietary,
+        // ✨ FIX: Use `set` to replace the list of tags for an update
+        tags: tags ? { set: tags } : undefined,
+        categoryId: categoryId ? Number(categoryId) : undefined,
+        is_available,
+        food_image_url
+      },
     });
 
-    // 3️⃣ Send response
     return res.status(200).json({
       message: "✏️ Menu item updated successfully!",
       item: updated,
@@ -610,6 +628,9 @@ export const updateMenuItem = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "🚨 Failed to update menu item." });
   }
 };
+
+
+
 
 // 3.4) Delete a Menu Item (Soft Delete)
 export const deleteMenuItem = async (req: Request, res: Response) => {
