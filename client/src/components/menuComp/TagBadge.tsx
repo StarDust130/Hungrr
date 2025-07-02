@@ -79,15 +79,21 @@ const tagStyles: Record<
   },
 };
 
-const TagBadge = ({ tag }: { tag?: ItemTag }) => {
+const TagBadge = ({ tag }: { tag?: string }) => {
+  // Ensure tagKey is of type ItemTag or undefined
+  const tagKey = Object.values(ItemTag).includes(tag as ItemTag)
+    ? (tag as ItemTag)
+    : undefined;
+
   const { color, icon, label } = useMemo(() => {
-    if (tag && tagStyles[tag]) return tagStyles[tag];
+    if (tagKey && tagStyles[tagKey]) return tagStyles[tagKey];
     return {
-      color: "bg-muted text-muted-foreground dark:bg-muted/20 dark:text-muted-foreground",
+      color:
+        "bg-muted text-muted-foreground dark:bg-muted/20 dark:text-muted-foreground",
       icon: <TagIcon size={16} className="mr-1" />,
-      label: "Tag",
+      label: tag ?? "Tag",
     };
-  }, [tag]);
+  }, [tagKey, tag]);
 
   return (
     <span
