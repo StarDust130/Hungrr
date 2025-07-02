@@ -51,12 +51,12 @@ const CategorySection = ({
           ref={(el) => {
             sectionRefs.current[category] = el;
           }}
-          className="pt-8"
+          className="pt-6"
         >
           <h2 className="text-2xl font-extrabold text-foreground mb-2 tracking-tight">
             {category}
           </h2>
-          <div className="divide-y divide-border">
+          <div className="space-y-0">
             {items.map((item: MenuItem) => (
               <MenuItemCard key={`item-${item.id}`} item={item} />
             ))}
