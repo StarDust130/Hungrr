@@ -18,6 +18,9 @@ import {
   updateMenuItem,
   updateOrderStatus,
   getMenuStats,
+  reactivateMenuItem,
+  hardDeleteMenuItem,
+  getUnavailableMenuItemsByCafe,
 } from "../controllers/adminController";
 
 
@@ -41,6 +44,12 @@ router.patch("/menu/:itemId", updateMenuItem as any); // ✏️ Update an existi
 router.delete("/menu/:itemId", deleteMenuItem as any); // ❌ Delete a menu item(SOFT DELETE)
 router.patch("/menu/:itemId/toggle-availability", toggleMenuItemAvailability as any); // 🔄 Toggle availability of a menu item
 router.get("/stats/menu/:cafeId", getMenuStats as any); // 📊 Get all menu stats for a cafe
+router.get(
+  "/menu/cafe/:cafeId/unavailable",
+  getUnavailableMenuItemsByCafe as any
+);
+router.patch("/menu/:itemId/reactivate", reactivateMenuItem as any);
+router.delete("/menu/:itemId/permanent", hardDeleteMenuItem as any);
 
 //! 4) Category Management Routes
 router.get("/category/cafe/:cafeId", getCategoriesByCafe as any); // 🔍 Get all categories for a specific cafe

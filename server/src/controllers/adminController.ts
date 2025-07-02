@@ -641,6 +641,63 @@ export const updateMenuItem = async (req: Request, res: Response) => {
   
 }
 
+// Fetch all unavailable (is_active: false) items for a cafe
+export const getUnavailableMenuItemsByCafe = async (req: Request, res: Response) => {
+  try {
+    const { cafeId } = req.params;
+    const items = await prisma.menuItem.findMany({
+      where: {
+        cafeId: Number(cafeId),
+        is_active: false, // The key difference
+      },
+      include: {
+        category: true, // Include category name
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+    return res.status(200).json({ items });
+  } catch (err: any) {
+    console.error("Error fetching unavailable menu items:", err.message);
+    return res.status(500).json({ message: "Failed to fetch unavailable menu items." });
+  }
+};
+
+// Reactivate a menu item (set is_active back to true)
+export const reactivateMenuItem = async (req: Request, res: Response) => {
+    try {
+        const { itemId } = req.params;
+        const updatedItem = await prisma.menuItem.update({
+            where: { id: Number(itemId) },
+            data: { is_active: true, is_available: true },
+        });
+        return res.status(200).json({ message: "✅ Menu item reactivated successfully!", item: updatedItem });
+    } catch (err: any) {
+        console.error("Error reactivating menu item:", err.message);
+        return res.status(500).json({ message: "🚨 Failed to reactivate menu item." });
+    }
+};
+
+
+// Permanently delete a menu item
+export const hardDeleteMenuItem = async (req: Request, res: Response) => {
+    try {
+        const { itemId } = req.params;
+        await prisma.menuItem.delete({
+            where: { id: Number(itemId) },
+        });
+        return res.status(200).json({ message: "🗑️ Menu item permanently deleted." });
+    } catch (err: any) {
+        // Handle cases where the item might be part of an order
+        if (err.code === 'P2003') {
+             return res.status(409).json({ message: "🚨 Cannot delete item as it is part of existing orders." });
+        }
+        console.error("Error permanently deleting menu item:", err.message);
+        return res.status(500).json({ message: "🚨 Failed to permanently delete menu item." });
+    }
+};
+
 
 
 // 3.4) Delete a Menu Item (Soft Delete)
