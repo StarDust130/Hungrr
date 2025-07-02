@@ -477,6 +477,9 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
 
 //! 3) Menu Management (Get ,Add, Update, Delete) 🍽️
 
+
+
+
 // 3.1) Get Menu Items by Cafe ID
 // This endpoint fetches menu items for a specific cafe with pagination and optional search/filtering.
 export const getMenuItemsByCafe = async (req: Request, res: Response) => {
@@ -538,6 +541,7 @@ export const getMenuItemsByCafe = async (req: Request, res: Response) => {
 };
 
 
+
 // 3.2) Create a new Menu Item (Corrected)
 export const createMenuItem = async (req: Request, res: Response) => {
   try {
@@ -550,7 +554,7 @@ export const createMenuItem = async (req: Request, res: Response) => {
       food_image_url,
       isSpecial,
       dietary,
-      tags, // This is an array of strings like ["Spicy", "Bestseller"]
+      tags, // Frontend sends an array, but the database expects a single value
     } = req.body;
 
     if (!cafeId || !categoryId || !name || !price) {
@@ -559,7 +563,10 @@ export const createMenuItem = async (req: Request, res: Response) => {
       });
     }
 
-    // ✨ FIX: Convert string IDs to numbers and handle tag array
+    // ✨ FIX: The error "Expected ItemTag or Null" means the database schema expects a single tag.
+    // We will take the first tag from the array sent by the frontend to match the schema.
+    const singleTag = tags && tags.length > 0 ? tags[0] : undefined;
+
     const newItem = await prisma.menuItem.create({
       data: {
         cafeId: Number(cafeId),
@@ -570,8 +577,8 @@ export const createMenuItem = async (req: Request, res: Response) => {
         food_image_url,
         isSpecial: isSpecial || false,
         dietary,
-        // Prisma expects an array of enum values for a field defined as ItemTag[]
-        tags: tags || [],
+        // Assign the single tag value, or undefined if no tags were sent.
+        tags: singleTag,
         is_active: true,
         is_available: true,
       },
@@ -597,38 +604,45 @@ export const updateMenuItem = async (req: Request, res: Response) => {
         description,
         isSpecial,
         dietary,
-        tags, // This is an array of strings
+        tags, // Frontend sends an array
         categoryId,
         is_available,
         food_image_url
     } = req.body;
 
-    const updated = await prisma.menuItem.update({
+    const dataToUpdate: any = {};
+
+    // Build the data object with only the fields that are provided in the request
+    if (name !== undefined) dataToUpdate.name = name;
+    if (price !== undefined) dataToUpdate.price = Number(price);
+    if (description !== undefined) dataToUpdate.description = description;
+    if (isSpecial !== undefined) dataToUpdate.isSpecial = isSpecial;
+    if (dietary !== undefined) dataToUpdate.dietary = dietary;
+    
+    // ✨ FIX: Handle single tag update to match the schema.
+    if (tags !== undefined) {
+        // If an empty array or null is passed, set the tag to null. Otherwise, take the first element.
+        dataToUpdate.tags = tags && tags.length > 0 ? tags[0] : null;
+    }
+
+    if (categoryId !== undefined) dataToUpdate.categoryId = Number(categoryId);
+    if (is_available !== undefined) dataToUpdate.is_available = is_available;
+    if (food_image_url !== undefined) dataToUpdate.food_image_url = food_image_url;
+
+    const updatedItem = await prisma.menuItem.update({
       where: { id: Number(itemId) },
-      data: {
-        name,
-        price: price ? Number(price) : undefined,
-        description,
-        isSpecial,
-        dietary,
-        // ✨ FIX: Use `set` to replace the list of tags for an update
-        tags: tags ? { set: tags } : undefined,
-        categoryId: categoryId ? Number(categoryId) : undefined,
-        is_available,
-        food_image_url
-      },
+      data: dataToUpdate,
     });
 
     return res.status(200).json({
       message: "✏️ Menu item updated successfully!",
-      item: updated,
+      item: updatedItem,
     });
   } catch (err: any) {
     console.error("❌ Error in updateMenuItem:", err.message || err);
     return res.status(500).json({ message: "🚨 Failed to update menu item." });
   }
 };
-
 
 
 
@@ -700,8 +714,7 @@ export const toggleMenuItemAvailability = async (
       .json({ message: "🚨 Server error toggling availability." });
   }
 };
-
-// 3.6) Get Menu Stats for a Cafe
+// 3.6) Get Menu Stats for a Cafe (Corrected)
 export const getMenuStats = async (req: Request, res: Response) => {
   try {
     const { cafeId } = req.params;
@@ -712,17 +725,15 @@ export const getMenuStats = async (req: Request, res: Response) => {
 
     const id = Number(cafeId);
 
-    // 1️⃣ Fetch all counts in parallel for efficiency
     const [
       totalItems,
       availableItems,
       specialItems,
-      unavailableItems, // This now correctly counts soft-deleted items
+      unavailableItems,
       totalCategories,
       allItemsForTags,
     ] = await Promise.all([
-      // ✨ FIX: Changed to count all active items for the cafe.
-      prisma.menuItem.count({ where: { cafeId: id } }),
+      prisma.menuItem.count({ where: { cafeId: id, is_active: true } }),
       prisma.menuItem.count({
         where: { cafeId: id, is_active: true, is_available: true },
       }),
@@ -731,17 +742,17 @@ export const getMenuStats = async (req: Request, res: Response) => {
       }),
       prisma.menuItem.count({ where: { cafeId: id, is_active: false } }),
       prisma.category.count({ where: { cafeId: id } }),
+      // This query is now safe because the schema will be correct after reset
       prisma.menuItem.findMany({
         where: { cafeId: id, is_active: true },
         select: { tags: true },
       }),
     ]);
 
-    // 2️⃣ Calculate unique tags
+    // Calculate unique tags
     const allTags = allItemsForTags.flatMap((item) => item.tags);
     const uniqueTagsCount = new Set(allTags).size;
 
-    // 3️⃣ Send response
     return res.status(200).json({
       message: "✅ Menu stats fetched successfully!",
       stats: {
