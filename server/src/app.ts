@@ -55,11 +55,18 @@ app.use(
 // =============================================
 const io = new Server(server, {
   cors: {
-    origin: CLIENT_URL,
-    methods: ["GET", "POST", "PATCH", "DELETE"],
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Socket.IO CORS blocked"));
+      }
+    },
     credentials: true,
+    methods: ["GET", "POST", "PATCH", "DELETE"],
   },
 });
+
 // Make io accessible in route handlers via req.app.get('io')
 app.set("io", io);
 
