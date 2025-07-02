@@ -1,35 +1,38 @@
 // src/app.ts
 
+// =============================================
+// IMPORTS
+// =============================================
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
+import cron from "node-cron";
+import dotenv from "dotenv";
+
+// Import local modules
 import cafeRoutes from "./routes/cafeRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import statsRoutes from "./routes/statsRoutes";
-import cron from "node-cron";
-import dotenv from "dotenv";
 import { cleanupPendingOrders } from "./controllers/cronjobController";
-dotenv.config();
 
+// =============================================
+// INITIALIZATION & ENVIRONMENT
+// =============================================
+dotenv.config();
 const app = express();
 const server = http.createServer(app);
-
-
-
 const CLIENT_URL = process.env.CLIENT_URL;
 
+// =============================================
+// MIDDLEWARE
+// =============================================
+// ✅ FIX: Call express.json() and express.urlencoded() ONLY ONCE
+// with the desired limit. This MUST come before your routes.
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-const io = new Server(server, {
-  cors: {
-    origin: CLIENT_URL,
-    methods: ["GET", "POST", "PATCH" , "DELETE"],
-    credentials: true,
-  },
-});
-
-app.set("io", io);
-
+// Then, configure CORS
 app.use(
   cors({
     origin: CLIENT_URL,
@@ -37,39 +40,49 @@ app.use(
   })
 );
 
-app.use(express.json());
+// =============================================
+// SOCKET.IO SETUP
+// =============================================
+const io = new Server(server, {
+  cors: {
+    origin: CLIENT_URL,
+    methods: ["GET", "POST", "PATCH", "DELETE"],
+    credentials: true,
+  },
+});
+// Make io accessible in route handlers via req.app.get('io')
+app.set("io", io);
 
-//! Customer API Routes
+// =============================================
+// API ROUTES
+// =============================================
 app.use("/api", cafeRoutes);
-
-//! Admin API Routes
 app.use("/api/admin", adminRoutes);
-app.use("/api/stats", statsRoutes); // ✅ Stats page Routes
+app.use("/api/stats", statsRoutes);
 
-// ✅ Schedule the cron job to run every minute
+// =============================================
+// CRON JOB
+// =============================================
 cron.schedule("* * * * *", async () => {
-  // The '*' characters mean "every minute of every hour of every day..."
-  console.log("⏰ Cron job triggered by schedule.");
+  console.log("⏰ Cron job: Cleaning up pending orders.");
   await cleanupPendingOrders();
 });
+console.log("✅ Cron job scheduled to run every minute.");
 
-console.log("✅ Cron job for cleaning up pending orders has been scheduled to run every minute.")
-
-// ✅ FIXED: Standardized room joining logic
+// =============================================
+// SOCKET.IO EVENT HANDLERS
+// =============================================
 io.on("connection", (socket) => {
   console.log("🟢 New client connected:", socket.id);
 
-  // The client will send just the order ID (number)
   socket.on("join_order_room", (orderId: number) => {
     if (!orderId) return;
-    const roomName = `order_${orderId}`; // ✅ Use a consistent prefix
+    const roomName = `order_${orderId}`;
     console.log(`📦 Socket ${socket.id} joining room: "${roomName}"`);
     socket.join(roomName);
   });
 
-  // Listen for a ping from the client
   socket.on("client_ping", () => {
-    // Respond with a pong to let the client know we are still alive
     console.log(`👂 Received ping from ${socket.id}, sending pong back.`);
     socket.emit("server_pong");
   });
@@ -79,4 +92,7 @@ io.on("connection", (socket) => {
   });
 });
 
+// =============================================
+// EXPORTS
+// =============================================
 export { app, server };

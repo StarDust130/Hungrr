@@ -22,6 +22,7 @@ import {
   hardDeleteMenuItem,
   getUnavailableMenuItemsByCafe,
 } from "../controllers/adminController";
+import { bulkSaveAIMenu, processMenuWithAI } from "../controllers/aiMenuController";
 
 
 const router = Router();
@@ -50,6 +51,12 @@ router.get(
 );
 router.patch("/menu/:itemId/reactivate", reactivateMenuItem as any);
 router.delete("/menu/:itemId/permanent", hardDeleteMenuItem as any);
+
+// Route to process the menu image with AI
+router.post('/menu/ai-upload', processMenuWithAI as any); // 🔄 Process menu image with AI
+
+// Route to save the processed data
+router.post('/menu/ai-bulk-save', bulkSaveAIMenu as any); // ➕ Save AI-generated menu data in bulk
 
 //! 4) Category Management Routes
 router.get("/category/cafe/:cafeId", getCategoriesByCafe as any); // 🔍 Get all categories for a specific cafe
