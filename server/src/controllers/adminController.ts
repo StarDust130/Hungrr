@@ -543,6 +543,7 @@ export const getMenuItemsByCafe = async (req: Request, res: Response) => {
 
 
 // 3.2) Create a new Menu Item (Corrected)
+// 3.2) Create a new Menu Item (Final Corrected Version)
 export const createMenuItem = async (req: Request, res: Response) => {
   try {
     const {
@@ -554,7 +555,7 @@ export const createMenuItem = async (req: Request, res: Response) => {
       food_image_url,
       isSpecial,
       dietary,
-      tags, // Frontend sends an array, but the database expects a single value
+      tags, // This is now a single string like "Spicy" or undefined
     } = req.body;
 
     if (!cafeId || !categoryId || !name || !price) {
@@ -563,9 +564,7 @@ export const createMenuItem = async (req: Request, res: Response) => {
       });
     }
 
-    // ✨ FIX: The error "Expected ItemTag or Null" means the database schema expects a single tag.
-    // We will take the first tag from the array sent by the frontend to match the schema.
-    const singleTag = tags && tags.length > 0 ? tags[0] : undefined;
+    // ❌ REMOVED: const singleTag = tags && tags.length > 0 ? tags[0] : undefined;
 
     const newItem = await prisma.menuItem.create({
       data: {
@@ -576,9 +575,8 @@ export const createMenuItem = async (req: Request, res: Response) => {
         description,
         food_image_url,
         isSpecial: isSpecial || false,
-        dietary,
-        // Assign the single tag value, or undefined if no tags were sent.
-        tags: singleTag,
+        dietary, // Directly uses the 'dietary' value
+        tags: tags, // ✅ FIX: Directly uses the 'tags' value, just like 'dietary'
         is_active: true,
         is_available: true,
       },
@@ -594,40 +592,38 @@ export const createMenuItem = async (req: Request, res: Response) => {
   }
 };
 
-// 3.3) Update an existing Menu Item (Corrected)
+// 3.3) Update an existing Menu Item (Final Corrected Version)
 export const updateMenuItem = async (req: Request, res: Response) => {
   try {
     const { itemId } = req.params;
     const {
-        name,
-        price,
-        description,
-        isSpecial,
-        dietary,
-        tags, // Frontend sends an array
-        categoryId,
-        is_available,
-        food_image_url
+      name,
+      price,
+      description,
+      isSpecial,
+      dietary,
+      tags, // This is a single string, null, or undefined
+      categoryId,
+      is_available,
+      food_image_url,
     } = req.body;
 
     const dataToUpdate: any = {};
 
-    // Build the data object with only the fields that are provided in the request
     if (name !== undefined) dataToUpdate.name = name;
     if (price !== undefined) dataToUpdate.price = Number(price);
     if (description !== undefined) dataToUpdate.description = description;
     if (isSpecial !== undefined) dataToUpdate.isSpecial = isSpecial;
     if (dietary !== undefined) dataToUpdate.dietary = dietary;
-    
-    // ✨ FIX: Handle single tag update to match the schema.
-    if (tags !== undefined) {
-        // If an empty array or null is passed, set the tag to null. Otherwise, take the first element.
-        dataToUpdate.tags = tags && tags.length > 0 ? tags[0] : null;
-    }
-
     if (categoryId !== undefined) dataToUpdate.categoryId = Number(categoryId);
     if (is_available !== undefined) dataToUpdate.is_available = is_available;
-    if (food_image_url !== undefined) dataToUpdate.food_image_url = food_image_url;
+    if (food_image_url !== undefined)
+      dataToUpdate.food_image_url = food_image_url;
+
+    // ✅ FIX: Directly assign the tag if it exists. Prisma handles 'null' or 'undefined' correctly.
+    if (tags !== undefined) {
+      dataToUpdate.tags = tags;
+    }
 
     const updatedItem = await prisma.menuItem.update({
       where: { id: Number(itemId) },
@@ -642,7 +638,8 @@ export const updateMenuItem = async (req: Request, res: Response) => {
     console.error("❌ Error in updateMenuItem:", err.message || err);
     return res.status(500).json({ message: "🚨 Failed to update menu item." });
   }
-};
+  
+}
 
 
 
