@@ -22,6 +22,11 @@ const generateMenuExtractionPrompt = (menuText: string): string => {
     if it is panner that means it is veg, if it is mention chicken, fish, egg, meat, beef, pork, mutton, lamb then it is non_veg.
     other wise it is veg. always make it veg if not sure.
 
+    DO This to make input more better:
+    Fix spelling mistakes, remove extra spaces, and ensure proper capitalization.
+    make description good and simple english tell about this dish arount 80-100 text length.
+    
+
     Example Format:
     {
       "categories": [
