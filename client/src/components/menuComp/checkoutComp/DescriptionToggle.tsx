@@ -11,6 +11,8 @@ export default function DescriptionToggle({
   text,
   maxLines = 2,
 }: DescriptionToggleProps) {
+
+  
   const [expanded, setExpanded] = useState(false);
   const isLong = text.length > 90;
 

@@ -26,7 +26,7 @@ export interface MenuItem {
   food_image_url?: string;
   rating: number;
   dietary: DietaryType;
-  tags: string[];
+  tags: string;
   isSpecial?: boolean;
 }
 
@@ -71,7 +71,7 @@ export interface BillData {
       description?: string;
       rating?: number;
       dietary?: DietaryType;
-      tags?: string[];
+      tags?: string;
       isSpecial?: boolean;
     };
     quantity: number;

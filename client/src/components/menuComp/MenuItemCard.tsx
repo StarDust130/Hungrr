@@ -23,12 +23,11 @@ const MenuItemCard = ({ item }: { item: MenuItem }) => {
           <h3 className="text-lg flex items-center justify-start gap-2 font-bold text-gray-900 dark:text-white mt-1.5">
             {item.dietary && <DietaryIcon type={item.dietary} />} {item.name}
           </h3>
-          <DescriptionToggle text={item.description} />
-          {item.tags && item.tags.length > 0 && (
+          {item.description && <DescriptionToggle text={item.description} />}
+
+          {item.tags && (
             <div className="flex flex-wrap gap-2 mt-3">
-              {item.tags.map((tag) => (
-                <TagBadge key={tag} tag={tag} />
-              ))}
+              <TagBadge  tag={item.tags} />
             </div>
           )}
           <p className="text-base font-semibold text-gray-800 dark:text-gray-200 mt-4">
