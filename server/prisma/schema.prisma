@@ -49,13 +49,13 @@ model MenuItem {
   id             Int       @id @default(autoincrement())
   cafeId         Int
   categoryId     Int
-  name           String   @db.VarChar(100) // See it in Frontend No more that 17 characters
+  name           String   @db.VarChar(17) // See it in Frontend No more that 17 characters
   description    String?
   isSpecial      Boolean   @default(false)
   food_image_url String?
   price          Decimal
   dietary        Dietary?
-  tags           String[]  @db.VarChar(50) 
+  tags           ItemTag[] 
   is_available   Boolean   @default(true)
   is_active      Boolean   @default(true)
 
@@ -126,4 +126,16 @@ enum OrderStatus {
   ready
   completed
 
+}
+
+enum ItemTag {
+  Spicy
+  Sweet
+  Bestseller
+  Chefs_Special // Enums cannot have spaces
+  Healthy
+  Popular
+  New
+  Jain_Food
+  Signature_Dish
 }
