@@ -31,18 +31,18 @@ const tagStyles: Record<
   [ItemTag.Spicy]: {
     color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
     icon: <Flame size={16} className="mr-1" />,
-    label: "Spicy",
+    label: "Spicy AF",
   },
   [ItemTag.Sweet]: {
     color: "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300",
     icon: <Candy size={16} className="mr-1" />,
-    label: "Sweet",
+    label: "Sweet Delight",
   },
   [ItemTag.Bestseller]: {
     color:
       "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
     icon: <ThumbsUp size={16} className="mr-1" />,
-    label: "Bestseller",
+    label: "Bestseller ",
   },
   [ItemTag.Chefs_Special]: {
     color:

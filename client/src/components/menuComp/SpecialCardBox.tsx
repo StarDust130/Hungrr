@@ -14,7 +14,7 @@ const SpecialCardBox = ({ items, show }: Props) => {
     <section className="py-6">
       <SpecialLabel />
       <div
-        className="flex overflow-x-auto gap-4 scrollbar-hide px-4 pt-4"
+        className="flex overflow-x-auto gap-4 scrollbar-hide px-2 pt-1"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         {items.map((item) => (

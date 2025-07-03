@@ -20,7 +20,7 @@ const SpecialLabel = () => {
 
 
   return (
-    <p className="text-2xl md:text-4xl font-bold tracking-tight text-start-foreground mb-6">
+    <p className="text-2xl md:text-4xl font-bold tracking-tight text-start-foreground mb-2">
       {fullLabel}
     </p>
   );
