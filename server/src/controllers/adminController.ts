@@ -113,6 +113,8 @@ export const createCafe = async (req: Request, res: Response) => {
       reviews,
       gstPercentage,
       gstNo,
+      isPureVeg,
+      instaID,
     } = req.body;
 
     // 2️⃣ Validate required fields
@@ -166,6 +168,8 @@ export const createCafe = async (req: Request, res: Response) => {
         reviews: reviews || 969,
         gstPercentage: gstPercentage || 5,
         gstNo,
+        isPureVeg,
+        instaID,
         isOnboarded: true, // mark onboarding as complete
       },
     });
