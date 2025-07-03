@@ -7,7 +7,7 @@ import DescriptionToggle from "./checkoutComp/DescriptionToggle";
 
 const NoImageMenuCard = ({ item }: { item: MenuItem }) => {
   return (
-    <article className="border-b border-gray-200 dark:border-gray-800 last:border-b-0 border-dashed py-4">
+    <article className="border-b border-gray-500  last:border-b-0 border-dashed py-4">
       <div className="flex items-center justify-between gap-4">
         {/* Left Content */}
         <div className="flex flex-col gap-1">
