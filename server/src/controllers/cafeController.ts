@@ -26,6 +26,7 @@ export const getCafeInfoBySlug = async (
         instaID: true,
         isPureVeg: true,
         openingTime: true,
+        gstPercentage: true,
       },
     });
 

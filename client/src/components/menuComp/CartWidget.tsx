@@ -24,9 +24,10 @@ const CartWidget = () => {
     setIsClient(true);
   }, []);
 
+
   // 1. On the server, isClient is false, so we return null.
   // 2. On the client, we wait for isClient to be true AND totalItems > 0 before rendering.
-  if (!isClient || totalItems === 0) {
+  if (!isClient || totalItems === 0 ) {
     return null;
   }
 

@@ -48,6 +48,7 @@ const CheckoutPage = () => {
       typeof cartItem.quantity === "number"
   );
 
+
   const gstRate = 0.18;
   const gstAmount = totalPrice * gstRate;
   const grandTotal = totalPrice + gstAmount;
@@ -171,7 +172,7 @@ const CheckoutPage = () => {
               variant="secondary"
               className="font-bold h-12 text-base rounded-xl"
               onClick={() => handlePlaceOrder("counter")}
-              disabled={isLoading}
+              disabled={isLoading || !tableNo}
             >
               <Wallet size={20} className="mr-2.5" />
               Pay at Counter
@@ -180,7 +181,7 @@ const CheckoutPage = () => {
               size="default"
               className="font-bold h-12 text-base rounded-xl"
               onClick={() => handlePlaceOrder("online")}
-              disabled={isLoading}
+              disabled={isLoading || !tableNo}
             >
               <CreditCard size={20} className="mr-2.5" />
               Pay Online
