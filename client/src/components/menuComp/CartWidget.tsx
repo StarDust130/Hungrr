@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/drawer";
 import CheckoutPage from "./CheckoutPage";
 import { Button } from "@/components/ui/button";
+import { GST_CALCULATION } from "@/lib/helper";
+
 
 const CartWidget = () => {
   const { totalItems, totalPrice } = useCart();
@@ -34,9 +36,7 @@ const CartWidget = () => {
   // This check prevents errors if totalPrice is somehow not a number.
   const isPriceValid = typeof totalPrice === "number";
 
-  const gstRate = 0.18;
-  const gstAmount = totalPrice * gstRate;
-  const grandTotal = totalPrice + gstAmount;
+  const {  grandTotal } = GST_CALCULATION(totalPrice);
 
 
     return (

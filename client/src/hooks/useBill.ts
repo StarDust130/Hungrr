@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { BillData } from "@/types/menu";
-import { log } from "@/lib/helper";
+import { GST_CALCULATION, log } from "@/lib/helper";
 
 // The hook now accepts a single publicId string
 export function useBill(publicId: string | null) {
@@ -35,8 +35,7 @@ export function useBill(publicId: string | null) {
 
         // Transform the backend order into the frontend BillData type
         const totalPrice = Number(order.total_price);
-        const gstAmount = Number((totalPrice * 0.18).toFixed(2));
-        const grandTotal = totalPrice + gstAmount;
+        const { gstAmount, grandTotal } = GST_CALCULATION(totalPrice);
 
         const billData: BillData = {
           id: order.id,

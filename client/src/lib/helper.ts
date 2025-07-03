@@ -41,3 +41,11 @@ export function DateFormat(
         };
   return d.toLocaleString("en-IN", options);
 }
+
+export const GST_CALCULATION = (amount: number): { gstAmount: number; grandTotal: number } => {
+  const gstPercentage = Number(localStorage.getItem("gstPercentage")) || 18;
+  const rate = gstPercentage / 100;
+  const gstAmount = Number((amount * rate).toFixed(2));
+  const grandTotal = Number((amount + gstAmount).toFixed(2));
+  return { gstAmount, grandTotal };
+};

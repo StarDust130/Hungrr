@@ -17,7 +17,7 @@ import OrderTypeSelector from "./checkoutComp/OrderTypeSelector";
 import TableSelector from "./checkoutComp/TableSelector";
 import { toast } from "sonner";
 import { useSessionToken } from "@/hooks/useSessionToken";
-import { log } from "@/lib/helper";
+import { GST_CALCULATION, log } from "@/lib/helper";
 
 const CheckoutPage = () => {
   const sessionToken = useSessionToken();
@@ -49,16 +49,15 @@ const CheckoutPage = () => {
   );
 
 
-  const gstRate = 0.18;
-  const gstAmount = totalPrice * gstRate;
-  const grandTotal = totalPrice + gstAmount;
+  const { gstAmount, grandTotal } = GST_CALCULATION(totalPrice);
+ 
 
   type OrderStatus = "idle" | "placing" | "confirmed" | "error";
 
-  if (!sessionToken) {
-    alert("⚠️ Please  refresh the page to continue.");
-    return;
-  }
+  // if (!sessionToken) {
+  //   alert("⚠️ Please  refresh the page to continue.");
+  //   return;
+  // }
 
   //! ✅ This function is now cleaner and more robust.
   const handlePlaceOrder = async (paymentMethod: "counter" | "online") => {
