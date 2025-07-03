@@ -2,7 +2,6 @@
 import { PDFBuilder } from "@/lib/PDFBuilder";
 import { BillData } from "@/types/menu";
 import QRCode from "qrcode";
-import { toast } from "sonner";
 
 // Helper function to fetch an image and convert it to a Base64 Data URL
 const getImageAsDataUrl = (url: string): Promise<string> => {
@@ -56,7 +55,7 @@ const generatePdf = async ({ bill }: { bill: BillData }) => {
     builder.save();
   } catch (error) {
     console.error("A critical error occurred while generating the PDF:", error);
-    toast.error("Sorry, there was an error creating your bill PDF.");
+    alert("Sorry, there was an error creating your bill PDF.");
   }
 };
 
