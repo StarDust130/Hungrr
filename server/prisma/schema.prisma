@@ -17,6 +17,7 @@ model Cafe {
   logoUrl       String
   bannerUrl     String
   payment_url   String
+  isPureVeg     Boolean?    @default(false) // ✅ Flag to indicate if the cafe is pure veg
   address       String
   ipAddress     String? // to storing IP address 
   isOnboarded   Boolean    @default(false) // ✅ One-time onboarding flag 
