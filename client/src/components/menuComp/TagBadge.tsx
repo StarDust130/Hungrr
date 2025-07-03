@@ -2,14 +2,14 @@ import { JSX, useMemo } from "react";
 import {
   Flame,
   Candy,
-  Star,
   ChefHat,
   HeartPulse,
   TrendingUp,
   Sparkles,
   Leaf,
-  Medal,
   Tag as TagIcon,
+  ThumbsUp,
+  Wand2,
 } from "lucide-react";
 
 export enum ItemTag {
@@ -29,58 +29,58 @@ const tagStyles: Record<
   { color: string; icon: JSX.Element; label: string }
 > = {
   [ItemTag.Spicy]: {
-    color: "bg-red-100 text-red-900 dark:bg-red-900/30 dark:text-red-300",
+    color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
     icon: <Flame size={16} className="mr-1" />,
     label: "Spicy",
   },
   [ItemTag.Sweet]: {
-    color: "bg-pink-100 text-pink-900 dark:bg-pink-900/30 dark:text-pink-300",
+    color: "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300",
     icon: <Candy size={16} className="mr-1" />,
     label: "Sweet",
   },
   [ItemTag.Bestseller]: {
     color:
-      "bg-yellow-100 text-yellow-900 dark:bg-yellow-900/30 dark:text-yellow-300",
-    icon: <Star size={16} className="mr-1" />,
+      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+    icon: <ThumbsUp size={16} className="mr-1" />,
     label: "Bestseller",
   },
   [ItemTag.Chefs_Special]: {
     color:
-      "bg-orange-100 text-orange-900 dark:bg-orange-900/30 dark:text-orange-300",
+      "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
     icon: <ChefHat size={16} className="mr-1" />,
     label: "Chef's Special",
   },
   [ItemTag.Healthy]: {
     color:
-      "bg-green-100 text-green-900 dark:bg-green-900/30 dark:text-green-300",
+      "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
     icon: <HeartPulse size={16} className="mr-1" />,
     label: "Healthy",
   },
   [ItemTag.Popular]: {
-    color: "bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-300",
+    color: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300",
     icon: <TrendingUp size={16} className="mr-1" />,
     label: "Popular",
   },
   [ItemTag.New]: {
     color:
-      "bg-purple-100 text-purple-900 dark:bg-purple-900/30 dark:text-purple-300",
+      "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
     icon: <Sparkles size={16} className="mr-1" />,
     label: "New",
   },
   [ItemTag.Jain_Food]: {
-    color: "bg-lime-100 text-lime-900 dark:bg-lime-900/30 dark:text-lime-300",
+    color: "bg-lime-100 text-lime-800 dark:bg-lime-900/30 dark:text-lime-300",
     icon: <Leaf size={16} className="mr-1" />,
     label: "Jain Special",
   },
   [ItemTag.Signature_Dish]: {
-    color: "bg-teal-100 text-teal-900 dark:bg-teal-900/30 dark:text-teal-300",
-    icon: <Medal size={16} className="mr-1" />,
+    color:
+      "bg-gradient-to-r from-teal-100 to-indigo-100 text-indigo-900 dark:from-teal-800/30 dark:to-indigo-800/30 dark:text-indigo-300",
+    icon: <Wand2 size={16} className="mr-1" />,
     label: "Signature Dish",
   },
 };
 
 const TagBadge = ({ tag }: { tag?: string }) => {
-  // Ensure tagKey is of type ItemTag or undefined
   const tagKey = Object.values(ItemTag).includes(tag as ItemTag)
     ? (tag as ItemTag)
     : undefined;
@@ -97,7 +97,7 @@ const TagBadge = ({ tag }: { tag?: string }) => {
 
   return (
     <span
-      className={`inline-flex items-center px-3 py-1 mb-1 mr-2 text-xs font-semibold rounded-full shadow-sm ring-1 ring-black/5 dark:ring-white/10 transition-all duration-200 hover:scale-105 hover:ring-opacity-40 ${color}`}
+      className={`inline-flex items-center px-3 py-1 mb-1 mr-2 text-xs font-medium rounded-full transition-all duration-200 hover:scale-105 ring-1 ring-black/5 dark:ring-white/10 ${color}`}
       style={{ letterSpacing: "0.03em" }}
     >
       {icon}
