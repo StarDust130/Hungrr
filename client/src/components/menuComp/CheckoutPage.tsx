@@ -56,9 +56,7 @@ const CheckoutPage = () => {
   type OrderStatus = "idle" | "placing" | "confirmed" | "error";
 
   if (!sessionToken) {
-    toast.error(
-      "Error: Session token is missing. Please refresh the page.  "
-    );
+    alert("⚠️ Please log in or refresh the page to continue.");
     return;
   }
 
@@ -72,7 +70,7 @@ const CheckoutPage = () => {
     // Add a check to make sure the cafeId has been set
     if (!cafeId) {
       alert(
-        "Error: Cafe information is missing. Please refresh the page."
+        "🚫 Error: Cafe information is missing! Please refresh the page to continue. 🏪🔄"
       );
       return;
     }
