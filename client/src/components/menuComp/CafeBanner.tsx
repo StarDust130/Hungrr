@@ -17,7 +17,8 @@ interface Cafe {
 const CafeBanner = ({ cafe }: { cafe: Cafe }) => (
   log("CafeBanner", cafe),
   (
-    <div className="relative w-full h-60 md:h-80 rounded-b-md overflow-hidden shadow-md">
+    <div className="relative w-full h-60 md:h-80 rounded-b-md overflow-hidden">
+      {/* Banner Image */}
       {cafe.bannerUrl && (
         <Image
           src={cafe.bannerUrl}
@@ -28,20 +29,20 @@ const CafeBanner = ({ cafe }: { cafe: Cafe }) => (
         />
       )}
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent" />
+      {/* Gradient Overlay for Contrast */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
-      {/* Content */}
-      <div className="absolute bottom-0 w-full px-5 py-6 flex flex-col gap-1 z-10 shadow-lg">
-        <h1 className="text-white text-2xl sm:text-3xl font-bold leading-snug tracking-tight drop-shadow-md">
+      {/* Text Content */}
+      <div className="absolute bottom-0 w-full px-5 py-6 flex flex-col gap-1 z-10">
+        <h1 className="text-white text-2xl sm:text-3xl font-bold leading-snug tracking-tight">
           {cafe.name}
         </h1>
-        <p className="text-white/90 text-sm sm:text-base font-medium leading-tight shadow-lg">
+        <p className="text-white/90 text-sm sm:text-base font-medium leading-tight">
           {cafe.tagline}
         </p>
 
-        <div className="flex flex-wrap items-center gap-4 mt-3 text-white text-xs sm:text-sm font-medium shadow-lg">
-          {/* Veg Icon */}
+        <div className="flex flex-wrap items-center gap-4 mt-3 text-white text-xs sm:text-sm font-medium">
+          {/* Pure Veg */}
           {cafe.isPureVeg && (
             <div className="flex items-center gap-1.5">
               <DietaryIcon type="veg" />
@@ -51,7 +52,7 @@ const CafeBanner = ({ cafe }: { cafe: Cafe }) => (
 
           {/* Opening Time */}
           {cafe.openingTime && (
-            <div className="flex items-center gap-1.5 shadow-xl">
+            <div className="flex items-center gap-1.5">
               <Clock size={16} className="text-white/70" />
               <span>{cafe.openingTime}</span>
             </div>
@@ -120,9 +121,9 @@ const CafeBanner = ({ cafe }: { cafe: Cafe }) => (
                 href={`https://instagram.com/${cafe.instaID}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className=" hover:text-white"
+                className="hover:underline hover:text-white/90"
               >
-                Follow us @{cafe.instaID}
+              Follow us  @{cafe.instaID}
               </Link>
             </div>
           )}
