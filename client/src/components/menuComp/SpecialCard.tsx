@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import AddToCartButton from "./AddToCartButton";
 import SafeImage from "../elements/SafeImage";
 import { MenuItem } from "@/types/menu";
@@ -6,42 +7,51 @@ import DietaryIcon from "./DietaryIcon";
 import DescriptionToggle from "./checkoutComp/DescriptionToggle";
 
 const SpecialCard = ({ item }: { item: MenuItem }) => {
+  // ✅ Memoize the inflated price so it doesn’t change on every render
+  const inflatedPrice = useMemo(() => {
+    const percentage = Math.random() < 0.5 ? 10 : 20;
+    return Math.round((item.price * (1 + percentage / 100)) / 10) * 10;
+  }, [item.price]);
+
   return (
-    <div className="relative w-52 rounded-2xl border border-zinc-300/20 dark:border-white/10 transition-all duration-300 hover:scale-[1.03] hover:shadow-xl overflow-hidden flex flex-col">
-      {/* Must Try Badge */}
+    <div className="group relative w-60 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02] flex flex-col">
       {item.isSpecial && (
-        <div className="absolute top-2 left-2  flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold uppercase rounded-full border border-yellow-400 text-yellow-800 bg-yellow-100 dark:text-yellow-200 dark:bg-yellow-800/30 backdrop-blur">
+        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold uppercase rounded-full border border-yellow-400 text-yellow-800 bg-yellow-100 dark:text-yellow-200 dark:bg-yellow-800/30 backdrop-blur">
           <Sparkles className="w-3 h-3" />
           Must Try
         </div>
       )}
 
-      {/* Image */}
-      <div className="w-full h-36 md:h-32 overflow-hidden rounded-t-2xl">
+      <div className="w-full h-36 overflow-hidden ">
         <SafeImage
           src={item.food_image_url ?? ""}
           alt={item.name}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
       </div>
 
-      {/* Content (40%) */}
-      <div className="flex flex-col justify-between px-3 pt-3 pb-4 flex-1">
-        <div className="space-y-0.5">
-          <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+      <div className="flex flex-col justify-between flex-1 px-4 pt-3 pb-4 space-y-3">
+        <div className="space-y-1 min-h-[84px]">
+          <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
             {item.dietary && <DietaryIcon type={item.dietary} />} {item.name}
           </h3>
           {item.description && <DescriptionToggle text={item.description} />}
-            <div className="flex items-center gap-2 mt-3">
-            ₹{item.price}
-           
-            </div>
-            
         </div>
 
-        {/* Add to Cart */}
-        <div className="mt-3">
-          <AddToCartButton item={item} className="w-full text-sm" />
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm line-through text-zinc-400 dark:text-zinc-500">
+              ₹{inflatedPrice}
+            </span>
+            <span className="text-xl font-bold text-zinc-900 dark:text-white tracking-wide">
+              ₹{item.price}
+            </span>
+          </div>
+
+          <AddToCartButton
+            item={item}
+            className="w-full text-sm transition-all duration-300 hover:scale-[1.015]"
+          />
         </div>
       </div>
     </div>
