@@ -2,7 +2,6 @@ import jsPDF from "jspdf";
 import { BillData } from "@/types/menu";
 import { DateFormat } from "./helper";
 
-
 const STYLING = {
   fontColorNormal: "#1f2937",
   fontColorLight: "#6b7280",
@@ -49,7 +48,8 @@ export class PDFBuilder {
   drawHeader(logoDataUrl?: string) {
     if (logoDataUrl) {
       try {
-        const logoDim = { width: 18, height: 18 };
+        // ✅ LOGO SIZE INCREASED SIGNIFICANTLY HERE
+        const logoDim = { width: 40, height: 40 }; //! Change this to adjust logo size
         const logoX = this.margin + this.pageWidth / 2 - logoDim.width / 2;
         this.doc.addImage(
           logoDataUrl,
@@ -59,7 +59,7 @@ export class PDFBuilder {
           logoDim.width,
           logoDim.height
         );
-        this.y += logoDim.height + 4;
+        this.y += logoDim.height + 1;
       } catch (e) {
         console.error("Failed to add logo image.", e);
       }
@@ -69,9 +69,14 @@ export class PDFBuilder {
       .setFont("helvetica", "bold")
       .setFontSize(12)
       .setTextColor(STYLING.fontColorNormal);
-    this.doc.text(this.bill.cafeName!, this.margin + this.pageWidth / 2, this.y, {
-      align: "center",
-    });
+    this.doc.text(
+      this.bill.cafeName!,
+      this.margin + this.pageWidth / 2,
+      this.y,
+      {
+        align: "center",
+      }
+    );
     this.y += this.lineSpacing;
     this.doc
       .setFont("helvetica", "normal")
@@ -203,12 +208,9 @@ export class PDFBuilder {
     });
   }
 
-  // --- CHANGE: This method is updated to remove "Amount in Words" and resize the QR code. ---
   drawFooter(qrCodeDataUrl: string) {
-    // Add some space after the totals.
     this.y += this.lineSpacing;
 
-    // QR code size reduced.
     const qrSize = 22;
     const qrX = this.margin + this.pageWidth / 2 - qrSize / 2;
     this.doc.addImage(qrCodeDataUrl, "PNG", qrX, this.y, qrSize, qrSize);
@@ -238,7 +240,9 @@ export class PDFBuilder {
 
   save() {
     this.doc.save(
-      `${this.bill.cafeName} Bill ${DateFormat(new Date().toLocaleDateString()) }.pdf`
+      `${this.bill.cafeName} Bill ${DateFormat(
+        new Date().toLocaleDateString()
+      )}.pdf`
     );
   }
 }
