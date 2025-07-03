@@ -19,6 +19,14 @@ export const getCafeInfoBySlug = async (
         slug,
         is_active: true,
       },
+      select: { 
+        bannerUrl: true,
+        name: true,
+        tagline: true,
+        instaID: true,
+        isPureVeg: true,
+        openingTime: true,
+      },
     });
 
     if (!cafe) {
