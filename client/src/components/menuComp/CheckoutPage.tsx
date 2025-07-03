@@ -56,7 +56,7 @@ const CheckoutPage = () => {
   type OrderStatus = "idle" | "placing" | "confirmed" | "error";
 
   if (!sessionToken) {
-    alert("⚠️ Please log in or refresh the page to continue.");
+    alert("⚠️ Please  refresh the page to continue.");
     return;
   }
 
