@@ -207,15 +207,27 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
   } // ⛔️ Prevent SSR rendering
 
   return (
-    <div className="font-sans bg-background text-foreground min-h-screen">
-      <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+<div className="font-sans bg-background text-foreground min-h-screen">
+  {/* ✅ Sticky Header with Search + Menu */}
+  <div className="sticky top-0 z-30 w-full bg-background/80 backdrop-blur-md border-b border-border">
+    <div className="flex items-center  px-3">
+      {/* SearchBar: 80% */}
+      <div className="flex-1">
+        <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      </div>
 
-      <CategoryNav
-        categories={visibleCategories}
-        activeCategory={activeCategory}
-        scrollToCategory={scrollToCategory}
-        navRef={navRef}
-      />
+      {/* CategoryNav: 20% */}
+      <div className="w-auto mr-1">
+        <CategoryNav
+          categories={visibleCategories}
+          activeCategory={activeCategory}
+          scrollToCategory={scrollToCategory}
+          navRef={navRef}
+        />
+      </div>
+      </div>
+      </div>
+
 
       <main className="max-w-4xl mx-auto px-4 pb-32">
         <AnimatePresence>

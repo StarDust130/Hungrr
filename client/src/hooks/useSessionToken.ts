@@ -15,7 +15,7 @@ export const useSessionToken = (): string | null => {
     let sessionToken = localStorage.getItem(TOKEN_KEY);
 
     if (!sessionToken) {
-      sessionToken = crypto.randomUUID();
+      sessionToken = Date.now().toString(36) + Math.random().toString(36).substring(2);
       localStorage.setItem(TOKEN_KEY, sessionToken);
     }
 
