@@ -8,30 +8,31 @@ datasource db {
 }
 
 model Cafe {
-  id              Int        @id @default(autoincrement())
-  owner_id        String     @unique // ✅ One cafe per owner
-  name            String
-  slug            String     @unique
-  tagline         String?
-  openingTime     String?
-  logoUrl         String
-  bannerUrl       String
-  payment_url     String
-  address         String
-  ipAddress       String? // to storing IP address 
-  isOnboarded     Boolean    @default(false) // ✅ One-time onboarding flag 
-  gstNo           String?    @db.VarChar(15) @unique
-  gstPercentage   Int?       @default(5) // GST rate (e.g., 5 or 18) applied to items in this cafe
-  phone           String     @db.VarChar(15) @unique
-  email           String     @db.VarChar(100) @unique
-  rating          Decimal?   @default(4.7)
-  reviews         Int?       @default(969)
-  is_active       Boolean    @default(true)
-  created_at      DateTime   @default(now())
-  updated_at      DateTime   @updatedAt
-  categories      Category[]
-  menu_items      MenuItem[]
-  orders          Order[]
+  id            Int        @id @default(autoincrement())
+  owner_id      String     @unique // ✅ One cafe per owner
+  name          String
+  slug          String     @unique
+  tagline       String?
+  openingTime   String?
+  logoUrl       String
+  bannerUrl     String
+  payment_url   String
+  address       String
+  ipAddress     String? // to storing IP address 
+  isOnboarded   Boolean    @default(false) // ✅ One-time onboarding flag 
+  gstNo         String?    @unique @db.VarChar(15)
+  gstPercentage Int?       @default(5) // GST rate (e.g., 5 or 18) applied to items in this cafe
+  phone         String      @db.VarChar(15)
+  email         String      @db.VarChar(100)
+  instaID       String? 
+  rating        Decimal?   @default(4.7)
+  reviews       Int?       @default(969)
+  is_active     Boolean    @default(true)
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+  categories    Category[]
+  menu_items    MenuItem[]
+  orders        Order[]
 }
 
 model Category {
@@ -45,45 +46,44 @@ model Category {
 }
 
 model MenuItem {
-  id             Int        @id @default(autoincrement())
+  id             Int         @id @default(autoincrement())
   cafeId         Int
   categoryId     Int
-  name           String     @db.VarChar(100) // See it in Frontend No more that 17 characters
+  name           String      @db.VarChar(100) // See it in Frontend No more that 17 characters
   description    String?
-  isSpecial      Boolean    @default(false)
+  isSpecial      Boolean     @default(false)
   food_image_url String?
   price          Decimal
   dietary        Dietary?
   // ✨ FIX: Changed back to an array of tags. This is the correct model for allowing multiple tags.
   tags           ItemTag?
-  is_available   Boolean    @default(true)
-  is_active      Boolean    @default(true)
-  cafe           Cafe       @relation(fields: [cafeId], references: [id])
-  category       Category?  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  is_available   Boolean     @default(true)
+  is_active      Boolean     @default(true)
+  cafe           Cafe        @relation(fields: [cafeId], references: [id])
+  category       Category?   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   order_items    OrderItem[]
 }
 
 model Order {
-  id                  Int             @id @default(autoincrement())
-  publicId            String          @unique @default(cuid()) // CUID is a great default for unguessable IDs
+  id                  Int           @id @default(autoincrement())
+  publicId            String        @unique @default(cuid()) // CUID is a great default for unguessable IDs
   tableNo             Int
   cafeId              Int
-  payment_method      PaymentMethod   @default(counter)
-  status              OrderStatus     @default(pending)
-  total_price         Decimal         @default(0.00)
-  paid                Boolean         @default(false)
-  specialInstructions String?         @db.VarChar(500)
-  orderType           String?         @db.VarChar(50) // dine-in, takeaway
+  payment_method      PaymentMethod @default(counter)
+  status              OrderStatus   @default(pending)
+  total_price         Decimal       @default(0.00)
+  paid                Boolean       @default(false)
+  specialInstructions String?       @db.VarChar(500)
+  orderType           String?       @db.VarChar(50) // dine-in, takeaway
   sessionToken        String
-  created_at          DateTime        @default(now())
-  updated_at          DateTime        @updatedAt
-  cafe                Cafe            @relation(fields: [cafeId], references: [id])
+  created_at          DateTime      @default(now())
+  updated_at          DateTime      @updatedAt
+  cafe                Cafe          @relation(fields: [cafeId], references: [id])
   order_items         OrderItem[]
   bill                Bill?
 
   @@index([sessionToken])
 }
-
 
 model OrderItem {
   id       Int      @id @default(autoincrement())
