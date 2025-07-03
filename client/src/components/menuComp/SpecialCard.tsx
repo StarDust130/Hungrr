@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import AddToCartButton from "./AddToCartButton";
 import SafeImage from "../elements/SafeImage";
 import { MenuItem } from "@/types/menu";
@@ -7,11 +6,6 @@ import DietaryIcon from "./DietaryIcon";
 import DescriptionToggle from "./checkoutComp/DescriptionToggle";
 
 const SpecialCard = ({ item }: { item: MenuItem }) => {
-  // ✅ Memoize the inflated price so it doesn’t change on every render
-  const inflatedPrice = useMemo(() => {
-    const percentage = Math.random() < 0.5 ? 10 : 20;
-    return Math.round((item.price * (1 + percentage / 100)) / 10) * 10;
-  }, [item.price]);
 
   return (
     <div className="group relative w-60 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02] flex flex-col">
@@ -40,9 +34,6 @@ const SpecialCard = ({ item }: { item: MenuItem }) => {
 
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span className="text-sm line-through text-zinc-400 dark:text-zinc-500">
-              ₹{inflatedPrice}
-            </span>
             <span className="text-xl font-bold text-zinc-900 dark:text-white tracking-wide">
               ₹{item.price}
             </span>
