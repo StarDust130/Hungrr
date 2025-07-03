@@ -20,6 +20,9 @@ export const getCafeInfoBySlug = async (
         is_active: true,
       },
       select: { 
+        id: true,
+        slug: true,
+        
         bannerUrl: true,
         name: true,
         tagline: true,

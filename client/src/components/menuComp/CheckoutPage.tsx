@@ -62,7 +62,7 @@ const CheckoutPage = () => {
     return;
   }
 
-  // ✅ This function is now cleaner and more robust.
+  //! ✅ This function is now cleaner and more robust.
   const handlePlaceOrder = async (paymentMethod: "counter" | "online") => {
     // Prevent double-clicks
     if (orderStatus !== "idle") return;
@@ -71,7 +71,7 @@ const CheckoutPage = () => {
 
     // Add a check to make sure the cafeId has been set
     if (!cafeId) {
-      toast.error(
+      alert(
         "Error: Cafe information is missing. Please refresh the page."
       );
       return;
