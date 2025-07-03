@@ -28,7 +28,7 @@ const DietaryIcon = ({ type }: { type: MenuItem["dietary"] }) => {
 
   return (
     <div
-      className={`w-5 h-5 border ${style.borderColor} rounded-sm flex items-center justify-center`}
+      className={`w-5 h-5 border-2 ${style.borderColor} rounded-sm flex items-center justify-center`}
     >
       <div className={`w-2.5 h-2.5 ${style.bgColor} rounded-full`}></div>
     </div>
