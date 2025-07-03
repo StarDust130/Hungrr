@@ -14,9 +14,22 @@ const OrderNotFound = ({error}: {error: string}) => {
       <h1 className="text-xl font-bold ">Please place a new order. 😿</h1>
       <p className="text-xs text-red-600">{error}</p>
 
-      <Button className="flex gap-2 items-center" variant={"outline"} onClick={() => window.history.back()}>
-        <ArrowLeft /> Go Back
-      </Button>
+      <div className="flex gap-4 mt-2">
+        <Button
+          className="flex gap-2 items-center px-6 py-2 rounded-lg shadow hover:bg-gray-100 transition"
+          variant="outline"
+          onClick={() => window.history.back()}
+        >
+          <ArrowLeft /> Go Back
+        </Button>
+        <Button
+          className="flex gap-2 items-center px-6 py-2 rounded-lg shadow "
+          variant="default"
+          onClick={() => window.location.reload()}
+        >
+          Try Again
+        </Button>
+      </div>
     </div>
   );
 }

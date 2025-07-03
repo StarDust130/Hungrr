@@ -49,7 +49,7 @@ export class PDFBuilder {
     if (logoDataUrl) {
       try {
         // ✅ LOGO SIZE INCREASED SIGNIFICANTLY HERE
-        const logoDim = { width: 40, height: 40 }; //! Change this to adjust logo size
+        const logoDim = { width: 20, height: 20 };
         const logoX = this.margin + this.pageWidth / 2 - logoDim.width / 2;
         this.doc.addImage(
           logoDataUrl,
