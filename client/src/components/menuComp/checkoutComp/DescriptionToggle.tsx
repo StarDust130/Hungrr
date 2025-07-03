@@ -14,11 +14,11 @@ export default function DescriptionToggle({
 
   
   const [expanded, setExpanded] = useState(false);
-  const isLong = text.length > 90;
+  const isLong = text.length > 80;
 
   return (
     <div className="text-sm  mt-1">
-      <p className={expanded ? "" : `line-clamp-${maxLines}`}>{text}</p>
+      <p className={isLong && !expanded ? `line-clamp-${maxLines}` : ""}>{text}</p>
       {isLong && (
         <button
           onClick={() => setExpanded(!expanded)}
