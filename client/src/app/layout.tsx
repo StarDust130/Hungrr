@@ -31,21 +31,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-   
-      <html lang="en" suppressHydrationWarning>
-        <body className={`${caudex.variable} ${roboto.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${caudex.variable} ${roboto.variable} antialiased`}>
         <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <main className="flex min-h-screen flex-col w-full max-w-3xl mx-auto rounded-2xl border border-gray-500 border-dotted">
             <Navbar />
-          {children}
-          <Footer />
+            {children}
+            <Footer />
+          </main>
         </ThemeProvider>
-        </body>
-      </html>
-  
+      </body>
+    </html>
   );
 }
