@@ -37,13 +37,16 @@ model Cafe {
 }
 
 model Category {
-  id     Int        @id @default(autoincrement())
+  id     Int      @id @default(autoincrement())
   cafeId Int
   name   String
-  cafe   Cafe       @relation(fields: [cafeId], references: [id])
+  order  Int?     @default(0)
+
+  cafe   Cafe     @relation(fields: [cafeId], references: [id], onDelete: Cascade)
   items  MenuItem[]
 
   @@unique([cafeId, name])
+  @@index([cafeId, order]) // ✨ Add an index for faster ordering
 }
 
 model MenuItem {
