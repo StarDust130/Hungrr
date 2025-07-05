@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import prisma from "../config/prisma";
 import {  OrderStatus } from "../utils/types";
 import slugify from "slugify";
-import { startOfDay, startOfWeek, format } from "date-fns";
+import { startOfDay, startOfWeek, format, endOfDay, subDays } from "date-fns";
 import {  generateTodayAISummaryPrompt } from "../utils/dashboardSummaryPrompt";
 import { groq } from "../utils/groqClient";
 
@@ -234,207 +234,251 @@ export const updateCafe = async (req: Request, res: Response) => {
 
 
 //! 2) Order Management (Get all orders , updateOrderStatus) 🥘
+// Utility to build the date filtering clause for Prisma
+const getDateWhereClause = (range?: string, date?: string) => {
+  if (date) {
+    const startDate = startOfDay(new Date(date));
+    const endDate = endOfDay(new Date(date));
+    return { gte: startDate, lte: endDate };
+  }
 
-// 2.1️ Get All Orders for Admin Dashboard or Order Page
+  const now = new Date();
+  let gte;
+  if (range === "today") {
+    gte = startOfDay(now);
+  } else if (range === "week") {
+    gte = startOfDay(subDays(now, 6)); // Correctly includes today
+  } else if (range === "month") {
+    gte = startOfDay(subDays(now, 29)); // Correctly includes today
+  }
+
+  return gte ? { gte } : undefined;
+};
+
+/**
+ * @description Get Paginated and Filtered Orders for a Cafe
+ * @route GET /api/orders/cafe/:cafeId
+ */
+/**
+ * @description Get Paginated and Filtered Orders for a Cafe
+ * @route GET /api/orders/cafe/:cafeId
+ */
 export const getOrdersByCafe = async (req: Request, res: Response) => {
   try {
-    // 1️⃣ Extract cafeId and query params
     const { cafeId } = req.params;
-    const limit = parseInt(req.query.limit as string) || 10;
-    const page = parseInt(req.query.page as string) || 1;
-    const filter = req.query.filter as string; // 'today', 'week', 'month'
+    
+    // ✅ FIXED: Now correctly reading 'range' and 'date' from the query
+    const {
+      limit = "10",
+      page = "1",
+      search,
+      status,
+      range, // <-- Added
+      date,   // <-- Added
+    } = req.query as { [key: string]: string };
 
-    // 2️⃣ Validate cafeId
-    if (!cafeId) {
-      return res.status(400).json({
-        message: "🚫 Cafe ID is required in the URL.",
-      });
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    // --- Build the dynamic WHERE clause ---
+    const whereClause: any = { cafeId: Number(cafeId) };
+
+    // Text search filter
+    if (search) {
+      whereClause.publicId = { contains: search, mode: "insensitive" };
+    }
+    
+    // Status filter
+    if (status && status !== "all") {
+      whereClause.status = { equals: status };
     }
 
-    const skip = (page - 1) * limit;
-
-    // 3️⃣ Build date filter if applicable
-    let dateFilter = {};
-    const now = new Date();
-
-    if (filter === "today") {
-      const start = new Date(now);
-      start.setHours(0, 0, 0, 0);
-
-      const end = new Date(now);
-      end.setHours(23, 59, 59, 999);
-
-      dateFilter = {
-        created_at: {
-          gte: start,
-          lte: end,
-        },
-      };
+    // ✅ FIXED: Added the date filtering logic
+    if (range) {
+        const now = new Date();
+        let gte; // "greater than or equal to" date
+        if (range === "today") {
+            gte = startOfDay(now);
+        } else if (range === "week") {
+            gte = startOfDay(subDays(now, 6)); // Includes today + last 6 days
+        } else if (range === "month") {
+            gte = startOfDay(subDays(now, 29)); // Includes today + last 29 days
+        }
+        if (gte) {
+            whereClause.created_at = { gte };
+        }
+    } else if (date) {
+        // If a specific date is chosen, filter for that day only
+        const startDate = startOfDay(new Date(date));
+        const endDate = endOfDay(new Date(date));
+        whereClause.created_at = { gte: startDate, lte: endDate };
     }
 
-    if (filter === "week") {
-      const start = new Date(now);
-      start.setDate(start.getDate() - 6); // includes today
-      start.setHours(0, 0, 0, 0);
-
-      dateFilter = {
-        created_at: {
-          gte: start,
-          lte: now,
-        },
-      };
-    }
-
-    if (filter === "month") {
-      const start = new Date(now);
-      start.setDate(1); // first day of month
-      start.setHours(0, 0, 0, 0);
-
-      dateFilter = {
-        created_at: {
-          gte: start,
-          lte: now,
-        },
-      };
-    }
-
-    // 4️⃣ Fetch orders with filter + pagination
-    const [orders, totalCount] = await Promise.all([
+    // --- Fetch data from the database ---
+    const [orders, totalCount] = await prisma.$transaction([
       prisma.order.findMany({
-        where: {
-          cafeId: Number(cafeId),
-          ...dateFilter,
-        },
+        where: whereClause, // The whereClause now includes date filters
         orderBy: { created_at: "desc" },
         skip,
-        take: limit,
+        take: limitNum,
         select: {
           id: true,
           publicId: true,
           tableNo: true,
-          payment_method: true,
-          orderType: true,
           total_price: true,
-          paid: true,
           created_at: true,
           status: true,
         },
       }),
-      prisma.order.count({
-        where: {
-          cafeId: Number(cafeId),
-          ...dateFilter,
-        },
-      }),
+      prisma.order.count({ where: whereClause }),
     ]);
 
-    // 5️⃣ Respond with pagination and data
-    return res.status(200).json({
-      message: "✅ Orders fetched successfully!",
-      filter: filter || "all",
+    res.status(200).json({
+      message: "✅ Orders fetched successfully with filters!",
       pageInfo: {
-        currentPage: page,
-        limit,
+        currentPage: pageNum,
+        limit: limitNum,
         totalOrders: totalCount,
-        totalPages: Math.ceil(totalCount / limit),
+        totalPages: Math.ceil(totalCount / limitNum),
       },
       orders,
     });
-  } catch (err: any) {
-    console.error("❌ Error in getOrdersByCafe:", err.message || err);
-    return res.status(500).json({
-      message: "🚨 Server error while fetching orders.",
-    });
+  } catch (err) {
+    console.error("❌ Error in getOrdersByCafe:", err);
+    res.status(500).json({ message: "🚨 Server error." });
   }
 };
 
 
-// 2.2 Update Order Status (Socket io Live Status Show) 📦
+/**
+ * @description Get Full Details for a Single Order
+ * @route GET /api/order/:orderId/details
+ */
+export const getOrderDetails = async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.params;
+    const order = await prisma.order.findUnique({
+      where: { id: Number(orderId) },
+      include: {
+        order_items: {
+          select: {
+            quantity: true,
+            item: {
+              select: { name: true, price: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: "🚫 Order not found." });
+    }
+
+    res.status(200).json({ message: "✅ Order details fetched.", order });
+  } catch (err) {
+    console.error("❌ Error in getOrderDetails:", err);
+    res.status(500).json({ message: "🚨 Server error." });
+  }
+};
+
+/**
+ * @description Get Dashboard Statistics for a Cafe
+ * @route GET /api/stats/cafe/:cafeId
+ */
+export const getCafeStats = async (req: Request, res: Response) => {
+  try {
+    const { cafeId } = req.params;
+    const { range = "today", date } = req.query as { [key: string]: string };
+
+    const whereClause: any = { cafeId: Number(cafeId) };
+    const dateFilter = getDateWhereClause(range, date);
+    if (dateFilter) {
+      whereClause.created_at = dateFilter;
+    }
+
+    const [stats, statusCounts] = await prisma.$transaction([
+      prisma.order.aggregate({
+        _sum: { total_price: true },
+        _count: { id: true },
+        where: whereClause,
+      }),
+      prisma.order.groupBy({
+        by: ["status"],
+        where: whereClause,
+        _count: { status: true },
+        orderBy: undefined
+      }),
+    ]);
+
+    const totalRevenue = stats._sum.total_price?.toNumber() || 0;
+    const totalOrders = stats._count.id || 0;
+
+    const countsByStatus = statusCounts.reduce((acc, curr) => {
+      acc[curr.status] = curr._count?.status ?? 0;
+      return acc;
+    }, {} as Record<string, number>);
+
+    res.status(200).json({
+      message: "✅ Stats fetched successfully!",
+      stats: {
+        totalRevenue,
+        totalOrders,
+        averageOrderValue: totalOrders > 0 ? totalRevenue / totalOrders : 0,
+        pending: countsByStatus.pending || 0,
+      },
+    });
+  } catch (err) {
+    console.error("❌ Error in getCafeStats:", err);
+    res.status(500).json({ message: "🚨 Server error while fetching stats." });
+  }
+};
+
+
+// ... (keep your existing getOrdersByCafe, getOrderDetails, getCafeStats functions here) ...
+
+/**
+ * @description Update the status of a specific order
+ * @route PATCH /api/order/:orderId/status
+ */
 export const updateOrderStatus = async (req: Request, res: Response) => {
   try {
     const { orderId } = req.params;
-    const { status, paid } = req.body;
+    const { status } = req.body;
 
-    // --- Input Validation (Your code here is already perfect) ---
-    if (status === undefined && paid === undefined) {
-      return res
-        .status(400)
-        .json({ message: "Request must contain 'status' or 'paid'" });
+    // Validate the incoming status
+    const validStatuses = [
+      "pending",
+      "accepted",
+      "preparing",
+      "ready",
+      "completed",
+    ];
+    if (!status || !validStatuses.includes(status)) {
+      return res.status(400).json({ message: "🚫 Invalid status provided." });
     }
-    const numericOrderId = Number(orderId);
-    if (isNaN(numericOrderId)) {
-      return res.status(400).json({ message: "Invalid orderId" });
-    }
-    const dataToUpdate: { status?: OrderStatus; paid?: boolean } = {};
-    if (status) {
-      // Your status validation is correct
-      dataToUpdate.status = status;
-    }
-    if (paid !== undefined) {
-      // Your 'paid' validation is correct
-      dataToUpdate.paid = paid;
-    }
-    // --- End Validation ---
 
-    // ✅ FIX: Get the results by destructuring the returned value from the transaction
-    const { finalOrder, finalBill } = await prisma.$transaction(async (tx) => {
-      // Step 1: Update the order
-      const updatedOrder = await tx.order.update({
-        where: { id: numericOrderId },
-        data: dataToUpdate,
-        select: {
-          id: true,
-          status: true,
-          paid: true,
-          total_price: true,
-        },
-      });
-
-      let newBill = null;
-      // Step 2: If paid and completed, create a bill if one doesn't exist
-      if (updatedOrder.paid && updatedOrder.status === "completed") {
-        const existingBill = await tx.bill.findFirst({
-          where: { orderId: numericOrderId },
-        });
-
-        if (!existingBill) {
-          newBill = await tx.bill.create({
-            data: {
-              orderId: numericOrderId,
-              amount: updatedOrder.total_price,
-              paid_at: new Date(),
-            },
-          });
-        }
-      }
-
-      // ✅ FIX: Return the results from the transaction block
-      return { finalOrder: updatedOrder, finalBill: newBill };
+    const updatedOrder = await prisma.order.update({
+      where: { id: Number(orderId) },
+      data: { status },
     });
+    
+    // In a real-time app, you would emit a socket.io event here
+    // const io = req.app.get("io");
+    // io.to(`cafe_${updatedOrder.cafeId}`).emit('order_status_updated', updatedOrder);
 
-    // Now 'finalOrder' and 'finalBill' have the correct values here.
-
-    // Emit update via Socket.io
-    const io = req.app.get("io");
-    const roomName = `order_${numericOrderId}`;
-    const payload = {
-      status: finalOrder.status,
-      paid: finalOrder.paid,
-    };
-
-    io.to(roomName).emit("order_updated", payload);
-
-    return res.status(200).json({
-      message: "Order updated successfully.",
-      order: finalOrder,
-      bill: finalBill, // Will be null if no bill was created
+    res.status(200).json({
+      message: "✅ Order status updated successfully.",
+      order: updatedOrder,
     });
   } catch (err: any) {
+    // Prisma's error code for a record not found
     if (err.code === "P2025") {
-      return res.status(404).json({ message: "Order not found." });
+      return res.status(404).json({ message: "🚫 Order not found." });
     }
-    console.error("❌ Error in updateOrderStatus:", err.message || err);
-    return res.status(500).json({ message: "Server error" });
+    console.error("❌ Error updating order status:", err);
+    res.status(500).json({ message: "🚨 Server error." });
   }
 };
 

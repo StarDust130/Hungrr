@@ -16,12 +16,14 @@ import {
   updateCafe,
   updateCategory,
   updateMenuItem,
-  updateOrderStatus,
   getMenuStats,
   reactivateMenuItem,
   hardDeleteMenuItem,
   getUnavailableMenuItemsByCafe,
   updateCategoryOrder,
+  getOrderDetails,
+  getCafeStats,
+  updateOrderStatus,
 } from "../controllers/adminController";
 import { bulkSaveAIMenu, processMenuWithAI } from "../controllers/aiMenuController";
 
@@ -35,8 +37,14 @@ router.post("/cafe", createCafe as any);  // ➕ Create a new cafe (used during 
 router.patch("/cafe/:ownerId", updateCafe as any); // ✏️ Update existing cafe for an owner
 
 //! 2) Order Management Routes
-router.get("/orders/cafe/:cafeId", getOrdersByCafe as any); // 🔍 Get all orders for a specific cafe
-router.patch("/order/:orderId/status", updateOrderStatus as any); // ✏️ (Live Status of Order) 
+router.get("/stats/cafe/:cafeId", getCafeStats);
+
+// 📦 ORDER MANAGEMENT ROUTES
+router.get("/orders/cafe/:cafeId", getOrdersByCafe);
+router.get("/order/:orderId/details", getOrderDetails as any); // 🔍 Get order details by order ID
+
+// This is the route that was causing the error. It will now work correctly.
+router.patch("/order/:orderId/status", updateOrderStatus as any); // ✏️ Update order status
 
 
 //! 3) Order Status Management
