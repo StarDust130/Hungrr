@@ -48,7 +48,6 @@ export const getCafeInfoBySlug = async (
 export const getCategory = async (req: Request, res: Response) => {
   const { slug } = req.params;
 
-
   if (typeof slug !== "string") {
     return res.status(400).json({ detail: "Invalid slug" });
   }
@@ -72,7 +71,7 @@ export const getCategory = async (req: Request, res: Response) => {
           },
         },
       },
-      orderBy: { name: "asc" },
+      orderBy: { order: "asc" }, // ✨ Change orderBy to use the new field
       select: { name: true },
     });
 
