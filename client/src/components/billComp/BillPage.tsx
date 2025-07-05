@@ -80,11 +80,7 @@ export default function BillPage({ publicId }: { publicId: string }) {
   //    before the initialBill has been set to the liveBill state.
   if (liveBill) {
     return (
-      <div className="flex flex-col max-w-3xl mx-auto items-center justify-center min-h-screen p-4 gap-3">
-        <p className="text-sm hidden md:block mx-auto">
-          🐸 Yeah, I know the UI&apos;s ugly—but it&apos;s mobile-first, so I
-          saved time being lazy! 😅📱 😁
-        </p>
+      <div className="flex flex-col w-full mx-auto items-center justify-center min-h-screen p-4 gap-3">
         <OrderStatusTracker bill={liveBill} />
         <BillDetails bill={liveBill} />
         {
