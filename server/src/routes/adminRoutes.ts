@@ -21,6 +21,7 @@ import {
   reactivateMenuItem,
   hardDeleteMenuItem,
   getUnavailableMenuItemsByCafe,
+  updateCategoryOrder,
 } from "../controllers/adminController";
 import { bulkSaveAIMenu, processMenuWithAI } from "../controllers/aiMenuController";
 
@@ -62,6 +63,7 @@ router.post('/menu/ai-bulk-save', bulkSaveAIMenu as any); // ➕ Save AI-generat
 router.get("/category/cafe/:cafeId", getCategoriesByCafe as any); // 🔍 Get all categories for a specific cafe
 router.post("/category", createCategory as any); // ➕ Create a new category
 router.patch("/category/:categoryId", updateCategory as any); // ✏️ Update an existing category
+router.put("/categories/order", updateCategoryOrder as any); //
 router.delete("/category/:categoryId", deleteCategory as any); // ❌ Delete a category (SOFT DELETE)
 
 
