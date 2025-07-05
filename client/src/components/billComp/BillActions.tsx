@@ -139,7 +139,7 @@ export function BillActions({ bill }: BillActionsProps) {
   return (
     <>
       {/* Desktop and Tablet View */}
-      <div className="hidden sm:block w-full max-w-lg p-4 space-y-4">
+      <div className="fixed bottom-0 left-0 right-0 hidden bg-background mx-auto  sm:block w-full max-w-lg p-4 space-y-4 border-t shadow-[0_-2px_8px_rgba(0,0,0,0.08)] px-4 py-3 rounded-t-2xl z-50 mb-2 gap-3">
         <div className="flex flex-col sm:flex-row gap-3">
           <Button
             variant="outline"
