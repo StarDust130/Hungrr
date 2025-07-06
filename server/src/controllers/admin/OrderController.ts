@@ -7,6 +7,21 @@ import {
   endOfDay,
   subDays,
 } from "date-fns";
+import { Server as SocketIOServer } from "socket.io";
+/**
+ * Helper function to emit socket events for an order.
+ * @param req - The Express request object, used to get the `io` instance.
+ * @param eventName - The name of the event to emit (e.g., 'order_updated', 'new_order').
+ * @param order - The full order object to send as a payload.
+ */
+const emitOrderEvent = (req: Request, eventName: string, order: any) => {
+  const io = req.app.get("io") as SocketIOServer;
+  if (io && order.cafeId) {
+    const roomName = `cafe_${order.cafeId}`;
+    io.to(roomName).emit(eventName, order);
+    console.log(`📢 Emitted '${eventName}' to room '${roomName}' for order ${order.publicId}`);
+  }
+};
 
 
 
@@ -38,58 +53,54 @@ export const getOrdersByCafe = async (req: Request, res: Response) => {
   try {
     const { cafeId } = req.params;
 
-    // ✅ FIXED: Now correctly reading 'range' and 'date' from the query
     const {
       limit = "10",
       page = "1",
       search,
       status,
-      range, // <-- Added
-      date, // <-- Added
+      range,
+      date,
     } = req.query as { [key: string]: string };
 
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
     const skip = (pageNum - 1) * limitNum;
 
-    // --- Build the dynamic WHERE clause ---
-    const whereClause: any = { cafeId: Number(cafeId) };
+    const whereClause: any = { 
+      cafeId: Number(cafeId),
+      status: { not: "completed" }, // Exclude completed orders
+    };
 
-    // Text search filter
     if (search) {
       whereClause.publicId = { contains: search, mode: "insensitive" };
     }
 
-    // Status filter
     if (status && status !== "all") {
       whereClause.status = { equals: status };
     }
 
-    // ✅ FIXED: Added the date filtering logic
     if (range) {
       const now = new Date();
-      let gte; // "greater than or equal to" date
+      let gte;
       if (range === "today") {
         gte = startOfDay(now);
       } else if (range === "week") {
-        gte = startOfDay(subDays(now, 6)); // Includes today + last 6 days
+        gte = startOfDay(subDays(now, 6));
       } else if (range === "month") {
-        gte = startOfDay(subDays(now, 29)); // Includes today + last 29 days
+        gte = startOfDay(subDays(now, 29));
       }
       if (gte) {
         whereClause.created_at = { gte };
       }
     } else if (date) {
-      // If a specific date is chosen, filter for that day only
       const startDate = startOfDay(new Date(date));
       const endDate = endOfDay(new Date(date));
       whereClause.created_at = { gte: startDate, lte: endDate };
     }
 
-    // --- Fetch data from the database ---
     const [orders, totalCount] = await prisma.$transaction([
       prisma.order.findMany({
-        where: whereClause, // The whereClause now includes date filters
+        where: whereClause,
         orderBy: { created_at: "desc" },
         skip,
         take: limitNum,
@@ -158,7 +169,12 @@ export const getCafeStats = async (req: Request, res: Response) => {
     const { cafeId } = req.params;
     const { range = "today", date } = req.query as { [key: string]: string };
 
-    const whereClause: any = { cafeId: Number(cafeId) };
+    const whereClause: any = {
+      cafeId: Number(cafeId),
+      // This is the key change: only count orders that have been accepted.
+      status: { notIn: ["pending", "cancelled"] },
+    };
+
     const dateFilter = getDateWhereClause(range, date);
     if (dateFilter) {
       whereClause.created_at = dateFilter;
@@ -174,7 +190,7 @@ export const getCafeStats = async (req: Request, res: Response) => {
         by: ["status"],
         where: whereClause,
         _count: { status: true },
-        orderBy: undefined,
+        orderBy: undefined
       }),
     ]);
 
@@ -192,7 +208,8 @@ export const getCafeStats = async (req: Request, res: Response) => {
         totalRevenue,
         totalOrders,
         averageOrderValue: totalOrders > 0 ? totalRevenue / totalOrders : 0,
-        pending: countsByStatus.pending || 0,
+        // You may want to adjust what stats you show here based on the new logic
+        pending: countsByStatus.pending || 0, // This will now likely always be 0
       },
     });
   } catch (err) {
@@ -202,42 +219,107 @@ export const getCafeStats = async (req: Request, res: Response) => {
 };
 
 // 5) Update Order Status
+// Assume OrderStatus type is defined elsewhere, e.g., in a types.ts file
+type OrderStatus = "pending" | "accepted" | "preparing" | "ready" | "completed" | "cancelled";
+const VALID_STATUSES: OrderStatus[] = ["pending", "accepted", "preparing", "ready", "completed", "cancelled"];
+
+
+
+/**
+ * REFACTORED: Updates an order's status and emits a real-time event.
+ */
 export const updateOrderStatus = async (req: Request, res: Response) => {
   try {
     const { orderId } = req.params;
-    const { status } = req.body;
+    const { status } = req.body as { status: OrderStatus };
 
-    // Validate the incoming status
-    const validStatuses = [
-      "pending",
-      "accepted",
-      "preparing",
-      "ready",
-      "completed",
-    ];
-    if (!status || !validStatuses.includes(status)) {
+    if (!status || !VALID_STATUSES.includes(status)) {
       return res.status(400).json({ message: "🚫 Invalid status provided." });
     }
 
     const updatedOrder = await prisma.order.update({
       where: { id: Number(orderId) },
       data: { status },
+      // Include related data needed by the frontend in the response/socket payload
+      include: {
+        order_items: {
+          select: {
+            quantity: true,
+            item: { select: { name: true } },
+          },
+        },
+      },
     });
 
-    // In a real-time app, you would emit a socket.io event here
-    // const io = req.app.get("io");
-    // io.to(`cafe_${updatedOrder.cafeId}`).emit('order_status_updated', updatedOrder);
+    // Emit the real-time update
+    emitOrderEvent(req, 'order_updated', updatedOrder);
 
     res.status(200).json({
       message: "✅ Order status updated successfully.",
       order: updatedOrder,
     });
   } catch (err: any) {
-    // Prisma's error code for a record not found
-    if (err.code === "P2025") {
+    if (err.code === "P2025") { // Prisma's error code for a record not found
       return res.status(404).json({ message: "🚫 Order not found." });
     }
     console.error("❌ Error updating order status:", err);
     res.status(500).json({ message: "🚨 Server error." });
   }
 };
+
+
+/**
+ * NEW: Marks an order as paid and sets its status to 'accepted'.
+ * Emits a real-time event upon success.
+ */
+export const markOrderAsPaid = async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.params;
+
+    const orderToUpdate = await prisma.order.findUnique({
+        where: { id: Number(orderId) }
+    });
+
+    if (!orderToUpdate) {
+        return res.status(404).json({ message: "🚫 Order not found." });
+    }
+
+    // Prevent re-processing if already paid and completed
+    if (orderToUpdate.paid && orderToUpdate.status === 'completed') {
+        return res.status(409).json({ message: "Order is already paid and completed." });
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: Number(orderId) },
+      data: {
+        paid: true,
+        // Automatically move to 'accepted' if it was pending.
+        // If it was already in another state (e.g., 'preparing'), leave it there.
+        status: orderToUpdate.status === 'pending' ? 'accepted' : orderToUpdate.status,
+      },
+      include: {
+        order_items: {
+          select: {
+            quantity: true,
+            item: { select: { name: true } },
+          },
+        },
+      },
+    });
+
+    // Emit the real-time update
+    emitOrderEvent(req, 'order_updated', updatedOrder);
+
+    res.status(200).json({
+      message: "✅ Order marked as paid.",
+      order: updatedOrder,
+    });
+  } catch (err: any) {
+    if (err.code === "P2025") {
+      return res.status(404).json({ message: "🚫 Order not found." });
+    }
+    console.error("❌ Error marking order as paid:", err);
+    res.status(500).json({ message: "🚨 Server error." });
+  }
+};
+

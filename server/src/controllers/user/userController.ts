@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import prisma from "../../config/prisma";
 import { Prisma } from "@prisma/client";
 import { UpsertBillRequestBody } from "../../utils/types";
+import { Server as SocketIOServer } from "socket.io";
 
 //! 1) Cafe Banner 🤑
 export const getCafeInfoBySlug = async (
@@ -143,6 +144,17 @@ export const getCafeMenu = async (
 };
 
 //! 4) Upsert Bill (Create or Update Order) 💳
+const emitOrderEvent = (req: Request, eventName: string, order: any) => {
+  const io = req.app.get("io") as SocketIOServer;
+  if (io && order.cafeId) {
+    const roomName = `cafe_${order.cafeId}`;
+    io.to(roomName).emit(eventName, order);
+    console.log(
+      `📢 Emitted '${eventName}' to room '${roomName}' for order ${order.publicId}`
+    );
+  }
+};
+
 export const upsertBill = async (
   req: Request<{}, {}, UpsertBillRequestBody>,
   res: Response
@@ -172,29 +184,27 @@ export const upsertBill = async (
     });
 
     let orderToProcess: { id: number };
+    let isNewOrder = false; // Flag to determine which socket event to send
 
-    // SCENARIO 1: An unpaid order exists.
     if (lastOrder && lastOrder.paid === false) {
+      // SCENARIO 1: Update an existing unpaid order.
       orderToProcess = { id: lastOrder.id };
 
-      // Also update the order's top-level details if they changed
       await prisma.order.update({
         where: { id: orderToProcess.id },
         data: {
-          sessionToken: sessionToken,
+          sessionToken,
           payment_method: paymentMethod,
-          specialInstructions: specialInstructions,
-          orderType: orderType,
+          specialInstructions,
+          orderType,
         },
       });
 
-      // Upsert items: This will create new items or update quantities of existing ones.
       const transactionItems = items.map((item) =>
         prisma.orderItem.upsert({
           where: {
             orderId_itemId: { orderId: orderToProcess.id, itemId: item.itemId },
           },
-          // ✅ CRITICAL FIX: Replace the quantity, don't increment it.
           update: { quantity: item.quantity },
           create: {
             orderId: orderToProcess.id,
@@ -205,7 +215,8 @@ export const upsertBill = async (
       );
       await prisma.$transaction(transactionItems);
     } else {
-      // SCENARIO 2: No active order exists, or the last one was paid. Create a NEW order.
+      // SCENARIO 2: Create a NEW order.
+      isNewOrder = true; // Set the flag
       const newOrder = await prisma.order.create({
         data: {
           tableNo,
@@ -225,7 +236,7 @@ export const upsertBill = async (
       orderToProcess = { id: newOrder.id };
     }
 
-    // The rest of the function remains the same...
+    // --- Recalculate total and fetch the final order state ---
     const fullOrderForTotal = await prisma.order.findUnique({
       where: { id: orderToProcess.id },
       include: {
@@ -243,31 +254,22 @@ export const upsertBill = async (
 
     const finalUpdatedOrder = await prisma.order.update({
       where: { id: orderToProcess.id },
-      data: {
-        total_price: new Prisma.Decimal(totalPrice.toFixed(2)),
-      },
-      // We use `select` to explicitly define the exact data to return.
-      // This gives us full control.
-      select: {
-        id: true,
-        publicId: true, // The important field for the frontend redirect
-        paid: true,
-        status: true,
-        total_price: true,
-        specialInstructions: true,
-        payment_method: true,
-        orderType: true,
-        tableNo: true, // You might want to return this as well
-        // You can still include relations when using `select` like this:
+      data: { total_price: new Prisma.Decimal(totalPrice.toFixed(2)) },
+      // Select all the data the frontend needs for a complete order object
+      include: {
         order_items: {
           include: {
             item: true,
           },
         },
       },
-      // ✅ FIX: The entire conflicting `include` block below has been removed.
     });
 
+    // --- CRUCIAL FIX: Emit the socket event ---
+    const eventName = isNewOrder ? "new_order" : "order_updated";
+    emitOrderEvent(req, eventName, finalUpdatedOrder);
+
+    // Finally, send the response to the original client
     return res.status(200).json({ order: finalUpdatedOrder });
   } catch (err: any) {
     console.error("❌ Upsert bill error:", err);
@@ -276,6 +278,7 @@ export const upsertBill = async (
       .json({ message: "Server error", error: err.message });
   }
 };
+
 
 //! 5) Get Bill by Public ID (For Customer View) 🧾
 export const getBillByPublicId = async (req: Request, res: Response) => {
@@ -378,7 +381,7 @@ export const getActiveOrdersForTable = async (req: Request, res: Response) => {
 //! 7) Delete order (only in pending stage)
 export const cancelPendingOrder = async (req: Request, res: Response) => {
   try {
-    // 1. Get the order's public ID from the URL and the user's secret token from the header.
+    // 1. Get the order's public ID from the URL and the user's session token from the header.
     const { publicId } = req.params;
     const sessionToken = req.headers["x-session-token"] as string;
 
@@ -401,6 +404,19 @@ export const cancelPendingOrder = async (req: Request, res: Response) => {
         paid: false, // It must be unpaid.
       },
     });
+
+    // --- ✅ NEW: Emit a real-time event upon successful cancellation ---
+    const io = req.app.get("io") as SocketIOServer;
+    if (io && deletedOrder.cafeId) {
+      const roomName = `cafe_${deletedOrder.cafeId}`;
+      // The frontend expects the 'id' field as a string.
+      io.to(roomName).emit("order_cancelled", {
+        id: deletedOrder.id.toString(),
+      });
+      console.log(
+        `📢 Emitted 'order_cancelled' to room '${roomName}' for order ${deletedOrder.id}`
+      );
+    }
 
     // If we reach here, the delete was successful.
     console.log(

@@ -16,7 +16,7 @@ import {
   toggleMenuItemAvailability,
   updateMenuItem,
 } from "../controllers/admin/menuController";
-import { getCafeStats, getOrderDetails, getOrdersByCafe, updateOrderStatus } from "../controllers/admin/OrderController";
+import { getCafeStats, getOrderDetails, getOrdersByCafe, markOrderAsPaid, updateOrderStatus } from "../controllers/admin/OrderController";
 import { bulkSaveAIMenu, processMenuWithAI } from "../controllers/admin/aiMenuController";
 import { createCategory, deleteCategory, getCategoriesByCafe, updateCategory, updateCategoryOrder } from "../controllers/admin/CategoryController";
 import { getDashboardSummary, getTodayAISummary, getTodayDashboardData } from "../controllers/admin/DashboardController";
@@ -36,6 +36,7 @@ router.get("/stats/cafe/:cafeId", getCafeStats); // 📊 Cafe stats
 router.get("/orders/cafe/:cafeId", getOrdersByCafe as any); // 📋 All orders
 router.get("/order/:orderId/details", getOrderDetails as any); // 🔍 Order details
 router.patch("/order/:orderId/status", updateOrderStatus as any); // 🔄 Update status
+router.patch("/order/:orderId/mark-paid", markOrderAsPaid as any); // 💰 Mark as paid
 
 //! ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 // 🍔 Menu Routes
