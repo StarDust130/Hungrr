@@ -2,7 +2,7 @@
 
 import { Request, Response } from "express";
 import { Groq } from "groq-sdk";
-import prisma from "../config/prisma";
+import prisma from "../../config/prisma";
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY_MENU, // Make sure this environment variable is correct
