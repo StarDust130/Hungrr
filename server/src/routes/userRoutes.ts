@@ -14,8 +14,8 @@ const router = Router();
 
 //! Menu Page 🍀
 router.get("/cafe_banner/:slug", getCafeInfoBySlug);
-router.get("/menu/:slug/", getCafeMenu as any);
-router.get("/menu/category/:slug/", getCategory as any);
+router.get("/menu/:slug", getCafeMenu as any);
+router.get("/menu/category/:slug", getCategory as any);
 
 router.get("/orders/active/:cafeId/:tableNo", getActiveOrdersForTable as any);
 

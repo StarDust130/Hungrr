@@ -84,6 +84,7 @@ export const getCategory = async (req: Request, res: Response) => {
 };
 
 //! 3) Cafe Menu 😋
+
 export const getCafeMenu = async (
   req: Request,
   res: Response
@@ -102,6 +103,28 @@ export const getCafeMenu = async (
       return res.status(404).json({ detail: "Cafe not found" });
     }
 
+    // 1. Fetch categories in the desired order
+    const orderedCategories = await prisma.category.findMany({
+      where: {
+        cafeId: cafe.id,
+        items: {
+          some: {
+            is_active: true,
+          },
+        },
+      },
+      orderBy: { order: "asc" },
+      select: { name: true },
+    });
+
+    const orderedCategoryNames = orderedCategories.map((cat) => cat.name);
+    const categoryIndex = parseInt(req.query.category_index as string) || 0;
+
+    if (categoryIndex >= orderedCategoryNames.length) {
+      return res.status(204).json({});
+    }
+
+    // Fetch all active items for the cafe
     const items = await prisma.menuItem.findMany({
       where: {
         cafeId: cafe.id,
@@ -112,30 +135,47 @@ export const getCafeMenu = async (
       },
     });
 
+    // Group items by category name
     const grouped: Record<string, any[]> = {};
     for (const item of items) {
-      if (item.category && item.category.name) {
+      if (item.category?.name) {
         const catName = item.category.name;
         if (!grouped[catName]) grouped[catName] = [];
         grouped[catName].push(item);
       }
     }
 
-    const categories = Object.keys(grouped).sort();
-    const categoryIndex = parseInt(req.query.category_index as string) || 0;
+    // ✨ 2. Sort items within each category with the new logic
+    for (const categoryName in grouped) {
+      grouped[categoryName].sort((a, b) => {
+       const aHasImage = !!a.food_image_url;
+const bHasImage = !!b.food_image_url;
 
-    if (categoryIndex >= categories.length) {
-      return res.status(204).json({});
+
+        // Prioritize items with an image first
+        if (aHasImage !== bHasImage) {
+          return aHasImage ? -1 : 1;
+        }
+
+        // If both have/don't have an image, prioritize by tags
+        const aHasTags = Array.isArray(a.tags) && a.tags.length > 0;
+        const bHasTags = Array.isArray(b.tags) && b.tags.length > 0;
+        
+        if (aHasTags !== bHasTags) {
+          return aHasTags ? -1 : 1;
+        }
+
+        // Otherwise, maintain original order
+        return 0;
+      });
     }
 
-    const categoryName = categories[categoryIndex];
-    if (categoryIndex >= categories.length) {
-      return res.status(204).json({});
-    }
+    const categoryName = orderedCategoryNames[categoryIndex];
+    const categoryItems = grouped[categoryName] || [];
 
     return res.json({
-      [categoryName]: grouped[categoryName],
-      hasMore: categoryIndex + 1 < categories.length,
+      [categoryName]: categoryItems,
+      hasMore: categoryIndex + 1 < orderedCategoryNames.length,
     });
   } catch (err: any) {
     console.error("Error in getCafeMenu:", err);
@@ -381,61 +421,35 @@ export const getActiveOrdersForTable = async (req: Request, res: Response) => {
 //! 7) Delete order (only in pending stage)
 export const cancelPendingOrder = async (req: Request, res: Response) => {
   try {
-    // 1. Get the order's public ID from the URL and the user's session token from the header.
     const { publicId } = req.params;
     const sessionToken = req.headers["x-session-token"] as string;
 
-    // 2. CRITICAL: If the user's session token is missing, deny the request.
     if (!sessionToken) {
       return res
         .status(401)
         .json({ message: "Unauthorized: Missing session token." });
     }
 
-    // 3. Perform a single, atomic delete operation.
-    // This is more efficient and safer than finding then deleting.
     const deletedOrder = await prisma.order.delete({
-      // The 'where' clause is our security check. It will only find a record
-      // to delete if ALL of these conditions are true.
       where: {
-        publicId: publicId, // It must be the correct order.
-        sessionToken: sessionToken, // It must belong to the user making the request.
-        status: "pending", // It must still be in the 'pending' state.
-        paid: false, // It must be unpaid.
+        publicId: publicId,
+        sessionToken: sessionToken,
+        status: "pending",
+        paid: false,
       },
     });
 
-    // --- ✅ NEW: Emit a real-time event upon successful cancellation ---
-    const io = req.app.get("io") as SocketIOServer;
-    if (io && deletedOrder.cafeId) {
-      const roomName = `cafe_${deletedOrder.cafeId}`;
-      // The frontend expects the 'id' field as a string.
-      io.to(roomName).emit("order_cancelled", {
-        id: deletedOrder.id.toString(),
-      });
-      console.log(
-        `📢 Emitted 'order_cancelled' to room '${roomName}' for order ${deletedOrder.id}`
-      );
-    }
+    // ✅ Emit cancellation event to both rooms.
+    emitOrderEvent(req, "order_cancelled", deletedOrder);
 
-    // If we reach here, the delete was successful.
-    console.log(
-      `✅ Order ${deletedOrder.id} was successfully canceled by the user.`
-    );
     return res.status(200).json({ message: "Order successfully canceled." });
   } catch (error: any) {
-    // Prisma throws a specific error (P2025) if no record was found to delete.
-    // This is perfect for handling cases where the order doesn't exist, has already
-    // been accepted by the kitchen, or belongs to another user.
     if (error.code === "P2025") {
       return res
         .status(404)
-        .json({ message: "Order not found, or it can no longer be canceled." });
+        .json({ message: "Order not found or can no longer be canceled." });
     }
-
     console.error("❌ Error canceling order:", error);
-    return res
-      .status(500)
-      .json({ message: "Server error: Could not cancel order." });
+    return res.status(500).json({ message: "Server error." });
   }
 };
