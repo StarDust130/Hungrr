@@ -1,90 +1,68 @@
 import { Router } from "express";
 import {
   createCafe,
-  createCategory,
-  createMenuItem,
-  deleteCategory,
-  deleteMenuItem,
   getCafeByOwnerId,
   getCafeNameandLogoURL,
-  getCategoriesByCafe,
-  getDashboardSummary,
-  getMenuItemsByCafe,
-  getOrdersByCafe,
-  getTodayAISummary,
-  toggleMenuItemAvailability,
   updateCafe,
-  updateCategory,
-  updateMenuItem,
+} from "../controllers/admin/cafeController";
+import {
+  createMenuItem,
+  deleteMenuItem,
+  getMenuItemsByCafe,
   getMenuStats,
-  reactivateMenuItem,
-  hardDeleteMenuItem,
   getUnavailableMenuItemsByCafe,
-  updateCategoryOrder,
-  getOrderDetails,
-  getCafeStats,
-  updateOrderStatus,
-} from "../controllers/adminController";
-import { bulkSaveAIMenu, processMenuWithAI } from "../controllers/aiMenuController";
-
+  hardDeleteMenuItem,
+  reactivateMenuItem,
+  toggleMenuItemAvailability,
+  updateMenuItem,
+} from "../controllers/admin/menuController";
+import { getCafeStats, getOrderDetails, getOrdersByCafe, updateOrderStatus } from "../controllers/admin/OrderController";
+import { bulkSaveAIMenu, processMenuWithAI } from "../controllers/admin/aiMenuController";
+import { createCategory, deleteCategory, getCategoriesByCafe, updateCategory, updateCategoryOrder } from "../controllers/admin/CategoryController";
+import { getDashboardSummary, getTodayAISummary, getTodayDashboardData } from "../controllers/admin/DashboardController";
 
 const router = Router();
 
-//! 1) 📋 Cafe Admin Panel Routes
-router.get("/cafe/owner/:ownerId", getCafeByOwnerId as any); // 🔍 Get cafe by owner ID
-router.get("/cafe/name/:ownerId", getCafeNameandLogoURL as any); // 🔍 Get cafe name 
-router.post("/cafe", createCafe as any);  // ➕ Create a new cafe (used during onboarding)
-router.patch("/cafe/:ownerId", updateCafe as any); // ✏️ Update existing cafe for an owner
+//! ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+// ☕ Cafe Routes
+router.get("/cafe/owner/:ownerId", getCafeByOwnerId as any); // 🔍 By owner
+router.get("/cafe/name/:ownerId", getCafeNameandLogoURL as any); // 🏷️ Name & logo
+router.post("/cafe", createCafe as any); // ➕ New cafe
+router.patch("/cafe/:ownerId", updateCafe as any); // ✏️ Update cafe
 
-//! 2) Order Management Routes
-router.get("/stats/cafe/:cafeId", getCafeStats);
+//! ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+// 📦 Order Routes
+router.get("/stats/cafe/:cafeId", getCafeStats); // 📊 Cafe stats
+router.get("/orders/cafe/:cafeId", getOrdersByCafe as any); // 📋 All orders
+router.get("/order/:orderId/details", getOrderDetails as any); // 🔍 Order details
+router.patch("/order/:orderId/status", updateOrderStatus as any); // 🔄 Update status
 
-// 📦 ORDER MANAGEMENT ROUTES
-router.get("/orders/cafe/:cafeId", getOrdersByCafe);
-router.get("/order/:orderId/details", getOrderDetails as any); // 🔍 Get order details by order ID
+//! ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+// 🍔 Menu Routes
+router.get("/menu/cafe/:cafeId", getMenuItemsByCafe as any); // 📋 All menu items
+router.post("/menu", createMenuItem as any); // ➕ New menu item
+router.patch("/menu/:itemId", updateMenuItem as any); // ✏️ Update item
+router.delete("/menu/:itemId", deleteMenuItem as any); // ❌ Soft delete
+router.patch("/menu/:itemId/toggle-availability", toggleMenuItemAvailability as any); // 🔄 Toggle availability
+router.get("/stats/menu/:cafeId", getMenuStats as any); // 📊 Menu stats
+router.get("/menu/cafe/:cafeId/unavailable", getUnavailableMenuItemsByCafe as any); // 🚫 Unavailable items
+router.patch("/menu/:itemId/reactivate", reactivateMenuItem as any); // ♻️ Reactivate item
+router.delete("/menu/:itemId/permanent", hardDeleteMenuItem as any); // 🗑️ Hard delete
+router.post("/menu/ai-upload", processMenuWithAI as any); // 🤖 AI menu upload
+router.post("/menu/ai-bulk-save", bulkSaveAIMenu as any); // 💾 AI bulk save
 
-// This is the route that was causing the error. It will now work correctly.
-router.patch("/order/:orderId/status", updateOrderStatus as any); // ✏️ Update order status
+//! ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+// 🗂️ Category Routes
+router.get("/category/cafe/:cafeId", getCategoriesByCafe as any); // 📋 All categories
+router.post("/category", createCategory as any); // ➕ New category
+router.patch("/category/:categoryId", updateCategory as any); // ✏️ Update category
+router.put("/categories/order", updateCategoryOrder as any); // 🔀 Reorder categories
+router.delete("/category/:categoryId", deleteCategory as any); // ❌ Delete category
 
-
-//! 3) Order Status Management
-router.get("/menu/cafe/:cafeId", getMenuItemsByCafe as any); // 🔍 Get all menu items for a specific cafe
-router.post("/menu", createMenuItem as any); // ➕ Create a new menu item
-router.patch("/menu/:itemId", updateMenuItem as any); // ✏️ Update an existing menu item
-router.delete("/menu/:itemId", deleteMenuItem as any); // ❌ Delete a menu item(SOFT DELETE)
-router.patch("/menu/:itemId/toggle-availability", toggleMenuItemAvailability as any); // 🔄 Toggle availability of a menu item
-router.get("/stats/menu/:cafeId", getMenuStats as any); // 📊 Get all menu stats for a cafe
-router.get(
-  "/menu/cafe/:cafeId/unavailable",
-  getUnavailableMenuItemsByCafe as any
-);
-router.patch("/menu/:itemId/reactivate", reactivateMenuItem as any);
-router.delete("/menu/:itemId/permanent", hardDeleteMenuItem as any);
-
-// Route to process the menu image with AI
-router.post('/menu/ai-upload', processMenuWithAI as any); // 🔄 Process menu image with AI
-
-// Route to save the processed data
-router.post('/menu/ai-bulk-save', bulkSaveAIMenu as any); // ➕ Save AI-generated menu data in bulk
-
-//! 4) Category Management Routes
-router.get("/category/cafe/:cafeId", getCategoriesByCafe as any); // 🔍 Get all categories for a specific cafe
-router.post("/category", createCategory as any); // ➕ Create a new category
-router.patch("/category/:categoryId", updateCategory as any); // ✏️ Update an existing category
-router.put("/categories/order", updateCategoryOrder as any); //
-router.delete("/category/:categoryId", deleteCategory as any); // ❌ Delete a category (SOFT DELETE)
-
-
-//! 5) Admin Dashboard Routes
-router.get("/summary/:cafeId", getDashboardSummary as any); // 🔍 Get dashboard summary for a specific cafe
-router.get("/summary/ai/:cafeId", getTodayAISummary as any); // 🔍 Get dashboard summary for a specific cafe
-
-
-
-
-
-
-
-
+//! ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+// 📊 Dashboard Routes
+router.get("/summary/:cafeId", getDashboardSummary as any); // 📈 Summary
+router.get("/summary/ai/:cafeId", getTodayAISummary as any); // 🤖 AI summary
+router.get("/dashboard/:cafeId/today", getTodayDashboardData as any); // 📅 Today data
 
 export default router;
