@@ -1,5 +1,3 @@
-// src/app.ts
-
 // =============================================
 // IMPORTS
 // =============================================
@@ -11,7 +9,7 @@ import cron from "node-cron";
 import dotenv from "dotenv";
 
 // Import local modules
-import cafeRoutes from "./routes/cafeRoutes";
+import userRoutes from "./routes/userRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import statsRoutes from "./routes/statsRoutes";
 import { cleanupPendingOrders } from "./controllers/cronjobController";
@@ -73,7 +71,7 @@ app.set("io", io);
 // =============================================
 // API ROUTES
 // =============================================
-app.use("/api", cafeRoutes);
+app.use("/api", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/stats", statsRoutes);
 
