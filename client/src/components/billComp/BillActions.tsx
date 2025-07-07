@@ -153,7 +153,7 @@ export function BillActions({ bill }: BillActionsProps) {
           {/* Correctly renders buttons based on the logic */}
           {showPayButton && <PayButton />}
           {showDownloadButton && <DownloadButton />}
-          {bill.paymentMethod === "counter" &&
+          {bill.paymentMethod === "cash" &&
             bill.paymentStatus !== "paid" && <PayAtCounterInfo />}
         </div>
       </div>
@@ -173,7 +173,7 @@ export function BillActions({ bill }: BillActionsProps) {
         {/* Correctly renders buttons based on the logic */}
         {showPayButton && <PayButton isMobile />}
         {showDownloadButton && <DownloadButton isMobile />}
-        {bill.paymentMethod === "counter" && bill.paymentStatus !== "paid" && (
+        {bill.paymentMethod === "cash" && bill.paymentStatus !== "paid" && (
           <PayAtCounterInfo />
         )}
       </div>
