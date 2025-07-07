@@ -54,32 +54,39 @@ const CategorySection = ({
         defaultValue={Object.keys(filteredMenuData)}
         className="space-y-4"
       >
-        {Object.entries(filteredMenuData).map(([category, items]) => (
-          <AccordionItem
-            value={category}
-            key={category}
-            className="rounded-xl border border-muted shadow-sm"
-          >
-            <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 transition rounded-t-xl">
-              <h2 className="text-lg font-semibold text-muted-foreground tracking-wide">
-                {category}
-              </h2>
-            </AccordionTrigger>
-            <AccordionContent className="px-4 pb-4 pt-2 rounded-b-xl">
-              <div
-                ref={(el) => {
-                  sectionRefs.current[category] = el;
-                }}
-                className="flex flex-col gap-4"
-              >
-                {items.map((item: MenuItem) => (
-                  <MenuItemCard key={`item-${item.id}`} item={item} />
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
+        {Object.entries(filteredMenuData).map(
+          ([category, items], index, arr) => (
+            <AccordionItem
+              value={category}
+              key={category}
+              className={`
+        rounded-xl border-2 shadow-sm
+        ${index === arr.length - 1 ? "border-b border-border" : ""}
+        border-border
+      `}
+            >
+              <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 transition rounded-t-xl">
+                <h2 className="text-lg font-semibold text-muted-foreground tracking-wide">
+                  {category}
+                </h2>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4 pt-2 rounded-b-xl">
+                <div
+                  ref={(el) => {
+                    sectionRefs.current[category] = el;
+                  }}
+                  className="flex flex-col gap-4"
+                >
+                  {items.map((item: MenuItem) => (
+                    <MenuItemCard key={`item-${item.id}`} item={item} />
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          )
+        )}
       </Accordion>
+
       <BackToTopButton />
     </>
   );

@@ -31,9 +31,9 @@ const BackToTopButton = () => {
     <button
       onClick={scrollToTop}
       className="fixed top-18 left-1/2 -translate-x-1/2 z-50 font-bold flex items-center gap-2 px-4 py-1.5  
-        text-foreground bg-card backdrop-blur-md border border-border rounded-full shadow-md transition-all text-xs"
+        text-foreground bg-card backdrop-blur-md border border-border rounded-full shadow-md transition-all text-[10px]"
     >
-      <ChevronsUp className="w-4 h-4 text-primary font-bold" />
+      <ChevronsUp className="w-3 h-3 text-primary font-bold " />
       Back to top
     </button>
   );
