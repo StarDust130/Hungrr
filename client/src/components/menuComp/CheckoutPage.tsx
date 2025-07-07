@@ -60,7 +60,7 @@ const CheckoutPage = () => {
   // }
 
   //! ✅ This function is now cleaner and more robust.
-  const handlePlaceOrder = async (paymentMethod: "counter" | "online") => {
+  const handlePlaceOrder = async (paymentMethod: "cash" | "online") => {
     // Prevent double-clicks
     if (orderStatus !== "idle") return;
 
@@ -168,11 +168,11 @@ const CheckoutPage = () => {
               size="default"
               variant="secondary"
               className="font-bold h-12 text-base rounded-xl"
-              onClick={() => handlePlaceOrder("counter")}
+              onClick={() => handlePlaceOrder("cash")}
               disabled={isLoading || !tableNo}
             >
               <Wallet size={20} className="mr-2.5" />
-              Pay at Counter
+              Pay at cash
             </Button>
             <Button
               size="default"

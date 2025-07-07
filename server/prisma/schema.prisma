@@ -78,7 +78,8 @@ model Order {
   total_price         Decimal       @default(0.00)
   paid                Boolean       @default(false)
   specialInstructions String?       @db.VarChar(500)
-  orderType           OrderType     
+  orderType           OrderType
+  username       String?     @db.VarChar(50)      
   sessionToken        String
   created_at          DateTime      @default(now())
   updated_at          DateTime      @updatedAt

@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "Cafe" ALTER COLUMN "isPureVeg" DROP NOT NULL;

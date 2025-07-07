@@ -2,13 +2,16 @@
 CREATE TYPE "Dietary" AS ENUM ('veg', 'non_veg', 'vegan');
 
 -- CreateEnum
-CREATE TYPE "PaymentMethod" AS ENUM ('counter', 'online');
+CREATE TYPE "PaymentMethod" AS ENUM ('cash', 'online');
 
 -- CreateEnum
 CREATE TYPE "OrderStatus" AS ENUM ('pending', 'accepted', 'preparing', 'ready', 'completed');
 
 -- CreateEnum
 CREATE TYPE "ItemTag" AS ENUM ('Spicy', 'Sweet', 'Bestseller', 'Chefs_Special', 'Healthy', 'Popular', 'New', 'Jain_Food', 'Signature_Dish');
+
+-- CreateEnum
+CREATE TYPE "OrderType" AS ENUM ('dine_in', 'takeaway');
 
 -- CreateTable
 CREATE TABLE "Cafe" (
@@ -21,6 +24,7 @@ CREATE TABLE "Cafe" (
     "logoUrl" TEXT NOT NULL,
     "bannerUrl" TEXT NOT NULL,
     "payment_url" TEXT NOT NULL,
+    "isPureVeg" BOOLEAN DEFAULT false,
     "address" TEXT NOT NULL,
     "ipAddress" TEXT,
     "isOnboarded" BOOLEAN NOT NULL DEFAULT false,
@@ -43,6 +47,7 @@ CREATE TABLE "Category" (
     "id" SERIAL NOT NULL,
     "cafeId" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
+    "order" INTEGER DEFAULT 0,
 
     CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
 );
@@ -71,12 +76,13 @@ CREATE TABLE "Order" (
     "publicId" TEXT NOT NULL,
     "tableNo" INTEGER NOT NULL,
     "cafeId" INTEGER NOT NULL,
-    "payment_method" "PaymentMethod" NOT NULL DEFAULT 'counter',
+    "payment_method" "PaymentMethod" NOT NULL,
     "status" "OrderStatus" NOT NULL DEFAULT 'pending',
     "total_price" DECIMAL(65,30) NOT NULL DEFAULT 0.00,
     "paid" BOOLEAN NOT NULL DEFAULT false,
     "specialInstructions" VARCHAR(500),
-    "orderType" VARCHAR(50),
+    "orderType" "OrderType" NOT NULL,
+    "username" VARCHAR(50),
     "sessionToken" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -115,10 +121,7 @@ CREATE UNIQUE INDEX "Cafe_slug_key" ON "Cafe"("slug");
 CREATE UNIQUE INDEX "Cafe_gstNo_key" ON "Cafe"("gstNo");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Cafe_phone_key" ON "Cafe"("phone");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Cafe_email_key" ON "Cafe"("email");
+CREATE INDEX "Category_cafeId_order_idx" ON "Category"("cafeId", "order");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Category_cafeId_name_key" ON "Category"("cafeId", "name");
@@ -136,7 +139,7 @@ CREATE UNIQUE INDEX "OrderItem_orderId_itemId_key" ON "OrderItem"("orderId", "it
 CREATE UNIQUE INDEX "Bill_orderId_key" ON "Bill"("orderId");
 
 -- AddForeignKey
-ALTER TABLE "Category" ADD CONSTRAINT "Category_cafeId_fkey" FOREIGN KEY ("cafeId") REFERENCES "Cafe"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Category" ADD CONSTRAINT "Category_cafeId_fkey" FOREIGN KEY ("cafeId") REFERENCES "Cafe"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "MenuItem" ADD CONSTRAINT "MenuItem_cafeId_fkey" FOREIGN KEY ("cafeId") REFERENCES "Cafe"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
