@@ -6,7 +6,6 @@ import DietaryIcon from "./DietaryIcon";
 import DescriptionToggle from "./checkoutComp/DescriptionToggle";
 
 const SpecialCard = ({ item }: { item: MenuItem }) => {
-
   return (
     <div className="group relative w-50 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02] flex flex-col">
       {item.isSpecial && (
@@ -26,9 +25,16 @@ const SpecialCard = ({ item }: { item: MenuItem }) => {
 
       <div className="flex flex-col justify-between flex-1 px-4 pt-3 pb-4 space-y-3">
         <div className="space-y-1 min-h-[84px]">
-          <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-            {item.dietary && <DietaryIcon type={item.dietary} />} {item.name}
-          </h3>
+          <div className="flex items-start gap-2">
+            {item.dietary && (
+              <div className="flex-shrink-0 pt-0.5">
+                <DietaryIcon type={item.dietary} />
+              </div>
+            )}
+            <h3 className="text-base font-semibold text-foreground truncate">
+              {item.name}
+            </h3>
+          </div>
           {item.description && <DescriptionToggle text={item.description} />}
         </div>
 
