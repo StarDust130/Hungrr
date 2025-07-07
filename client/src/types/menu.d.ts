@@ -110,3 +110,4 @@ export interface ActiveOrder {
 }
 
 export type OrderStatus = | "pending" | "accepted" | "preparing" | "ready" | "completed";
+

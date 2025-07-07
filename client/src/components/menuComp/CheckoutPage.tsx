@@ -172,7 +172,7 @@ const CheckoutPage = () => {
               disabled={isLoading || !tableNo}
             >
               <Wallet size={20} className="mr-2.5" />
-              Pay at cash
+              Pay at Counter
             </Button>
             <Button
               size="default"

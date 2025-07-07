@@ -142,6 +142,6 @@ enum ItemTag {
 }
 
 enum OrderType {
-  dine_in
+  dinein
   takeaway
 }
