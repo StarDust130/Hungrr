@@ -202,6 +202,7 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
               activeCategory={activeCategory}
               scrollToCategory={scrollToCategory}
               navRef={navRef}
+              setSearchTerm={setSearchTerm}
             />
           </div>
         </div>

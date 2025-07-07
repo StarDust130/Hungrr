@@ -1,14 +1,12 @@
 // SearchBar.tsx
 import { Search, X } from "lucide-react";
-import { ReactNode } from "react";
 
 type Props = {
   searchTerm: string;
   setSearchTerm: (val: string) => void;
-  rightSlot?: ReactNode; // 👈 Accept menu button or other
 };
 
-const SearchBar = ({ searchTerm, setSearchTerm, rightSlot }: Props) => (
+const SearchBar = ({ searchTerm, setSearchTerm }: Props) => (
   <header className="sticky top-0 z-30">
     <div className="max-w-5xl mx-auto px-2 py-2 flex items-center gap-3">
       {/* Search Input */}
@@ -36,8 +34,6 @@ const SearchBar = ({ searchTerm, setSearchTerm, rightSlot }: Props) => (
         )}
       </div>
 
-      {/* Right Slot: Menu Button */}
-      {rightSlot && <div className="w-auto">{rightSlot}</div>}
     </div>
   </header>
 );

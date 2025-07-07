@@ -17,19 +17,21 @@ type Props = {
   categories: string[];
   activeCategory: string;
   scrollToCategory: (cat: string) => void;
-  navRef: RefObject<HTMLDivElement>; // ✅ Correct type
+  navRef: RefObject<HTMLDivElement>;
+  setSearchTerm?: (val: string) => void; // ✅ Optional for clearing
 };
 
 const CategoryNav = ({
   categories,
   activeCategory,
   scrollToCategory,
+  setSearchTerm,
   navRef,
 }: Props) => {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(activeCategory);
 
-  // ✅ Sync local active category with props when dialog opens
+  // Sync local state when dialog opens
   useEffect(() => {
     if (open) {
       setActive(activeCategory);
@@ -48,6 +50,7 @@ const CategoryNav = ({
           <Button
             variant="outline"
             className="flex items-center gap-2 px-4 py-2 rounded-full"
+            onClick={() => setSearchTerm?.("")} // ✅ Clear search on menu open
           >
             <BookOpenText className="w-4 h-4" />
             <span>Menu</span>
