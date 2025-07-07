@@ -37,7 +37,7 @@ const CategorySection = ({
           No Dishes Found 😿
         </h3>
         <Image
-          src="/anime-girl-sad.png"
+          src="/anime-girl-sad-2.png"
           alt="Not Found"
           width={200}
           height={150}

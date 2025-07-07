@@ -1,4 +1,3 @@
-
 import CafeBanner from "@/components/menuComp/CafeBanner";
 import MenuPageContent from "@/components/menuComp/MenuPageContent";
 import { fetchCafeData, fetchMenuData } from "@/lib/api_calling";
@@ -32,7 +31,7 @@ export default async function MenuPage(props: Props) {
     if (!menuData || Object.keys(menuData).length === 0) {
       return (
         <ErrorMessage
-          img="/anime-girl-sad.png"
+          img="/anime-girl-sad-2.png"
           message="🍽️ No menu items found for"
           highlight={cafeData.name}
         />

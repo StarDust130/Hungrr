@@ -1,12 +1,12 @@
-import Image from "next/image"
-import { Button } from "../ui/button"
+import Image from "next/image";
+import { Button } from "../ui/button";
 import { ArrowLeft } from "lucide-react";
 
-const OrderNotFound = ({error}: {error: string}) => {
+const OrderNotFound = ({ error }: { error: string }) => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-3">
       <Image
-        src="/anime-girl-sad-3.png"
+        src="/anime-girl-sad-2-3.png"
         alt="Order Not Found"
         width={200}
         height={200}
@@ -32,5 +32,5 @@ const OrderNotFound = ({error}: {error: string}) => {
       </div>
     </div>
   );
-}
-export default OrderNotFound
+};
+export default OrderNotFound;
