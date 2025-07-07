@@ -15,7 +15,7 @@ export function useMenu({ cafeSlug }: UseMenuProps) {
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  // ✅ Fetch all categories and menu data in parallel
+  //! ✅ Fetch all categories and menu data in parallel
   useEffect(() => {
     const fetchAllMenus = async () => {
       try {
@@ -87,29 +87,38 @@ export function useMenu({ cafeSlug }: UseMenuProps) {
 
   // ✅ Track visible category using IntersectionObserver
   useEffect(() => {
-    if (searchTerm) return;
-    if (observerRef.current) observerRef.current.disconnect();
-
-    observerRef.current = new IntersectionObserver(
+    const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setActiveCategory(entry.target.id);
+            const id = entry.target.getAttribute("data-category");
+            if (id) {
+              setActiveCategory(id); // ✅ This triggers highlight change
+            }
           }
         });
       },
       {
-        rootMargin: "-40% 0px -60% 0px",
-        threshold: 0,
+        rootMargin: "-100px 0px -70% 0px", // tweak this to your layout
+        threshold: 0.1,
       }
     );
 
-    Object.values(sectionRefs.current).forEach((ref) => {
-      if (ref) observerRef.current?.observe(ref);
+    observerRef.current = observer;
+
+    // Observe all sections
+    Object.entries(sectionRefs.current).forEach(([category, ref]) => {
+      if (ref) {
+        ref.setAttribute("data-category", category); // ✅ Required
+        observer.observe(ref);
+      }
     });
 
-    return () => observerRef.current?.disconnect();
-  }, [filteredMenuData, searchTerm]);
+    return () => {
+      observer.disconnect();
+    };
+  }, [filteredMenuData]);
+  
 
   // ✅ List of visible categories depending on search
   const visibleCategories = searchTerm

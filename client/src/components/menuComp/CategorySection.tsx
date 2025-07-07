@@ -73,13 +73,16 @@ const CategorySection = ({
               </div>
             </AccordionTrigger>
 
-            <AccordionContent className="px-2 md:px-4 pt-2 pb-4 transition-all">
-              <div
-                ref={(el) => {
-                  sectionRefs.current[category] = el;
-                }}
-                className="flex flex-col gap-4"
-              >
+            <AccordionContent
+              ref={(el) => {
+                if (el) {
+                  el.setAttribute("data-category", category); // ✅ This is required for IntersectionObserver
+                  sectionRefs.current[category] = el; // ✅ This makes scrollToCategory work
+                }
+              }}
+              className="px-2 md:px-4 pt-2 pb-4 transition-all"
+            >
+              <div className="flex flex-col gap-4">
                 {items.map((item: MenuItem) => (
                   <MenuItemCard key={`item-${item.id}`} item={item} />
                 ))}

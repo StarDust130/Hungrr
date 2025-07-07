@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, RefObject } from "react";
 import { AnimatePresence } from "framer-motion";
 import SearchBar from "./SearchBar";
 import CategoryNav from "./CategoryNav";
@@ -47,7 +47,7 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
 
   const { loadOrderIntoCart, setCafeId } = useCart();
 
-  const navRef = useRef<HTMLDivElement | null>(null);
+  const navRef = useRef<HTMLDivElement>(null) as RefObject<HTMLDivElement>;
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Prevent hydration error
@@ -112,8 +112,14 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
 
   const scrollToCategory = async (category: string) => {
     if (searchTerm.trim()) return;
-    if (observerRef.current) observerRef.current.disconnect();
+
+    // ✅ Set the category before scrolling (this updates the highlight immediately)
     setActiveCategory(category);
+
+    // Temporarily unobserve to prevent false triggers
+    Object.values(sectionRefs.current).forEach((ref) => {
+      if (ref) observerRef.current?.unobserve(ref);
+    });
 
     setOpenAccordions((prev) =>
       prev.includes(category) ? prev : [...prev, category]
@@ -145,6 +151,7 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
         const offset = el.getBoundingClientRect().top + window.scrollY - 140;
         window.scrollTo({ top: offset, behavior: "smooth" });
 
+        // Resume observing after scroll
         setTimeout(() => {
           Object.values(sectionRefs.current).forEach((ref) => {
             if (ref) observerRef.current?.observe(ref);
@@ -155,6 +162,7 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
       console.warn("Failed to scroll to category:", error);
     }
   };
+  
 
   useEffect(() => {
     if (!filteredMenuData) return;
