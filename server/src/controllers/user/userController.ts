@@ -233,18 +233,17 @@ export const upsertBill = async (
     let orderToProcess: { id: number };
     let isNewOrder = false;
 
-    const safePaymentMethod =
+    const safePaymentMethod: PaymentMethod =
       paymentMethod && Object.values(PaymentMethod).includes(paymentMethod)
-        ? (paymentMethod as PaymentMethod)
-        : PaymentMethod.counter;
+        ? paymentMethod
+        : "cash";
 
-    const safeOrderType =
+    const safeOrderType: OrderType =
       orderType && Object.values(OrderType).includes(orderType)
-        ? (orderType as OrderType)
-        : OrderType.dinein;
+        ? orderType
+        : "dinein";
 
     if (lastOrder && lastOrder.paid === false) {
-      // Update existing unpaid order
       orderToProcess = { id: lastOrder.id };
 
       await prisma.order.update({
@@ -276,7 +275,6 @@ export const upsertBill = async (
 
       await prisma.$transaction(transactionItems);
     } else {
-      // Create new order
       isNewOrder = true;
 
       const newOrder = await prisma.order.create({
@@ -299,7 +297,6 @@ export const upsertBill = async (
       orderToProcess = { id: newOrder.id };
     }
 
-    // Recalculate total
     const fullOrderForTotal = await prisma.order.findUnique({
       where: { id: orderToProcess.id },
       include: {
@@ -321,9 +318,7 @@ export const upsertBill = async (
         total_price: new Prisma.Decimal(totalPrice.toFixed(2)),
       },
       include: {
-        order_items: {
-          include: { item: true },
-        },
+        order_items: { include: { item: true } },
       },
     });
 

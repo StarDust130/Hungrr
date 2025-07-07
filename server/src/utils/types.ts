@@ -1,13 +1,16 @@
-
 export interface UpsertBillRequestBody {
   cafeId: number;
   tableNo: number;
   items: { itemId: number; quantity: number }[];
-  paymentMethod?: "counter" | "online";
+  paymentMethod?: "cash" | "online";
   specialInstructions?: string;
-  orderType?: string;
-  sessionToken: string; 
+  orderType?: "dinein" | "takeaway";
+  sessionToken: string;
 }
 
-
-export type OrderStatus = "pending" | "accepted" | "preparing" | "ready" | "completed";
+export type OrderStatus =
+  | "pending"
+  | "accepted"
+  | "preparing"
+  | "ready"
+  | "completed";
