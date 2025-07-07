@@ -41,6 +41,8 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
   const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([]);
   const searchParams = useSearchParams();
   const [hasMounted, setHasMounted] = useState(false);
+  const [openAccordions, setOpenAccordions] = useState<string[]>([]);
+
 
   // ✅ Get the new 'setCafeId' function from our cart context
   const { loadOrderIntoCart, setCafeId } = useCart();
@@ -142,6 +144,11 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
 
     setActiveCategory(category);
 
+    // 👇 force open the accordion
+    setOpenAccordions((prev) =>
+      prev.includes(category) ? prev : [...prev, category]
+    );
+
     let retries = 0;
     const maxRetries = 30;
 
@@ -163,8 +170,9 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
     };
 
     try {
-      const el = await waitForElement();
-      setTimeout(() => {
+      // wait for Accordion to open and element to render
+      setTimeout(async () => {
+        const el = await waitForElement();
         const offset = el.getBoundingClientRect().top + window.scrollY - 140;
         window.scrollTo({ top: offset, behavior: "smooth" });
 
@@ -178,6 +186,15 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
       console.warn("Failed to scroll to category:", error);
     }
   };
+
+  useEffect(() => {
+    if (!filteredMenuData) return;
+
+    const categories = Object.keys(filteredMenuData);
+    setOpenAccordions(categories.slice(0, 3)); // 👈 open first 2 accordions
+  }, [filteredMenuData]);
+  
+  
 
   // ✅ Scroll active category nav into view
   useEffect(() => {
@@ -257,6 +274,9 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
             visibleCategories={visibleCategories}
             searchTerm={searchTerm}
             sectionRefs={sectionRefs}
+            openAccordions={openAccordions}
+            setOpenAccordions={setOpenAccordions}
+
           />
         )}
 

@@ -14,6 +14,8 @@ type Props = {
   visibleCategories: string[];
   searchTerm: string;
   sectionRefs: React.MutableRefObject<Record<string, HTMLElement | null>>;
+  openAccordions: string[];
+  setOpenAccordions: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
 const CategorySection = ({
@@ -21,6 +23,8 @@ const CategorySection = ({
   visibleCategories,
   searchTerm,
   sectionRefs,
+  openAccordions,
+  setOpenAccordions,
 }: Props) => {
   const hasSearched = searchTerm.trim() !== "";
   const hasNoResults = visibleCategories.length === 0;
@@ -51,40 +55,40 @@ const CategorySection = ({
     <>
       <Accordion
         type="multiple"
-        defaultValue={Object.keys(filteredMenuData)}
+        value={openAccordions}
+        onValueChange={setOpenAccordions}
         className="space-y-4"
       >
-        {Object.entries(filteredMenuData).map(
-          ([category, items], index, arr) => (
-            <AccordionItem
-              value={category}
-              key={category}
-              className={`
-        rounded-xl border-2 shadow-sm
-        ${index === arr.length - 1 ? "border-b border-border" : ""}
-        border-border
-      `}
-            >
-              <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 transition rounded-t-xl">
-                <h2 className="text-lg font-semibold text-muted-foreground tracking-wide">
-                  {category}
-                </h2>
-              </AccordionTrigger>
-              <AccordionContent className="px-4 pb-4 pt-2 rounded-b-xl">
-                <div
-                  ref={(el) => {
-                    sectionRefs.current[category] = el;
-                  }}
-                  className="flex flex-col gap-4"
-                >
-                  {items.map((item: MenuItem) => (
-                    <MenuItemCard key={`item-${item.id}`} item={item} />
-                  ))}
+        {Object.entries(filteredMenuData).map(([category, items]) => (
+          <AccordionItem
+            key={category}
+            value={category}
+            className="rounded-xl border border-border bg-card shadow-sm transition-all duration-300"
+          >
+            <AccordionTrigger className="group px-5 py-4 rounded-t-xl  transition-colors duration-300 border border-border">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-[15px] md:text-[17px] font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">
+                    {category}
+                  </h2>
                 </div>
-              </AccordionContent>
-            </AccordionItem>
-          )
-        )}
+              </div>
+            </AccordionTrigger>
+
+            <AccordionContent className="px-4 pb-4 pt-2 rounded-b-xl bg-background transition-all">
+              <div
+                ref={(el) => {
+                  sectionRefs.current[category] = el;
+                }}
+                className="flex flex-col gap-4"
+              >
+                {items.map((item: MenuItem) => (
+                  <MenuItemCard key={`item-${item.id}`} item={item} />
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
       </Accordion>
 
       <BackToTopButton />
