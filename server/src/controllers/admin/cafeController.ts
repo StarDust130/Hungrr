@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../../config/prisma";
+import slugify from "slugify";
 
 //! 1) CAFE  (Create , Read , Update) by Admin 🧁
 
