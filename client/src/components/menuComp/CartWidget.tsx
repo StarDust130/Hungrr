@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/drawer";
 import CheckoutPage from "./CheckoutPage";
 import { Button } from "@/components/ui/button";
-import { GST_CALCULATION } from "@/lib/helper";
+// import { GST_CALCULATION } from "@/lib/helper";
 
 
 const CartWidget = () => {
@@ -34,9 +34,9 @@ const CartWidget = () => {
   }
 
   // This check prevents errors if totalPrice is somehow not a number.
-  const isPriceValid = typeof totalPrice === "number";
+  // const isPriceValid = typeof totalPrice === "number";
 
-  const {  grandTotal } = GST_CALCULATION(totalPrice);
+  // const {  grandTotal } = GST_CALCULATION(totalPrice);
 
 
     return (
@@ -58,10 +58,9 @@ const CartWidget = () => {
                   <div className="absolute -top-3 -left-2 backdrop-blur-sm w-8 h-8 rounded-full"></div>
                   <ShoppingCart size={24} className="relative z-10" />
                 </div>
-                {/* Only show the price if it's a valid number */}
-                {isPriceValid && (
-                  <p className="font-bold text-lg">₹{grandTotal.toFixed(2)}</p>
-                )}
+            
+                  <p className="font-bold text-lg">₹{totalPrice.toFixed(2)}</p>
+             
               </div>
               <div className="flex items-center gap-1 font-semibold text-base pr-2 cursor-pointer">
                 View Cart <ChevronRight size={20} />

@@ -43,7 +43,7 @@ export function DateFormat(
 }
 
 export const GST_CALCULATION = (amount: number): { gstAmount: number; grandTotal: number } => {
-  const gstPercentage = Number(localStorage.getItem("gstPercentage")) || 18;
+  const gstPercentage = Number(localStorage.getItem("gstPercentage")) || 20; // make it 18% later
   const rate = gstPercentage / 100;
   const gstAmount = Number((amount * rate).toFixed(2));
   const grandTotal = Number((amount + gstAmount).toFixed(2));

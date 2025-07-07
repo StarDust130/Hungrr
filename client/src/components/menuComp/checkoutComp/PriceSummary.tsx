@@ -1,29 +1,40 @@
-// components/checkout/PriceSummary.tsx
 "use client";
 
 import { Separator } from "@/components/ui/separator";
 
 interface Props {
   totalPrice: number;
-  gst: number;
-  total: number;
+  gst: number; // this is actually your platform fee
 }
 
-const PriceSummary = ({ totalPrice, gst, total }: Props) => {
+const PriceSummary = ({ totalPrice, gst }: Props) => {
+  const itemTotal = totalPrice;
+  const platformFee = gst;
+
   return (
-    <div className="space-y-2 text-sm font-medium">
+    <div className="space-y-2 text-sm font-medium text-foreground">
       <div className="flex justify-between">
-        <p className="text-muted-foreground">Subtotal</p>
-        <p className="font-mono text-foreground">₹{totalPrice.toFixed(2)}</p>
+        <span className="text-muted-foreground">Item Total</span>
+        <span className="font-mono">₹{itemTotal.toFixed(2)}</span>
       </div>
+
       <div className="flex justify-between">
-        <p className="text-muted-foreground">Taxes & Charges (GST)</p>
-        <p className="font-mono text-foreground">+ ₹{gst.toFixed(2)}</p>
+        <span className="text-muted-foreground">Platform Fee</span>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-muted-foreground line-through">
+        ₹{platformFee.toFixed(2)}
+          </span>
+          <span className="font-mono text-sm font-semibold text-green-600 dark:text-green-500">
+        FREE
+          </span>
+        </div>
       </div>
+
       <Separator className="my-3" />
-      <div className="flex justify-between text-base font-bold">
-        <p>Grand Total</p>
-        <p className="font-mono">₹{total.toFixed(2)}</p>
+
+      <div className="flex justify-between text-base font-semibold">
+        <span>Total Payable</span>
+        <span className="font-mono">₹{itemTotal.toFixed(2)}</span>
       </div>
     </div>
   );

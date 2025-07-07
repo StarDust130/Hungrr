@@ -49,7 +49,7 @@ const CheckoutPage = () => {
   );
 
 
-  const { gstAmount, grandTotal } = GST_CALCULATION(totalPrice);
+  const { gstAmount } = GST_CALCULATION(totalPrice);
  
 
   type OrderStatus = "idle" | "placing" | "confirmed" | "error";
@@ -158,7 +158,6 @@ const CheckoutPage = () => {
           <PriceSummary
             totalPrice={totalPrice}
             gst={gstAmount}
-            total={grandTotal}
           />
 
           <Separator />
