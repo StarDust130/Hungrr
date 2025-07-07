@@ -61,20 +61,13 @@ const CheckoutPage = () => {
 
   //! ✅ This function is now cleaner and more robust.
   const handlePlaceOrder = async (paymentMethod: "cash" | "online") => {
-    // Prevent double-clicks
     if (orderStatus !== "idle") return;
 
-
-
-    // Add a check to make sure the cafeId has been set
     if (!cafeId) {
-      alert(
-        "🚫 Error: Cafe information is missing! Please refresh the page to continue. 🏪🔄"
-      );
+      alert("🚫 Error: Cafe information is missing! Please refresh the page.");
       return;
     }
 
-    // 1. Immediately set the status to 'placing' to show the loader
     setOrderStatus("placing");
 
     const billData = {
@@ -87,11 +80,10 @@ const CheckoutPage = () => {
       paymentMethod,
       specialInstructions,
       orderType,
-      sessionToken: sessionToken,
+      sessionToken,
     };
 
     try {
-      // 2. The component is already showing the loader while this runs.
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/bill`,
         billData
@@ -102,23 +94,21 @@ const CheckoutPage = () => {
         throw new Error("Backend did not return a valid publicId.");
       }
 
-      // 3. On success, redirect. The loader will disappear when the new page loads.
-      // 3. On success, set status to 'confirmed' to show the checkmark
+      // ✅ Set tick after API completes
       setOrderStatus("confirmed");
 
-      // 4. Wait 1.5 seconds for the user to see the confirmation, then redirect
+      // ✅ Short 1s delay only after showing tick
       setTimeout(() => {
         router.push(`/bills/${order.publicId}`);
-      }, 1500);
+      }, 1000);
     } catch (error) {
       log("❌ Failed to place order:", error);
-
       toast.error("😵‍💫 Something went wrong. Please try again shortly.");
-
       setIsLoading(false);
       setOrderStatus("error");
     }
   };
+  
 
   // ✅ This is the new rendering logic based on the order status
   if (orderStatus === "placing" || orderStatus === "confirmed") {
