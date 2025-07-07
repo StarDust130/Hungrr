@@ -233,15 +233,17 @@ export const upsertBill = async (
     let orderToProcess: { id: number };
     let isNewOrder = false;
 
+    // ✅ Safely parse enums using Prisma enums
     const safePaymentMethod: PaymentMethod =
-      paymentMethod && Object.values(PaymentMethod).includes(paymentMethod)
-        ? paymentMethod
-        : "cash";
+      paymentMethod &&
+      Object.values(PaymentMethod).includes(paymentMethod as PaymentMethod)
+        ? (paymentMethod as PaymentMethod)
+        : PaymentMethod.cash;
 
     const safeOrderType: OrderType =
-      orderType && Object.values(OrderType).includes(orderType)
-        ? orderType
-        : "dinein";
+      orderType && Object.values(OrderType).includes(orderType as OrderType)
+        ? (orderType as OrderType)
+        : OrderType.dinein;
 
     if (lastOrder && lastOrder.paid === false) {
       orderToProcess = { id: lastOrder.id };
