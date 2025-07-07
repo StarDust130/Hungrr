@@ -18,6 +18,7 @@ import { log } from "@/lib/helper";
 import useCart from "@/hooks/useCart";
 import { useSessionToken } from "@/hooks/useSessionToken";
 import SpecialLabel from "./SpecialLabel";
+import NoResults from "./NoResults";
 
 interface Props {
   cafeSlug: string;
@@ -239,6 +240,9 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
                   <MenuItemCardSkeleton key={i} />
                 ))}
               </div>
+            ) : filteredMenuData &&
+              Object.keys(filteredMenuData).length === 0 ? (
+              <NoResults query={searchTerm} />
             ) : (
               <CategorySection
                 filteredMenuData={filteredMenuData}
