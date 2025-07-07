@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { RefObject, useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -18,7 +18,7 @@ type Props = {
   categories: string[];
   activeCategory: string;
   scrollToCategory: (cat: string) => void;
-  navRef: React.RefObject<HTMLDivElement>;
+  navRef: RefObject<HTMLDivElement | null>; // ✅ fix this line
 };
 
 const CategoryNav = ({
