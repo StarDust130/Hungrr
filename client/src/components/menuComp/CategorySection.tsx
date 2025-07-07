@@ -1,6 +1,13 @@
 import MenuItemCard from "@/components/menuComp/MenuItemCard";
 import Image from "next/image";
 import type { MenuData, MenuItem } from "@/types/menu.d.ts";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
+import BackToTopButton from "./BacktoTopButton";
 
 type Props = {
   filteredMenuData: MenuData;
@@ -19,7 +26,6 @@ const CategorySection = ({
   const hasNoResults = visibleCategories.length === 0;
   const hasFetchedDataOnce = Object.keys(filteredMenuData).length > 0;
 
-  // ✅ Show empty state after search
   if (hasSearched && hasNoResults && hasFetchedDataOnce) {
     return (
       <div className="text-center flex flex-col justify-start items-center py-8">
@@ -41,28 +47,40 @@ const CategorySection = ({
     );
   }
 
-  // ✅ Render actual menu content
   return (
     <>
-      {Object.entries(filteredMenuData).map(([category, items]) => (
-        <section
-          key={category}
-          id={category}
-          ref={(el) => {
-            sectionRefs.current[category] = el;
-          }}
-          className="pt-6"
-        >
-          <h2 className="text-2xl font-extrabold text-foreground mb-2 tracking-tight">
-            {category}
-          </h2>
-          <div className="space-y-0">
-            {items.map((item: MenuItem) => (
-              <MenuItemCard key={`item-${item.id}`} item={item} />
-            ))}
-          </div>
-        </section>
-      ))}
+      <Accordion
+        type="multiple"
+        defaultValue={Object.keys(filteredMenuData)}
+        className="space-y-4"
+      >
+        {Object.entries(filteredMenuData).map(([category, items]) => (
+          <AccordionItem
+            value={category}
+            key={category}
+            className="rounded-xl border border-muted shadow-sm"
+          >
+            <AccordionTrigger className="px-4 py-3 hover:bg-muted/50 transition rounded-t-xl">
+              <h2 className="text-lg font-semibold text-muted-foreground tracking-wide">
+                {category}
+              </h2>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4 pt-2 rounded-b-xl">
+              <div
+                ref={(el) => {
+                  sectionRefs.current[category] = el;
+                }}
+                className="flex flex-col gap-4"
+              >
+                {items.map((item: MenuItem) => (
+                  <MenuItemCard key={`item-${item.id}`} item={item} />
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
+      <BackToTopButton />
     </>
   );
 };
