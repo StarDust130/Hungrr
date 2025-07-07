@@ -1,7 +1,5 @@
-// ✅ useMenu.ts (Custom Hook) with staged fetching and active category scroll fix
-
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import type { MenuItem } from "@/types/menu.d.ts";
+import { useState, useEffect, useRef, useMemo } from "react";
+import type { MenuItem } from "@/types/menu";
 
 interface UseMenuProps {
   cafeSlug: string;
@@ -9,96 +7,85 @@ interface UseMenuProps {
 
 export function useMenu({ cafeSlug }: UseMenuProps) {
   const [menuData, setMenuData] = useState<Record<string, MenuItem[]>>({});
-  const [hasMore, setHasMore] = useState(true);
-  const [categoryIndex, setCategoryIndex] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [allCategories, setAllCategories] = useState<string[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState<string[]>([]);
+  const [specialItems, setSpecialItems] = useState<MenuItem[]>([]);
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  // ✅ Fetch all categories once
+  // ✅ Fetch all categories and menu data in parallel
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchAllMenus = async () => {
       try {
-        const res = await fetch(
+        const catRes = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/menu/category/${cafeSlug}`
         );
-        if (!res.ok) throw new Error("Failed to fetch categories");
-        const result = await res.json();
-        setAllCategories(result.categories);
+        const catJson = await catRes.json();
+        const categories: string[] = catJson.categories;
+        setAllCategories(categories);
+
+        const promises = categories.map(async (_, index) => {
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/menu/${cafeSlug}?category_index=${index}`
+          );
+          if (!res.ok) return null;
+          const data = await res.json();
+          return data;
+        });
+
+        const results = await Promise.all(promises);
+
+        const combined: Record<string, MenuItem[]> = {};
+        results.forEach((result) => {
+          if (result) {
+            const category = Object.keys(result)[0];
+            combined[category] = result[category];
+          }
+        });
+
+        setMenuData(combined);
+        setActiveCategory(Object.keys(combined)[0] || "");
+
+        // ✅ Set specials early
+        const allInitialItems = Object.values(combined).flat();
+        const specialFiltered = allInitialItems.filter(
+          (item) => item?.isSpecial
+        );
+        setSpecialItems(specialFiltered);
       } catch (error) {
-        console.error("Failed to fetch all categories:", error);
+        console.error("❌ Failed to fetch full menu:", error);
       }
     };
-    fetchCategories();
+
+    fetchAllMenus();
   }, [cafeSlug]);
 
-  // ✅ Staged Fetching: load initial 10 at once, then next 10s with delay
-  const fetchCategoryByIndex = useCallback(
-    async (index: number) => {
-      if (index >= allCategories.length) return;
-      const category = allCategories[index];
-      if (!category || menuData[category]) return;
+  // ✅ Calculate loading state
+  const isLoading = useMemo(() => {
+    return Object.keys(menuData).length === 0;
+  }, [menuData]);
 
-      setLoadingCategories((prev) => [...prev, category]);
-
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/menu/${cafeSlug}?category_index=${index}`
-        );
-        if (!res.ok) throw new Error("Failed to fetch menu");
-        const result = await res.json();
-
-        const [categoryName] = Object.keys(result);
-        const items = result[categoryName];
-
-        setMenuData((prev) => ({
-          ...prev,
-          [categoryName]: items,
-        }));
-
-        // Set first active category if not set
-        if (!activeCategory) setActiveCategory(categoryName);
-
-        // After a short delay, fetch next category
-        setTimeout(() => setCategoryIndex((prev) => prev + 1), 500);
-      } catch (error) {
-        console.error("Failed to fetch menu:", error);
-      } finally {
-        setLoadingCategories((prev) => prev.filter((c) => c !== category));
-      }
-    },
-    [cafeSlug, allCategories, menuData, activeCategory]
-  );
-
-  useEffect(() => {
-    if (categoryIndex < allCategories.length) {
-      fetchCategoryByIndex(categoryIndex);
-    } else {
-      setHasMore(false);
-    }
-  }, [categoryIndex, allCategories.length, fetchCategoryByIndex]);
-
-  // ✅ Search-based filter
+  // ✅ Filtered menu data by search term
   const filteredMenuData = useMemo(() => {
     if (!searchTerm.trim()) return menuData;
-    const lowerFilter = searchTerm.toLowerCase();
+    const lower = searchTerm.toLowerCase();
     const filtered: Record<string, MenuItem[]> = {};
+
     Object.entries(menuData).forEach(([category, items]) => {
-      const matches = items.filter(
+      const match = items.filter(
         (item) =>
-          item.name.toLowerCase().includes(lowerFilter) ||
-          item.description.toLowerCase().includes(lowerFilter)
+          item.name.toLowerCase().includes(lower) ||
+          item.description.toLowerCase().includes(lower)
       );
-      if (matches.length > 0) filtered[category] = matches;
+      if (match.length > 0) filtered[category] = match;
     });
+
     return filtered;
   }, [searchTerm, menuData]);
 
-  // ✅ Set activeCategory on scroll using observer
+  // ✅ Track visible category using IntersectionObserver
   useEffect(() => {
     if (searchTerm) return;
     if (observerRef.current) observerRef.current.disconnect();
@@ -124,17 +111,10 @@ export function useMenu({ cafeSlug }: UseMenuProps) {
     return () => observerRef.current?.disconnect();
   }, [filteredMenuData, searchTerm]);
 
+  // ✅ List of visible categories depending on search
   const visibleCategories = searchTerm
     ? Object.keys(filteredMenuData)
     : allCategories;
-
-  const allItems = useMemo(() => {
-    return Object.values(menuData).flat();
-  }, [menuData]);
-
-  const isSpecial = useMemo(() => {
-    return allItems.filter((item) => item?.isSpecial);
-  }, [allItems]);
 
   return {
     searchTerm,
@@ -145,9 +125,7 @@ export function useMenu({ cafeSlug }: UseMenuProps) {
     filteredMenuData,
     sectionRefs,
     observerRef,
-    fetchNextMenuCategory: () => fetchCategoryByIndex(categoryIndex),
-    isSpecial,
-    hasMore,
-    loadingCategories,
+    isSpecial: specialItems,
+    isLoading,
   };
 }

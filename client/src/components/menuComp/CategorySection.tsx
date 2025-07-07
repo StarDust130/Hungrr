@@ -63,19 +63,17 @@ const CategorySection = ({
           <AccordionItem
             key={category}
             value={category}
-            className="rounded-xl border border-border bg-card shadow-sm transition-all duration-300"
+            className="bg-transparent shadow-none"
           >
-            <AccordionTrigger className="group px-5 py-4 rounded-t-xl  transition-colors duration-300 border border-border">
+            <AccordionTrigger className="group px-2 md:px-4 py-3 hover:bg-muted/40 rounded-lg transition-all">
               <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-[15px] md:text-[17px] font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">
-                    {category}
-                  </h2>
-                </div>
+                <h2 className="text-[18px] font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">
+                  {category}
+                </h2>
               </div>
             </AccordionTrigger>
 
-            <AccordionContent className="px-4 pb-4 pt-2 rounded-b-xl bg-background transition-all">
+            <AccordionContent className="px-2 md:px-4 pt-2 pb-4 transition-all">
               <div
                 ref={(el) => {
                   sectionRefs.current[category] = el;

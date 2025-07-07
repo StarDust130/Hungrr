@@ -84,7 +84,6 @@ export const getCategory = async (req: Request, res: Response) => {
 };
 
 //! 3) Cafe Menu 😋
-
 export const getCafeMenu = async (
   req: Request,
   res: Response
