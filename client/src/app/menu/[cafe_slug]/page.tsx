@@ -26,15 +26,34 @@ export default async function MenuPage(props: Props) {
       );
     }
 
+    // ✅ FIX: Check if the cafe is active before showing the menu.
+    if (!cafeData.is_active) {
+      return (
+        <>
+          {/* Show the banner so the user knows which cafe is closed */}
+          <CafeBanner cafe={cafeData} />
+          <ErrorMessage
+            img="/anime-girl-close.png" // Use a relevant image
+            message="😴 This cafe is currently closed."
+            sub="We're not serving at the moment. Please visit us again soon!"
+          />
+        </>
+      );
+    }
+
     const menuData = await fetchMenuData(cafe_slug);
 
     if (!menuData || Object.keys(menuData).length === 0) {
+      // Show banner here too for context
       return (
-        <ErrorMessage
-          img="/anime-girl-sad-2.png"
-          message="🍽️ No menu items found for"
-          highlight={cafeData.name}
-        />
+        <>
+          <CafeBanner cafe={cafeData} />
+          <ErrorMessage
+            img="/anime-girl-sad-2.png"
+            message="🍽️ No menu items found for"
+            highlight={cafeData.name}
+          />
+        </>
       );
     }
 
