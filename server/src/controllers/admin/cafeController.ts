@@ -225,3 +225,48 @@ export const updateCafe = async (req: Request, res: Response) => {
       .json({ message: "🚨 Server error while updating cafe." });
   }
 };
+
+// 1.5.) close Cafe by ownerID
+export const toggleCafeStatus = async (req: Request, res: Response) => {
+  try {
+    // Get the cafe ID from the URL parameter.
+    const { cafe_id } = req.params;
+
+    // Get the new 'is_active' state from the request body.
+    const { is_active } = req.body;
+
+    // Validate that 'is_active' is a boolean.
+    if (typeof is_active !== "boolean") {
+      return res
+        .status(400)
+        .json({ message: "Invalid 'is_active' value provided." });
+    }
+
+    // Parse the cafe ID to an integer.
+    const idAsInt = parseInt(cafe_id, 10);
+    if (isNaN(idAsInt)) {
+      return res.status(400).json({ message: "Invalid Cafe ID." });
+    }
+
+    // Update the cafe in the database.
+    const updatedCafe = await prisma.cafe.update({
+      where: {
+        id: idAsInt,
+      },
+      data: {
+        is_active: is_active,
+      },
+    });
+
+    res.status(200).json(updatedCafe);
+  } catch (error) {
+    console.error("Failed to update cafe status:", error);
+
+    // Handle cases where the cafe ID does not exist.
+    if (typeof error === "object" && error !== null && "code" in error && (error as any).code === "P2025") {
+      return res.status(404).json({ message: `Cafe not found.` });
+    }
+
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
