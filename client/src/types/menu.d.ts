@@ -77,8 +77,8 @@ export interface BillData {
     quantity: number;
   }[];
   totalPrice: number;
-  gstAmount: number;
-  grandTotal: number;
+  // gstAmount: number;
+  // grandTotal: number;
   paymentMethod: PaymentMethod; // Using Prisma type
   paymentStatus: "paid" | "pending";
   status: OrderStatus; // Using Prisma type

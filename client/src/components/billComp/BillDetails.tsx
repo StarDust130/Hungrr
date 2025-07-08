@@ -79,10 +79,10 @@ export const BillDetails = ({ bill }: { bill: BillData }) => {
         <div className="flex justify-between items-center text-lg font-semibold">
           <p className="text-muted-foreground">Amount to Pay</p>
           <p className="font-mono text-primary text-xl">
-            ₹{Number(bill.grandTotal || 0).toFixed(2)}
+            ₹{Number(bill.totalPrice || 0).toFixed(2)}
           </p>
         </div>
-        <p className="text-[10px] text-muted-foreground text-right mt-1">
+        <p className="text-[8px] text-muted-foreground text-right mt-1">
           (Includes GST)
         </p>
       </div>

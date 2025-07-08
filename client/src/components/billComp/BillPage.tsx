@@ -10,7 +10,6 @@ import { BillFooter } from "./BillFooter";
 import { BillActions } from "./BillActions";
 import socket from "@/lib/socket";
 import { BillData, OrderStatus } from "@/types/menu";
-import { GST_CALCULATION } from "@/lib/helper";
 import Loading from "@/app/bills/loading";
 import OrderNotFound from "./OrderNotFound";
 
@@ -36,7 +35,7 @@ export default function BillPage({ publicId }: { publicId: string }) {
         if (!order) throw new Error("Order not found.");
 
         const totalPrice = Number(order.total_price);
-        const { gstAmount, grandTotal } = GST_CALCULATION(totalPrice);
+        // const { gstAmount, grandTotal } = GST_CALCULATION(totalPrice);
 
         // Set the initial state of the bill
         setBill({
@@ -44,8 +43,6 @@ export default function BillPage({ publicId }: { publicId: string }) {
           timestamp: order.created_at,
           items: order.order_items,
           totalPrice,
-          gstAmount,
-          grandTotal,
           paymentMethod: order.payment_method,
           paymentStatus: order.paid ? "paid" : "pending",
           status: order.status,
