@@ -99,6 +99,7 @@ export const getOrdersByCafe = async (req: Request, res: Response) => {
           status: true,
           orderType: true,
           payment_method: true,
+          paid: true,
         },
       }),
       prisma.order.count({ where: whereClause }),
@@ -207,10 +208,6 @@ export const getCafeStats = async (req: Request, res: Response) => {
 // 5) Update Order Status
 // Assume OrderStatus type is defined elsewhere, e.g., in a types.ts file
 type OrderStatus = "pending" | "accepted" | "preparing" | "ready" | "completed";
-const VALID_STATUSES: OrderStatus[] = ["pending", "accepted", "preparing", "ready", "completed"];
-
-
-
 /**
  * REFACTORED: Updates an order's status and emits a real-time event.
  */
