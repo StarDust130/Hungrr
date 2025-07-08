@@ -17,12 +17,12 @@ export const getCafeInfoBySlug = async (
     const cafe = await prisma.cafe.findFirst({
       where: {
         slug,
-        is_active: true,
+        // ✅ FIX: REMOVED 'is_active: true' to allow fetching closed cafes.
+        // The frontend will now handle the logic for displaying the "closed" message.
       },
       select: {
         id: true,
         slug: true,
-
         bannerUrl: true,
         name: true,
         tagline: true,
@@ -30,6 +30,7 @@ export const getCafeInfoBySlug = async (
         isPureVeg: true,
         openingTime: true,
         gstPercentage: true,
+        is_active: true, // Keep this in the select to send the status to the frontend
       },
     });
 
@@ -53,8 +54,9 @@ export const getCategory = async (req: Request, res: Response) => {
   }
 
   try {
+    // ✅ FIX: REMOVED 'is_active: true' here as well for consistency.
     const cafe = await prisma.cafe.findFirst({
-      where: { slug, is_active: true },
+      where: { slug },
       select: { id: true },
     });
 
@@ -71,7 +73,7 @@ export const getCategory = async (req: Request, res: Response) => {
           },
         },
       },
-      orderBy: { order: "asc" }, // ✨ Change orderBy to use the new field
+      orderBy: { order: "asc" },
       select: { name: true },
     });
 
@@ -95,7 +97,6 @@ export const getCafeMenu = async (
     const cafe = await prisma.cafe.findFirst({
       where: {
         slug,
-        is_active: true,
       },
     });
 
@@ -107,11 +108,6 @@ export const getCafeMenu = async (
     const orderedCategories = await prisma.category.findMany({
       where: {
         cafeId: cafe.id,
-        items: {
-          some: {
-            is_active: true,
-          },
-        },
       },
       orderBy: { order: "asc" },
       select: { name: true },
