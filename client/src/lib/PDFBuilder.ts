@@ -48,7 +48,6 @@ export class PDFBuilder {
   drawHeader(logoDataUrl?: string) {
     if (logoDataUrl) {
       try {
-        // ✅ LOGO SIZE INCREASED SIGNIFICANTLY HERE
         const logoDim = { width: 20, height: 20 };
         const logoX = this.margin + this.pageWidth / 2 - logoDim.width / 2;
         this.doc.addImage(
@@ -78,17 +77,22 @@ export class PDFBuilder {
       }
     );
     this.y += this.lineSpacing;
+
     this.doc
       .setFont("helvetica", "normal")
       .setFontSize(7)
       .setTextColor(STYLING.fontColorLight);
-    this.doc.text(
+
+    const addressLines = this.doc.splitTextToSize(
       this.bill.address!,
-      this.margin + this.pageWidth / 2,
-      this.y,
-      { align: "center" }
+      this.pageWidth
     );
-    this.y += this.smallLineSpacing;
+
+    this.doc.text(addressLines, this.margin + this.pageWidth / 2, this.y, {
+      align: "center",
+    });
+    this.y += addressLines.length * this.smallLineSpacing;
+
     this.doc.text(
       `GSTIN: ${this.bill.gstNo || "N/A"}`,
       this.margin + this.pageWidth / 2,
@@ -192,30 +196,39 @@ export class PDFBuilder {
 
       const valueX = this.margin + this.pageWidth;
       this.doc.text(value, valueX, this.y, { align: "right" });
-      this.y += this.lineSpacing;
     };
 
-    drawTotalLine("Subtotal", (this.bill.totalPrice ?? 0).toFixed(2));
-    drawTotalLine("GST (18%)", (this.bill.gstAmount ?? 0).toFixed(2));
-    this.y += this.smallLineSpacing / 2;
-    this.drawLine();
-    this.y += this.lineSpacing;
-
-    const grandTotalString = `Rs. ${(this.bill.grandTotal ?? 0).toFixed(2)}`;
+    const grandTotalString = `Rs. ${(this.bill.totalPrice ?? 0).toFixed(2)}`;
     drawTotalLine("GRAND TOTAL", grandTotalString, {
       isBold: true,
       isLarge: true,
     });
+
+    this.doc
+      .setFont("helvetica", "italic")
+      .setFontSize(6)
+      .setTextColor(STYLING.fontColorLight);
+    this.doc.text(
+      "(incl. of all taxes)",
+      this.margin + this.pageWidth,
+      this.y + 2,
+      { align: "right" }
+    );
+    this.y += this.lineSpacing;
   }
 
+  // ✅ UPDATED: Final, robust footer logic to permanently fix overlapping text.
   drawFooter(qrCodeDataUrl: string) {
+    // This part flows naturally after the totals
     this.y += this.lineSpacing;
 
     const qrSize = 22;
     const qrX = this.margin + this.pageWidth / 2 - qrSize / 2;
-    this.doc.addImage(qrCodeDataUrl, "PNG", qrX, this.y, qrSize, qrSize);
-    this.doc.link(qrX, this.y, qrSize, qrSize, { url: window.location.href });
-    this.y += qrSize + 3;
+    if (qrCodeDataUrl) {
+      this.doc.addImage(qrCodeDataUrl, "PNG", qrX, this.y, qrSize, qrSize);
+      this.doc.link(qrX, this.y, qrSize, qrSize, { url: window.location.href });
+      this.y += qrSize + 3;
+    }
 
     this.doc
       .setFont("helvetica", "bold")
@@ -227,15 +240,87 @@ export class PDFBuilder {
       this.y,
       { align: "center", url: window.location.href }
     );
-    this.y += this.lineSpacing * 2;
+    this.y += this.lineSpacing;
 
-    this.doc.setFont("helvetica", "italic").setFontSize(8);
+    this.doc.setFont("helvetica", "normal").setFontSize(7);
     this.doc.text(
       "Thank You & Visit Again!",
       this.margin + this.pageWidth / 2,
       this.y,
       { align: "center" }
     );
+
+    // --- Absolute Bottom Footer ---
+    const pageHeight = this.doc.internal.pageSize.getHeight();
+    let currentFooterY = pageHeight - 4;
+
+    // 1. Draw "Terms & Conditions"
+    this.doc
+      .setFont("helvetica", "italic")
+      .setFontSize(5)
+      .setTextColor(STYLING.fontColorLight);
+    this.doc.text(
+      "T&Cs apply",
+      this.margin + this.pageWidth / 2,
+      currentFooterY,
+      { align: "center" }
+    );
+
+    // 2. Move up for the "Powered by" line
+    currentFooterY -= this.smallLineSpacing;
+
+    // ✨ FIX: This new logic correctly measures and places the styled text.
+    const part1 = "Powered by ";
+    const part2 = "Hungrr";
+
+    // Measure widths with the correct styles applied
+    this.doc.setFont("helvetica", "italic").setFontSize(7);
+    const part1Width = this.doc.getTextWidth(part1);
+    this.doc.setFont("helvetica", "bold").setFontSize(7.5);
+    const part2Width = this.doc.getTextWidth(part2);
+
+    const totalWidth = part1Width + part2Width;
+    let currentX = this.margin + (this.pageWidth - totalWidth) / 2;
+
+    // Draw part 1 with its style
+    this.doc
+      .setFont("helvetica", "italic")
+      .setFontSize(7)
+      .setTextColor(STYLING.fontColorLight);
+    this.doc.text(part1, currentX, currentFooterY);
+
+    // Move X position for the next part
+    currentX += part1Width;
+
+    // Draw part 2 with its style
+    this.doc
+      .setFont("helvetica", "bold")
+      .setFontSize(7.5)
+      .setTextColor(STYLING.fontColorNormal);
+    this.doc.text(part2, currentX, currentFooterY);
+
+    // Add a single link over the whole phrase
+    const linkStartX = this.margin + (this.pageWidth - totalWidth) / 2;
+    const textHeight = 2;
+    this.doc.link(
+      linkStartX,
+      currentFooterY - textHeight,
+      totalWidth,
+      textHeight + 1,
+      { url: "https://hungrr.in" }
+    );
+
+    // 3. Move up for the separator line
+    currentFooterY -= 3;
+    this.doc.setLineDashPattern([0.5, 0.5], 0);
+    this.doc.setDrawColor(STYLING.fontColorLight);
+    this.doc.line(
+      this.margin,
+      currentFooterY,
+      this.margin + this.pageWidth,
+      currentFooterY
+    );
+    this.doc.setLineDashPattern([], 0);
   }
 
   save() {

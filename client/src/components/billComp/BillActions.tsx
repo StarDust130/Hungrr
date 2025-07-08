@@ -51,10 +51,9 @@ export function BillActions({ bill }: BillActionsProps) {
     setIsDesktop(!mobileRegex.test(userAgent));
   }, []);
 
-  const amount = bill.grandTotal.toFixed(2);
   const upiUrl = `upi://pay?pa=${YOUR_UPI_ID}&pn=${encodeURIComponent(
     YOUR_NAME
-  )}&am=${amount}&cu=INR&tn=${encodeURIComponent(description)}`;
+  )}&am=${bill.totalPrice}&cu=INR&tn=${encodeURIComponent(description)}`;
 
 
   const handlePayment = () => {
@@ -153,8 +152,9 @@ export function BillActions({ bill }: BillActionsProps) {
           {/* Correctly renders buttons based on the logic */}
           {showPayButton && <PayButton />}
           {showDownloadButton && <DownloadButton />}
-          {bill.paymentMethod === "cash" &&
-            bill.paymentStatus !== "paid" && <PayAtCounterInfo />}
+          {bill.paymentMethod === "cash" && bill.paymentStatus !== "paid" && (
+            <PayAtCounterInfo />
+          )}
         </div>
       </div>
 
@@ -185,7 +185,7 @@ export function BillActions({ bill }: BillActionsProps) {
             <DialogHeader>
               <DialogTitle className="text-center">Scan to Pay</DialogTitle>
               <DialogDescription className="text-center">
-                Use any UPI app to pay ₹{amount}.
+                Use any UPI app to pay ₹{bill.totalPrice}.
               </DialogDescription>
             </DialogHeader>
             <div className="p-4 bg-white rounded-lg">
