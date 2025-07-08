@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // src/components/BillPage.tsx (or wherever you have it)
 "use client";
 
