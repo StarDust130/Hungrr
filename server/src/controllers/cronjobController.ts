@@ -7,8 +7,8 @@ export const cleanupPendingOrders = async () => {
     console.log("🧹 Running scheduled job: Cleaning up pending orders...");
   
     try {
-      // Calculate the timestamp for 7 minutes ago
-      const sevenMinutesAgo = new Date(Date.now() - 7 * 60 * 1000);
+      // Calculate the timestamp for 10 minutes ago
+      const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
   
       // Find all orders that meet the deletion criteria
       const abandonedOrders = await prisma.order.findMany({
@@ -16,7 +16,7 @@ export const cleanupPendingOrders = async () => {
           status: "pending",
           paid: false,
           created_at: {
-            lt: sevenMinutesAgo, // 'lt' means "less than"
+            lt: tenMinutesAgo, // 'lt' means "less than"
           },
         },
         select: {

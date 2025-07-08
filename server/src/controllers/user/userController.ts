@@ -3,7 +3,8 @@ import { Request, Response } from "express";
 import prisma from "../../config/prisma";
 import { OrderType, PaymentMethod, Prisma } from "@prisma/client";
 import { UpsertBillRequestBody } from "../../utils/types";
-import { Server as SocketIOServer } from "socket.io";
+import { Server } from "socket.io";
+import { Order } from "@prisma/client"; // Or your specific Order type
 
 //! 1) Cafe Banner 🤑
 export const getCafeInfoBySlug = async (
@@ -185,15 +186,30 @@ const bHasImage = !!b.food_image_url;
 //! 4) Upsert Bill (Create or Update Order) 💳
 
 
-const emitOrderEvent = (req: Request, eventName: string, order: any) => {
-  const io = req.app.get("io") as SocketIOServer;
-  if (io && order.cafeId) {
-    const roomName = `cafe_${order.cafeId}`;
-    io.to(roomName).emit(eventName, order);
-    console.log(
-      `📢 Emitted '${eventName}' to room '${roomName}' for order ${order.publicId}`
-    );
+export const emitOrderEvent = (
+  req: Request,
+  eventName: "new_order" | "order_updated" | "order_cancelled",
+  order: Order
+) => {
+  const io: Server = req.app.get("io");
+  if (!io || !order?.cafeId || !order?.id) {
+    console.error("🔴 Failed to emit event: Missing io, cafeId, or order.id");
+    return;
   }
+
+  const cafeRoom = `cafe_${order.cafeId}`;
+  const orderRoom = `order_${order.id}`;
+
+  // 1. Emit to ADMIN room
+  io.to(cafeRoom).emit(eventName, order);
+  console.log(`📢 Emitted '${eventName}' to ADMIN room '${cafeRoom}'`);
+
+  // 2. Emit to USER room - THIS IS THE CRITICAL MISSING PART
+  io.to(orderRoom).emit(eventName, {
+    status: order.status,
+    paid: order.paid,
+  });
+  console.log(`📢 Emitted '${eventName}' to USER room '${orderRoom}'`);
 };
 
 export const upsertBill = async (

@@ -7,21 +7,7 @@ import {
   endOfDay,
   subDays,
 } from "date-fns";
-import { Server as SocketIOServer } from "socket.io";
-/**
- * Helper function to emit socket events for an order.
- * @param req - The Express request object, used to get the `io` instance.
- * @param eventName - The name of the event to emit (e.g., 'order_updated', 'new_order').
- * @param order - The full order object to send as a payload.
- */
-const emitOrderEvent = (req: Request, eventName: string, order: any) => {
-  const io = req.app.get("io") as SocketIOServer;
-  if (io && order.cafeId) {
-    const roomName = `cafe_${order.cafeId}`;
-    io.to(roomName).emit(eventName, order);
-    console.log(`📢 Emitted '${eventName}' to room '${roomName}' for order ${order.publicId}`);
-  }
-};
+import { emitOrderEvent } from "../user/userController";
 
 
 
@@ -220,8 +206,8 @@ export const getCafeStats = async (req: Request, res: Response) => {
 
 // 5) Update Order Status
 // Assume OrderStatus type is defined elsewhere, e.g., in a types.ts file
-type OrderStatus = "pending" | "accepted" | "preparing" | "ready" | "completed" | "cancelled";
-const VALID_STATUSES: OrderStatus[] = ["pending", "accepted", "preparing", "ready", "completed", "cancelled"];
+type OrderStatus = "pending" | "accepted" | "preparing" | "ready" | "completed";
+const VALID_STATUSES: OrderStatus[] = ["pending", "accepted", "preparing", "ready", "completed"];
 
 
 
@@ -233,34 +219,26 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
     const { orderId } = req.params;
     const { status } = req.body as { status: OrderStatus };
 
-    if (!status || !VALID_STATUSES.includes(status)) {
-      return res.status(400).json({ message: "🚫 Invalid status provided." });
-    }
-
+    // This is where your code was failing with the Prisma "record not found" error
     const updatedOrder = await prisma.order.update({
       where: { id: Number(orderId) },
       data: { status },
-      // Include related data needed by the frontend in the response/socket payload
-      include: {
-        order_items: {
-          select: {
-            quantity: true,
-            item: { select: { name: true } },
-          },
-        },
-      },
     });
 
-    // Emit the real-time update
-    emitOrderEvent(req, 'order_updated', updatedOrder);
+    // We only emit AFTER the database update is successful
+    emitOrderEvent(req, "order_updated", updatedOrder);
 
-    res.status(200).json({
-      message: "✅ Order status updated successfully.",
-      order: updatedOrder,
-    });
+    res
+      .status(200)
+      .json({ message: "✅ Order status updated.", order: updatedOrder });
   } catch (err: any) {
-    if (err.code === "P2025") { // Prisma's error code for a record not found
-      return res.status(404).json({ message: "🚫 Order not found." });
+    if (err.code === "P2025") {
+      console.error(
+        `❌ UPDATE FAILED: Order with ID ${req.params.orderId} not found.`
+      );
+      return res
+        .status(404)
+        .json({ message: "Order not found. It may have been deleted." });
     }
     console.error("❌ Error updating order status:", err);
     res.status(500).json({ message: "🚨 Server error." });

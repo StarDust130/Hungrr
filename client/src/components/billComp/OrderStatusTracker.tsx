@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState, FC, useMemo, useRef } from "react";
-import socket from "@/lib/socket";
-import { BillData, OrderStatus } from "@/types/menu";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
+import axios from "axios";
+import { toast } from "sonner";
 import {
   CheckCircle2,
   Hourglass,
@@ -13,12 +14,11 @@ import {
   Bell,
   Wallet,
 } from "lucide-react";
-import { Button } from "../ui/button";
-import { useSessionToken } from "@/hooks/useSessionToken";
-import axios from "axios";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
+import socket from "@/lib/socket"; // Ensure this is the singleton instance
+import { BillData, OrderStatus } from "@/types/menu";
+import { useSessionToken } from "@/hooks/useSessionToken";
+import { Button } from "../ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,110 +31,125 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-
-
+// Helper function to cancel an order
 const handleCancelOrder = async (
   orderPublicId: string,
   sessionToken: string,
   callback: () => void
 ) => {
-    try {
-      await axios.delete(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/orders/${orderPublicId}`,
-        {
-          headers: { "x-session-token": sessionToken },
-        }
-      );
-      toast.success("Your order has been canceled!");
-      sessionStorage.removeItem("cart");
-      callback();
-      // You would then redirect the user or refresh the active orders list.
-    } catch (error) {
-      console.error("Failed to cancel order:", error);
-      toast.error(
-        "Could not cancel this order. It may have already been accepted by the kitchen."
-      );
-    }
+  try {
+    await axios.delete(
+      `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/orders/${orderPublicId}`,
+      {
+        headers: { "x-session-token": sessionToken },
+      }
+    );
+    toast.success("Your order has been canceled!");
+    sessionStorage.removeItem("cart");
+    callback();
+  } catch (error) {
+    console.error("Failed to cancel order:", error);
+    toast.error(
+      "Could not cancel order. It may have already been accepted by the kitchen."
+    );
+  }
 };
 
-// The main component with the new design
+// Main Component
 export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
+  // --- UNIFIED STATE LOGIC ---
+  const [orderState, setOrderState] = useState({
+    status: bill.status as OrderStatus,
+    isPaid: bill.paymentStatus === "paid",
+  });
 
-
-  // --- STATE & LOGIC ---
-  // Using the stable logic from your working version
-  const [status, setStatus] = useState<OrderStatus>(bill.status as OrderStatus);
-  const [isPaid, setIsPaid] = useState(bill.paymentStatus === "paid");
   const { minutes, seconds, percentage } = useCountdown(
     15,
-    status === "preparing"
+    orderState.status === "preparing"
   );
-  const hasFiredConfetti = useRef(isPaid);
-
+  const hasFiredConfetti = useRef(orderState.isPaid);
   const sessionToken = useSessionToken();
-  const orderPublicId = bill.publicId;
   const router = useRouter();
 
-  // Your working socket logic - unchanged
+  // --- DEFINITIVE & STABLE SOCKET.IO LOGIC ---
   useEffect(() => {
-    if (!bill?.id) return;
-    socket.connect();
-    socket.emit("join_order_room", bill.id);
+    if (!bill.id) return;
+
+    // This logic prevents the re-render loop in React's Strict Mode
+    if (socket.connected) {
+      socket.emit("join_order_room", bill.id);
+    } else {
+      // Connect only if not already connected
+      socket.connect();
+    }
+
     const handleUpdate = (data: { status?: OrderStatus; paid?: boolean }) => {
-      if (data.status) setStatus(data.status);
-      if (typeof data.paid === "boolean") setIsPaid(data.paid);
+      console.log(
+        `✅ [Socket] Received 'order_updated' for order ${bill.id}:`,
+        data
+      );
+      setOrderState((prevState) => ({
+        status: data.status ?? prevState.status,
+        isPaid: data.paid ?? prevState.isPaid,
+      }));
     };
+
+    const handleConnect = () => {
+      console.log(`✅ [Socket] Connected. Joining room: 'order_${bill.id}'`);
+      socket.emit("join_order_room", bill.id);
+    };
+
+    // Attach listeners
+    socket.on("connect", handleConnect);
     socket.on("order_updated", handleUpdate);
+
+    // Cleanup function
     return () => {
+      console.log(`🧹 [Socket] Cleaning up listeners for order ${bill.id}.`);
+      // Crucially, we only remove the listeners for THIS component instance.
+      // We DO NOT disconnect the socket here, as it's a shared singleton.
+      socket.off("connect", handleConnect);
       socket.off("order_updated", handleUpdate);
     };
-  }, [bill.id]);
+  }, [bill.id]); // Dependency array MUST only contain the stable ID
 
-  // Effect to fire confetti on payment
+  // --- EFFECT FOR CONFETTI ---
   useEffect(() => {
-    if (isPaid && !hasFiredConfetti.current) {
+    if (orderState.isPaid && !hasFiredConfetti.current) {
       const duration = 2 * 1000;
       const end = Date.now() + duration;
 
       (function frame() {
-        confetti({
-          particleCount: 2,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0 },
-        });
+        confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0 } });
         confetti({
           particleCount: 2,
           angle: 120,
           spread: 55,
           origin: { x: 1 },
         });
-
-        if (Date.now() < end) {
-          requestAnimationFrame(frame);
-        }
+        if (Date.now() < end) requestAnimationFrame(frame);
       })();
       hasFiredConfetti.current = true;
     }
-  }, [isPaid]);
+  }, [orderState.isPaid]);
 
-  // --- DYNAMIC CONTENT & STYLING ---
+  // --- DYNAMIC UI CONTENT ---
   const details = useMemo(() => {
-    if (bill.paymentMethod === "counter" && !isPaid) {
+    if (bill.paymentMethod === "cash" && !orderState.isPaid) {
       return {
-        title: "Pay at Counter",
-        subtitle: "Show this screen to the cashier",
+        title: "Pending Payment",
+        subtitle: "Please complete your payment at the counter.",
         Icon: Wallet,
-        color: "text-amber-500",
-        gradient: "from-amber-400 to-amber-500",
+        color: "text-yellow-500",
+        gradient: "from-yellow-400 to-orange-500",
         progress: 5,
       };
     }
-    switch (status) {
+    switch (orderState.status) {
       case "pending":
         return {
           title: "Awaiting Confirmation",
-          subtitle: isPaid
+          subtitle: orderState.isPaid
             ? "Payment received, thank you!"
             : "Your order is in the queue...",
           Icon: Hourglass,
@@ -189,7 +204,7 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
           progress: 0,
         };
     }
-  }, [status, isPaid, percentage, bill.paymentMethod]);
+  }, [orderState.status, orderState.isPaid, percentage, bill.paymentMethod]);
 
   if (!bill || !bill.id) {
     return (
@@ -231,7 +246,7 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
           </motion.p>
         </div>
         <motion.div
-          key={status}
+          key={orderState.status}
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 400, damping: 20 }}
@@ -280,22 +295,22 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
           Payment Status
         </p>
         <motion.div
-          key={String(isPaid)}
+          key={String(orderState.isPaid)}
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 500, damping: 30 }}
           className={`font-bold px-3 py-1 rounded-full text-xs ${
-            isPaid
+            orderState.isPaid
               ? "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300"
               : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300"
           }`}
         >
-          {isPaid ? "PAID" : "PENDING"}
+          {orderState.isPaid ? "PAID" : "PENDING"}
         </motion.div>
       </div>
 
       {/* Cancel Button if NOT paid */}
-      {!isPaid && (
+      {!orderState.isPaid && (
         <div className="pt-1 text-right w-full mx-auto flex flex-col items-center">
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -317,7 +332,7 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
                 <AlertDialogCancel>Keep My Order</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() =>
-                    handleCancelOrder(orderPublicId!, sessionToken!, () =>
+                    handleCancelOrder(bill.publicId!, sessionToken!, () =>
                       router.back()
                     )
                   }
@@ -337,31 +352,27 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
   );
 };
 
-// --- Helper Hook: Countdown Timer ---
+// --- HELPER HOOK: COUNTDOWN TIMER ---
 const useCountdown = (initialMinutes: number, isActive: boolean) => {
   const [totalSeconds, setTotalSeconds] = useState(initialMinutes * 60);
-  const [percentage, setPercentage] = useState(0);
   const totalInitialSeconds = initialMinutes * 60;
 
   useEffect(() => {
     if (isActive) {
-      setPercentage(
-        totalSeconds > 0
-          ? ((totalInitialSeconds - totalSeconds) / totalInitialSeconds) * 100
-          : 100
-      );
       if (totalSeconds <= 0) return;
-
       const timer = setInterval(() => {
         setTotalSeconds((prev) => (prev > 0 ? prev - 1 : 0));
       }, 1000);
-
       return () => clearInterval(timer);
     } else {
       setTotalSeconds(initialMinutes * 60);
-      setPercentage(0);
     }
-  }, [isActive, totalSeconds, initialMinutes, totalInitialSeconds]);
+  }, [isActive, totalSeconds, initialMinutes]);
+
+  const percentage =
+    totalSeconds > 0
+      ? ((totalInitialSeconds - totalSeconds) / totalInitialSeconds) * 100
+      : 100;
 
   return {
     minutes: Math.floor(totalSeconds / 60),

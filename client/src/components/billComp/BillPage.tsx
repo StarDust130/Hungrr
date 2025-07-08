@@ -1,42 +1,78 @@
+// src/components/BillPage.tsx (or wherever you have it)
 "use client";
 
 import { useEffect, useState } from "react";
-import { useBill } from "@/hooks/useBill";
+import axios from "axios";
+import { OrderStatusTracker } from "./OrderStatusTracker"; // The "dumb" child
 import { BillDetails } from "./BillDetails";
-import { OrderStatusTracker } from "./OrderStatusTracker";
 import { BillFooter } from "./BillFooter";
 import { BillActions } from "./BillActions";
 import socket from "@/lib/socket";
 import { BillData, OrderStatus } from "@/types/menu";
-import { log } from "@/lib/helper";
+import { GST_CALCULATION } from "@/lib/helper";
 import Loading from "@/app/bills/loading";
 import OrderNotFound from "./OrderNotFound";
 
 export default function BillPage({ publicId }: { publicId: string }) {
-  const { bill: initialBill, loading, error } = useBill(publicId);
-  const [liveBill, setLiveBill] = useState<BillData | null>(null);
+  // State for the bill, loading, and error is owned by this parent component
+  const [bill, setBill] = useState<BillData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Effect 1: Handles the INITIAL data fetch. Runs only when publicId changes.
   useEffect(() => {
-    if (initialBill) {
-      setLiveBill(initialBill);
-    }
-  }, [initialBill]);
+    const fetchBill = async () => {
+      if (!publicId) {
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      try {
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/bill/${publicId}`
+        );
+        const { order } = res.data;
+        if (!order) throw new Error("Order not found.");
 
+        const totalPrice = Number(order.total_price);
+        const { gstAmount, grandTotal } = GST_CALCULATION(totalPrice);
+
+        // Set the initial state of the bill
+        setBill({
+          id: order.id,
+          timestamp: order.created_at,
+          items: order.order_items,
+          totalPrice,
+          gstAmount,
+          grandTotal,
+          paymentMethod: order.payment_method,
+          paymentStatus: order.paid ? "paid" : "pending",
+          status: order.status,
+          tableNo: order.tableNo,
+          orderType: order.orderType,
+          cafeName: order.cafe.name,
+          logoUrl: order.cafe.logoUrl || "",
+          gstNo: order.cafe.gstNo || "",
+          payment_url: order.cafe.payment_url || "",
+          address: order.cafe.address || "",
+          publicId: order.publicId || "",
+        });
+      } catch (err) {
+        setError("Failed to load bill.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBill();
+  }, [publicId]);
+
+  // Effect 2: Manages the LIVE WebSocket updates. Runs only when the bill ID is available.
   useEffect(() => {
-    if (!liveBill?.id) return;
-
-    socket.connect();
-    socket.emit("join_order_room", liveBill.id);
+    if (!bill?.id) return;
 
     const handleUpdate = (data: { status?: OrderStatus; paid?: boolean }) => {
-      log("✅ Live update received:", data);
-
-      if (data.paid === true) {
-        sessionStorage.removeItem("cart");
-        log("✅ Order is paid. Local cart has been cleared.");
-      }
-
-      setLiveBill((prevBill) => {
+      console.log("✅ Live WebSocket update received:", data);
+      setBill((prevBill) => {
         if (!prevBill) return null;
         const newPaymentStatus =
           typeof data.paid === "boolean"
@@ -52,47 +88,32 @@ export default function BillPage({ publicId }: { publicId: string }) {
       });
     };
 
+    socket.connect();
+    socket.emit("join_order_room", bill.id);
     socket.on("order_updated", handleUpdate);
 
     return () => {
       socket.off("order_updated", handleUpdate);
       socket.disconnect();
     };
-  }, [liveBill?.id, error]);
+  }, [bill?.id]);
 
-  // 1. Show loading indicator while the initial data is being fetched.
-  if (loading) {
-    return <Loading />;
-  }
+  // --- RENDER LOGIC ---
 
-  // 2. After loading is complete, check for an error or if the bill is null.
-  //    This is the only time we should show the OrderNotFound component.
-  if (error || !initialBill) {
+  if (loading) return <Loading />;
+  if (error || !bill)
     return (
-      <OrderNotFound
-        error={error || "The requested bill could not be found."}
-      />
+      <OrderNotFound error={error || "Could not find the requested bill."} />
     );
-  }
 
-  // 3. If we have a liveBill, render the main UI.
-  //    We check for liveBill here to ensure we don't render with null data
-  //    before the initialBill has been set to the liveBill state.
-  if (liveBill) {
-    return (
-      <div className="flex flex-col w-full mx-auto items-center justify-center min-h-screen p-4 gap-3">
-        <OrderStatusTracker bill={liveBill} />
-        <BillDetails bill={liveBill} />
-        {
-          liveBill.status !== "pending" && <BillFooter />
-        }
-        
-        <BillActions bill={liveBill} />
-      </div>
-    );
-  }
-
-  // Fallback: This will briefly show the loading component if liveBill
-  // hasn't been set yet, preventing a flash of a blank screen.
-  return <Loading />;
+  // Pass the single `bill` state down to all child components.
+  // When `bill` is updated by the socket, all these components will re-render with new props.
+  return (
+    <div className="flex flex-col w-full mx-auto items-center justify-center min-h-screen p-4 gap-3">
+      <OrderStatusTracker bill={bill} />
+      <BillDetails bill={bill} />
+      {bill.status !== "pending" && <BillFooter />}
+      <BillActions bill={bill} />
+    </div>
+  );
 }
