@@ -12,13 +12,24 @@ function ErrorMessage({
   sub?: string;
 }) {
   return (
-    <div className="p-10 flex flex-col justify-center items-center h-[80vh] text-center font-bold">
-      <Image src={img} alt="Error" width={200} height={200} />
-      <p className="text-base mt-3">
+    <div className="flex flex-col items-center justify-center h-[60vh] px-4 text-center">
+      <p className="text-xl font-semibold mb-4">
         {message}
-        {highlight && <span className="italic text-red-600">{highlight}</span>}
+        {highlight && (
+          <span className="text-red-600 italic ml-1">{highlight}</span>
+        )}
       </p>
-      {sub && <p className="text-sm mt-2">{sub}</p>}
+
+      <Image
+        src={img}
+        alt="Error"
+        width={180}
+        height={180}
+        className="mb-4"
+        priority
+      />
+
+      {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
     </div>
   );
 }
