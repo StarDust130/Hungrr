@@ -310,44 +310,45 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
       </div>
 
       {/* Cancel Button if NOT paid */}
-      {!orderState.isPaid && (
-        <div className="pt-1 text-right w-full mx-auto flex flex-col items-center">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" size="sm" className="text-sm">
-                Cancel Order
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-xl">
-                  Payment pending 💸
-                </AlertDialogTitle>
-                <AlertDialogDescription className="text-sm text-muted-foreground">
-                  You haven’t paid yet, so your order isn’t accepted. Feel free
-                  to cancel — the kitchen’s still chillin&apos; 😌
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Keep My Order</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() =>
-                    handleCancelOrder(bill.publicId!, sessionToken!, () =>
-                      router.back()
-                    )
-                  }
-                  className="bg-destructive"
-                >
-                  Yes, Cancel It
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-          <p className="text-xs mt-2 text-gray-500 dark:text-gray-400 text-center">
-            Orders can’t be canceled after payment 💳
-          </p>
-        </div>
-      )}
+      {!orderState.isPaid &&
+        orderState.status === "pending" && (
+            <div className="pt-1 text-right w-full mx-auto flex flex-col items-center">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm" className="text-sm">
+                    Cancel Order
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-xl">
+                      Payment pending 💸
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-sm text-muted-foreground">
+                      You haven’t paid yet, so your order isn’t accepted. Feel
+                      free to cancel — the kitchen’s still chillin&apos; 😌
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Keep My Order</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() =>
+                        handleCancelOrder(bill.publicId!, sessionToken!, () =>
+                          router.back()
+                        )
+                      }
+                      className="bg-destructive"
+                    >
+                      Yes, Cancel It
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <p className="text-xs mt-2 text-gray-500 dark:text-gray-400 text-center">
+                Orders can’t be canceled after payment 💳
+              </p>
+            </div>
+          )}
     </motion.div>
   );
 };
