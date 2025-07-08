@@ -3,6 +3,7 @@ import {
   createCafe,
   getCafeByOwnerId,
   getCafeNameandLogoURL,
+  toggleCafeStatus,
   updateCafe,
 } from "../controllers/admin/cafeController";
 import {
@@ -29,6 +30,8 @@ router.get("/cafe/owner/:ownerId", getCafeByOwnerId as any); // 🔍 By owner
 router.get("/cafe/name/:ownerId", getCafeNameandLogoURL as any); // 🏷️ Name & logo
 router.post("/cafe", createCafe as any); // ➕ New cafe
 router.patch("/cafe/:ownerId", updateCafe as any); // ✏️ Update cafe
+router.patch("/cafe/toggle-status/:cafe_id", toggleCafeStatus as any); // 🔄 Toggle cafe status
+
 
 //! ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 // 📦 Order Routes
