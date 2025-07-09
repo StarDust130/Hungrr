@@ -17,18 +17,21 @@ const CartItemsList = ({ items }: Props) => {
   const { addToCart, removeFromCart, clearItemFromCart } = useCart();
 
   return (
-    <ul className="space-y-3">
+    <ul className="space-y-4">
       {items.map(({ item, quantity }) => {
         const hasImage = !!item.food_image_url;
+        const price = Number(item.price) || 0;
 
         return (
           <li
             key={item.id}
-            className={`flex gap-3 p-3 bg-muted/40 rounded-xl shadow-sm border border-border/50 ${
-              hasImage ? "items-start" : "items-center"
+            className={`flex w-full gap-4 rounded-xl border border-border/50 shadow-sm transition-all ${
+              hasImage
+                ? "bg-muted/40 p-3 items-start"
+                : "bg-background p-4 items-center"
             }`}
           >
-            {/* ✅ Image if available */}
+            {/* ✅ Only show image if available */}
             {hasImage && (
               <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border">
                 <SafeImage
@@ -39,23 +42,23 @@ const CartItemsList = ({ items }: Props) => {
               </div>
             )}
 
-            {/* ✅ Content */}
-            <div className="flex-1 flex flex-col justify-between">
-              <div className="flex justify-between items-start gap-2">
-                <div className="flex flex-col">
-                  <h3 className="text-sm font-semibold leading-tight">
+            {/* ✅ Content Section */}
+            <div className="flex-1 flex flex-col justify-between gap-2">
+              <div className="flex justify-between items-start gap-3">
+                <div className="flex flex-col gap-0.5">
+                  <h3 className="text-base font-semibold text-foreground">
                     {item.name}
                   </h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    ₹{Number(item.price).toFixed(2)} each
+                  <p className="text-sm text-muted-foreground">
+                    ₹{price.toFixed(2)} each
                   </p>
                 </div>
-                <p className="text-sm font-mono font-medium whitespace-nowrap">
-                  ₹{(item.price * quantity).toFixed(2)}
+                <p className="text-sm font-mono font-semibold whitespace-nowrap">
+                  ₹{(price * quantity).toFixed(2)}
                 </p>
               </div>
 
-              <div className="flex justify-between items-center mt-3">
+              <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <Button
                     size="icon"
