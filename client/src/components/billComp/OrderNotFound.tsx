@@ -6,7 +6,7 @@ const OrderNotFound = ({ error }: { error: string }) => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-3">
       <Image
-        src="/anime-girl-sad-2-3.png"
+        src="/anime-girl-sad-3.png"
         alt="Order Not Found"
         width={200}
         height={200}
