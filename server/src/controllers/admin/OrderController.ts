@@ -156,10 +156,12 @@ export const getCafeStats = async (req: Request, res: Response) => {
     const { cafeId } = req.params;
     const { range = "today", date } = req.query as { [key: string]: string };
 
+    // Use the OrderStatus type for enum values
+    const excludedStatuses: OrderStatus[] = ["pending"];
+
     const whereClause: any = {
       cafeId: Number(cafeId),
-      // This is the key change: only count orders that have been accepted.
-      status: { notIn: ["pending", "cancelled"] },
+      status: { notIn: excludedStatuses },
     };
 
     const dateFilter = getDateWhereClause(range, date);
@@ -184,8 +186,9 @@ export const getCafeStats = async (req: Request, res: Response) => {
     const totalRevenue = stats._sum.total_price?.toNumber() || 0;
     const totalOrders = stats._count.id || 0;
 
+    // Fix: groupBy returns { status, _count: { status: number } }
     const countsByStatus = statusCounts.reduce((acc, curr) => {
-      acc[curr.status] = curr._count?.status ?? 0;
+      acc[curr.status] = curr._count.status ?? 0;
       return acc;
     }, {} as Record<string, number>);
 
@@ -195,8 +198,7 @@ export const getCafeStats = async (req: Request, res: Response) => {
         totalRevenue,
         totalOrders,
         averageOrderValue: totalOrders > 0 ? totalRevenue / totalOrders : 0,
-        // You may want to adjust what stats you show here based on the new logic
-        pending: countsByStatus.pending || 0, // This will now likely always be 0
+        pending: countsByStatus.pending || 0,
       },
     });
   } catch (err) {
