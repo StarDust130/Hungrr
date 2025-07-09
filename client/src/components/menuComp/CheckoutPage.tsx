@@ -94,6 +94,9 @@ const CheckoutPage = () => {
         throw new Error("Backend did not return a valid publicId.");
       }
 
+      log("✅ Order placed successfully:", order);
+      
+
       // ✅ Set tick after API completes
       setOrderStatus("confirmed");
 
