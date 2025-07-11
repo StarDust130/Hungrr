@@ -47,7 +47,7 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
           description: serverItem.item.description || "",
           rating: serverItem.item.rating || 0,
           dietary: serverItem.item.dietary || "veg",
-          tags: serverItem.item.tags || [],
+          tags: serverItem.item.tags || "",
           isSpecial: serverItem.item.isSpecial || false,
         };
 
