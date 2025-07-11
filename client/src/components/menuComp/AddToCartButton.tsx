@@ -68,9 +68,9 @@ const AddToCartButton = ({
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.2, ease: "easeInOut" }}
-                  className="w-full h-10 rounded-full border border-primary text-primary flex items-center justify-center gap-1 text-[13px] font-semibold hover:shadow-sm hover:border-primary/80 transition"
+                  className="w-full h-10 rounded-full border border-primary text-primary flex items-center justify-center gap-1 text-[12px] font-semibold hover:shadow-sm hover:border-primary/80 transition"
                 >
-                  <Check size={16} strokeWidth={2.2} className="text-primary" />
+                  <Check size={12} strokeWidth={2.2} className="text-primary" />
                   <span>Selected ({totalVariantQuantity})</span>
                 </motion.button>
               )}
@@ -117,7 +117,7 @@ const AddToCartButton = ({
         </AnimatePresence>
 
         {hasVariants && (
-          <span className="absolute left-1/2 -bottom-3.5 translate-x-[-50%] text-[9px] text-muted-foreground opacity-70 font-light pointer-events-none">
+          <span className="absolute left-1/2 -bottom-3.5 translate-x-[-50%] text-[9px] dark:text-muted-foreground opacity-70 font-light pointer-events-none">
             Customizable
           </span>
         )}
