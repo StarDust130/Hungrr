@@ -29,17 +29,18 @@ const AddToCartButton = ({
 
   const simpleQuantity = getQuantity(item.id);
 
-  const totalVariantQuantity = useMemo(() => {
-    if (!hasVariants) return 0;
+  const totalQuantity = useMemo(() => {
+    if (!hasVariants) {
+      return getQuantity(item.id, undefined); // For simple items
+    }
+    // For items with variants, sum up the quantity of each variant
     return item.variants.reduce((total, variant) => {
-      const composedId = `${item.id}-${variant.name}`;
-      return total + getQuantity(composedId, variant.name);
+      return total + getQuantity(item.id, variant.id);
     }, 0);
-  }, [cart, item]);
+  }, [getQuantity, item, hasVariants]);
 
-  const isSelected = hasVariants
-    ? totalVariantQuantity > 0
-    : simpleQuantity > 0;
+
+ const isSelected = totalQuantity > 0;
 
   return (
     <Drawer>
@@ -71,7 +72,7 @@ const AddToCartButton = ({
                   className="w-full h-10 rounded-full border border-primary text-primary flex items-center justify-center gap-1 text-[12px] font-semibold hover:shadow-sm hover:border-primary/80 transition"
                 >
                   <Check size={12} strokeWidth={2.2} className="text-primary" />
-                  <span>Selected ({totalVariantQuantity})</span>
+                  <span>Selected ({totalQuantity})</span>
                 </motion.button>
               )}
             </DrawerTrigger>
@@ -138,7 +139,7 @@ const AddToCartButton = ({
           <DrawerFooter className="p-4 border-t bg-background ">
             <DrawerClose asChild>
               <Button className=" w-full mx-auto text-center rounded-full text-sm font-semibold">
-                {totalVariantQuantity === 0
+                {totalQuantity === 0
                   ? "Pick something yummy 🤤"
                   : "Looks tasty! Add now  😋"}
               </Button>
