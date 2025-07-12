@@ -66,7 +66,21 @@ model MenuItem {
   cafe           Cafe        @relation(fields: [cafeId], references: [id])
   category       Category?   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   order_items    OrderItem[]
+  variants       ItemVariant[]
 }
+
+model ItemVariant {
+  id      Int       @id @default(autoincrement())
+  itemId  Int
+  name    String    // e.g. "Half", "Full", "1kg"
+  price   Decimal
+
+  item    MenuItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([itemId, name]) // Prevent duplicate variant names per item
+  OrderItem OrderItem[]
+}
+
 
 model Order {
   id                  Int           @id @default(autoincrement())
@@ -91,14 +105,16 @@ model Order {
 }
 
 model OrderItem {
-  id       Int      @id @default(autoincrement())
-  orderId  Int
-  itemId   Int
-  quantity Int      @default(1)
-  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  item     MenuItem @relation(fields: [itemId], references: [id])
+  id        Int       @id @default(autoincrement())
+  orderId   Int
+  itemId    Int
+  quantity  Int       @default(1)
+  order     Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  item      MenuItem  @relation(fields: [itemId], references: [id])
+  variantId Int?
+  variant   ItemVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade) // Add this relation
 
-  @@unique([orderId, itemId]) //! Ensures that an item can only be ordered once per order
+  @@unique([orderId, itemId, variantId]) // Ensures that an item can only be ordered once per order
 }
 
 model Bill {
