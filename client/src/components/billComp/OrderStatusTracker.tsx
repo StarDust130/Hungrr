@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import axios from "axios";
-import { toast } from "sonner";
 import {
   CheckCircle2,
   Hourglass,
@@ -30,8 +29,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { log } from "@/lib/helper";
 
-// Helper function to cancel an order
+//! Helper function to cancel an order
 const handleCancelOrder = async (
   orderPublicId: string,
   sessionToken: string,
@@ -44,14 +44,11 @@ const handleCancelOrder = async (
         headers: { "x-session-token": sessionToken },
       }
     );
-    toast.success("Your order has been canceled!");
     sessionStorage.removeItem("cart");
+    log("Order canceled successfully :", orderPublicId); 
     callback();
   } catch (error) {
-    console.error("Failed to cancel order:", error);
-    toast.error(
-      "Could not cancel order. It may have already been accepted by the kitchen."
-    );
+    log("Failed to cancel order:", error);
   }
 };
 
