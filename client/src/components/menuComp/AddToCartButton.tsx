@@ -24,7 +24,7 @@ const AddToCartButton = ({
   item: MenuItem;
   className?: string;
 }) => {
-  const { addToCart, removeFromCart, getQuantity, cart } = useCart();
+  const { addToCart, removeFromCart, getQuantity } = useCart();
   const hasVariants = item.variants && item.variants.length > 0;
 
   const simpleQuantity = getQuantity(item.id);
