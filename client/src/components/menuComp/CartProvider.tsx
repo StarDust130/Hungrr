@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import {
@@ -7,11 +8,13 @@ import {
   useCallback,
   useMemo,
 } from "react";
-import { Cart, CartContextType, MenuItem, BillData } from "@/types/menu";
+import { Cart, CartContextType, MenuItem, ItemVariant } from "@/types/menu";
 import { log } from "@/lib/helper";
 
-// The context is created expecting the CartContextType shape
 export const CartContext = createContext<CartContextType | null>(null);
+
+const getCartItemId = (itemId: number, variantId?: number): string =>
+  `${itemId}-${variantId || "base"}`;
 
 const getInitialCart = (): Cart => {
   if (typeof window === "undefined") return {};
@@ -24,7 +27,7 @@ const getInitialCart = (): Cart => {
   }
 };
 
-const CartProvider = ({ children }: { children: React.ReactNode }) => {
+export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [cart, setCart] = useState<Cart>(getInitialCart);
   const [cafeId, setCafeId] = useState<number | null>(null);
 
@@ -32,27 +35,81 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
     sessionStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  // The type BillData['items'] ensures we expect an array of items
-  // with the exact shape defined in your BillData interface.
-  const loadOrderIntoCart = useCallback((orderItems: BillData["items"]) => {
+  const addToCart = useCallback((item: MenuItem, variant?: ItemVariant) => {
+    setCart((prev) => {
+      const cartItemId = getCartItemId(item.id, variant?.id);
+      const existingEntry = prev[cartItemId];
+      return {
+        ...prev,
+        [cartItemId]: {
+          item,
+          variant,
+          quantity: existingEntry ? existingEntry.quantity + 1 : 1,
+        },
+      };
+    });
+  }, []);
+
+  const removeFromCart = useCallback((itemId: number, variantId?: number) => {
+    setCart((prev) => {
+      const cartItemId = getCartItemId(itemId, variantId);
+      const newCart = { ...prev };
+      if (newCart[cartItemId]?.quantity > 1) {
+        newCart[cartItemId].quantity -= 1;
+      } else {
+        delete newCart[cartItemId];
+      }
+      return newCart;
+    });
+  }, []);
+
+  const clearItemFromCart = useCallback(
+    (itemId: number, variantId?: number) => {
+      setCart((prev) => {
+        const cartItemId = getCartItemId(itemId, variantId);
+        const newCart = { ...prev };
+        delete newCart[cartItemId];
+        return newCart;
+      });
+    },
+    []
+  );
+
+  const clearCart = useCallback(() => {
+    setCart({});
+  }, []);
+
+  const getQuantity = useCallback(
+    (itemId: number, variantId?: number) => {
+      const cartItemId = getCartItemId(itemId, variantId);
+      return cart[cartItemId]?.quantity || 0;
+    },
+    [cart]
+  );
+
+  const loadOrderIntoCart = useCallback((orderItems: any[]) => {
     const newCart: Cart = {};
     orderItems.forEach((serverItem) => {
-      // The item from the server might have a simpler structure,
-      // so we rebuild it into a full MenuItem for consistency in the cart.
       if (serverItem.item && serverItem.item.id) {
-        const fullMenuItem: MenuItem = {
-          ...serverItem.item,
-          // Add default/empty values for fields that might not be sent by the server
-          // to fully satisfy the MenuItem type definition.
-          description: serverItem.item.description || "",
-          rating: serverItem.item.rating || 0,
-          dietary: serverItem.item.dietary || "veg",
-          tags: serverItem.item.tags || "",
-          isSpecial: serverItem.item.isSpecial || false,
-        };
-
-        newCart[serverItem.item.id] = {
-          item: fullMenuItem,
+        const cartItemId = getCartItemId(
+          serverItem.item.id,
+          serverItem.variant?.id
+        );
+        newCart[cartItemId] = {
+          item: {
+            ...serverItem.item,
+            variants: serverItem.variant
+              ? [
+                  {
+                    id: serverItem.variant.id,
+                    itemId: serverItem.item.id,
+                    name: serverItem.variant.name,
+                    price: Number(serverItem.variant.price),
+                  },
+                ]
+              : [],
+          },
+          variant: serverItem.variant,
           quantity: serverItem.quantity,
         };
       }
@@ -61,53 +118,11 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
     log("🛒 Cart synced with active server order.");
   }, []);
 
-  const addToCart = useCallback((item: MenuItem) => {
-    setCart((prev) => {
-      const existing = prev[item.id];
-      return {
-        ...prev,
-        [item.id]: {
-          item,
-          quantity: existing ? existing.quantity + 1 : 1,
-        },
-      };
-    });
-  }, []);
-
-  const removeFromCart = useCallback((itemId: number) => {
-    setCart((prev) => {
-      const newCart = { ...prev };
-      if (newCart[itemId]?.quantity > 1) {
-        newCart[itemId].quantity -= 1;
-      } else {
-        delete newCart[itemId];
-      }
-      return newCart;
-    });
-  }, []);
-
-  const clearItemFromCart = useCallback((itemId: number) => {
-    setCart((prev) => {
-      const newCart = { ...prev };
-      delete newCart[itemId];
-      return newCart;
-    });
-  }, []);
-
-  const clearCart = useCallback(() => {
-    setCart({});
-  }, []);
-
-  const getQuantity = useCallback(
-    (itemId: number) => cart[itemId]?.quantity || 0,
-    [cart]
-  );
-
   const { totalItems, totalPrice } = useMemo(() => {
     return Object.values(cart).reduce(
       (acc, entry) => {
-        const price = Number(entry.item?.price);
-        if (entry && entry.item && !isNaN(price)) {
+        const price = Number(entry.variant?.price ?? entry.item?.price);
+        if (!isNaN(price)) {
           acc.totalItems += entry.quantity;
           acc.totalPrice += price * entry.quantity;
         }
@@ -119,8 +134,6 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <CartContext.Provider
-      // ✅ FIX: The 'value' prop must be an object with the actual functions,
-      // not their type definitions.
       value={{
         cart,
         totalItems,
