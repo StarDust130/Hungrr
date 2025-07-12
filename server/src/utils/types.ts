@@ -1,7 +1,7 @@
 export interface UpsertBillRequestBody {
   cafeId: number;
   tableNo: number;
-  items: { itemId: number; quantity: number }[];
+  items: { itemId: number; quantity: number , variantId?: number;  }[];
   paymentMethod?: "cash" | "online";
   specialInstructions?: string;
   orderType?: "dinein" | "takeaway";
