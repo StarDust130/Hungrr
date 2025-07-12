@@ -12,6 +12,7 @@ import dotenv from "dotenv";
 import userRoutes from "./routes/userRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import statsRoutes from "./routes/statsRoutes";
+import kitchenRoutes from "./routes/kitchenRoutes";
 import { cleanupPendingOrders } from "./controllers/cronjobController";
 
 // =============================================
@@ -67,6 +68,7 @@ app.set("io", io);
 app.use("/api", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/stats", statsRoutes);
+app.use("/api/kitchen", kitchenRoutes);
 
 // =============================================
 // CRON JOB

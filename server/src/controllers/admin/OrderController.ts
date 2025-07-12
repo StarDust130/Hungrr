@@ -16,7 +16,7 @@ import { OrderStatus } from "../../utils/types";
 //! 2) Order Management (Get all orders , updateOrderStatus) 🥘
 
 // 1) Returns a date filter clause for queries based on a specific date or range ("today", "week", "month").
-const getDateWhereClause = (range?: string, date?: string) => {
+export const getDateWhereClause = (range?: string, date?: string) => {
   if (date) {
     const startDate = startOfDay(new Date(date));
     const endDate = endOfDay(new Date(date));

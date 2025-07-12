@@ -6,13 +6,28 @@ import {
   format,
   endOfDay,
   eachHourOfInterval,
+  subDays,
 } from "date-fns";
 import { generateTodayAISummaryPrompt } from "../../utils/dashboardSummaryPrompt";
 import { groq } from "../../utils/groqClient";
 
+
+
+
 //! ) Dashboard Stats  📊
 
 // 1) Get Dashboard Summary for a Cafe
+interface DashboardStats {
+  revenue: { value: number; change: number };
+  orders: { value: number; change: number };
+  avgOrderValue: { value: number; change: number };
+  newCustomers: { value: number; change: number };
+  repeatOrderPercentage: { value: number; change: number };
+  popularItem: string;
+  orderStatusCounts: Record<string, number>;
+}
+
+
 export const getDashboardSummary = async (req: Request, res: Response) => {
   try {
     // 1️⃣ Get inputs
@@ -23,42 +38,97 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "🚫 Cafe ID is required." });
     }
 
+    const todayFilter = {
+      gte: startOfDay(new Date()),
+      lte: endOfDay(new Date()),
+    };
+    const yesterdayFilter = {
+      gte: startOfDay(subDays(new Date(), 1)),
+      lte: endOfDay(subDays(new Date(), 1)),
+    };
     const dateFilter =
-      range === "week"
-        ? { gte: startOfWeek(new Date()) }
-        : { gte: startOfDay(new Date()) };
+      range === "week" ? { gte: startOfWeek(new Date()) } : todayFilter;
 
-    // 2️⃣ Collect stats
-    const [totalOrders, totalRevenue, popularItem, orderStats] =
-      await Promise.all([
-        prisma.order.count({
+    // 2️⃣ Collect stats for today/week and yesterday
+    const [
+      totalOrders,
+      totalRevenue,
+      popularItem,
+      orderStats,
+      repeatOrders,
+      yesterdayStats,
+    ] = await Promise.all([
+      prisma.order.count({
+        where: { cafeId: Number(cafeId), created_at: dateFilter },
+      }),
+      prisma.order.aggregate({
+        where: { cafeId: Number(cafeId), created_at: dateFilter, paid: true },
+        _sum: { total_price: true },
+      }),
+      prisma.orderItem.groupBy({
+        by: ["itemId"],
+        where: { order: { cafeId: Number(cafeId), created_at: dateFilter } },
+        _sum: { quantity: true },
+        orderBy: { _sum: { quantity: "desc" } },
+        take: 1,
+      }),
+      prisma.order.groupBy({
+        by: ["status"],
+        where: { cafeId: Number(cafeId), created_at: dateFilter },
+        _count: true,
+      }),
+      // Repeat orders: Count orders with sessionToken that exists in prior orders
+      prisma.order
+        .findMany({
           where: { cafeId: Number(cafeId), created_at: dateFilter },
+          select: { sessionToken: true },
+        })
+        .then(async (currentOrders) => {
+          const sessionTokens = currentOrders
+            .map((order) => order.sessionToken)
+            .filter((token): token is string => token != null);
+          if (sessionTokens.length === 0) return 0;
+          return prisma.order.count({
+            where: {
+              cafeId: Number(cafeId),
+              sessionToken: { in: sessionTokens },
+              created_at: { lt: dateFilter.gte },
+            },
+          });
+        }),
+      // Yesterday's stats
+      Promise.all([
+        prisma.order.count({
+          where: { cafeId: Number(cafeId), created_at: yesterdayFilter },
         }),
         prisma.order.aggregate({
-          where: { cafeId: Number(cafeId), created_at: dateFilter, paid: true },
-          _sum: { total_price: true },
-        }),
-        prisma.orderItem.groupBy({
-          by: ["itemId"],
-          where: {
-            order: {
-              cafeId: Number(cafeId),
-              created_at: dateFilter,
-            },
-          },
-          _sum: { quantity: true },
-          orderBy: { _sum: { quantity: "desc" } },
-          take: 1,
-        }),
-        prisma.order.groupBy({
-          by: ["status"],
           where: {
             cafeId: Number(cafeId),
-            created_at: dateFilter,
+            created_at: yesterdayFilter,
+            paid: true,
           },
-          _count: true,
+          _sum: { total_price: true },
         }),
-      ]);
+        prisma.order
+          .findMany({
+            where: { cafeId: Number(cafeId), created_at: yesterdayFilter },
+            select: { sessionToken: true },
+          })
+          .then(async (yesterdayOrders) => {
+            const sessionTokens = yesterdayOrders
+              .map((order) => order.sessionToken)
+              .filter((token): token is string => token != null);
+            if (sessionTokens.length === 0) return 0;
+            return prisma.order.count({
+              where: {
+                cafeId: Number(cafeId),
+                sessionToken: { in: sessionTokens },
+                created_at: { lt: yesterdayFilter.gte },
+              },
+            });
+          }),
+      ]),
+    ]);
 
     let popularItemName = "N/A";
     if (popularItem.length > 0) {
@@ -69,9 +139,54 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
       popularItemName = item?.name || "N/A";
     }
 
-    const stats = {
-      totalOrders,
-      totalRevenue: totalRevenue._sum.total_price?.toFixed(2) || "0.00",
+    // Calculate percentage changes
+    const calculateChange = (current: number, previous: number) => {
+      if (previous === 0) return current > 0 ? 100 : 0;
+      return Number((((current - previous) / previous) * 100).toFixed(2));
+    };
+
+    const yesterdayTotalOrders = yesterdayStats[0] || 0;
+    const yesterdayTotalRevenue = Number(
+      yesterdayStats[1]._sum.total_price?.toNumber() || 0
+    );
+    const yesterdayRepeatOrders = yesterdayStats[2] || 0;
+
+    const totalRevenueValue = Number(
+      totalRevenue._sum.total_price?.toNumber() || 0
+    );
+    const avgOrderValue = totalOrders > 0 ? totalRevenueValue / totalOrders : 0;
+    const yesterdayAvgOrderValue =
+      yesterdayTotalOrders > 0
+        ? yesterdayTotalRevenue / yesterdayTotalOrders
+        : 0;
+
+    const repeatOrderPercentage =
+      totalOrders > 0 ? (repeatOrders / totalOrders) * 100 : 0;
+    const yesterdayRepeatOrderPercentage =
+      yesterdayTotalOrders > 0
+        ? (yesterdayRepeatOrders / yesterdayTotalOrders) * 100
+        : 0;
+
+    const stats: DashboardStats = {
+      revenue: {
+        value: totalRevenueValue,
+        change: calculateChange(totalRevenueValue, yesterdayTotalRevenue),
+      },
+      orders: {
+        value: totalOrders,
+        change: calculateChange(totalOrders, yesterdayTotalOrders),
+      },
+      avgOrderValue: {
+        value: Number(avgOrderValue.toFixed(2)),
+        change: calculateChange(avgOrderValue, yesterdayAvgOrderValue),
+      },
+      repeatOrderPercentage: {
+        value: Number(repeatOrderPercentage.toFixed(2)),
+        change: calculateChange(
+          repeatOrderPercentage,
+          yesterdayRepeatOrderPercentage
+        ),
+      },
       popularItem: popularItemName,
       orderStatusCounts: orderStats.reduce((acc, curr) => {
         acc[curr.status] = curr._count;
@@ -79,10 +194,41 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
       }, {} as Record<string, number>),
     };
 
+    // Debug logs to verify data
+    console.log({
+      today: {
+        totalOrders,
+        totalRevenue: totalRevenueValue,
+        repeatOrders,
+        repeatOrderPercentage,
+      },
+      yesterday: {
+        yesterdayTotalOrders,
+        yesterdayTotalRevenue,
+        yesterdayRepeatOrders,
+        yesterdayRepeatOrderPercentage,
+      },
+      stats,
+    });
+
     // 3️⃣ Send response
     return res.status(200).json({
       message: "✅ Dashboard summary ready!",
       stats,
+      orderStatusData: orderStats.map((s) => ({
+        name: s.status,
+        value: s._count,
+      })),
+      hourlyRevenueData: [], // Add logic if needed
+      mostSoldItems:
+        popularItem.length > 0
+          ? [
+              {
+                name: popularItemName,
+                quantity: popularItem[0]._sum.quantity || 0,
+              },
+            ]
+          : [],
     });
   } catch (err: any) {
     console.error("❌ Error in getDashboardSummary:", err.message || err);
