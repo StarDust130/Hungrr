@@ -8,6 +8,7 @@ import {
   subDays,
 } from "date-fns";
 import { emitOrderEvent } from "../user/userController";
+import { Prisma } from "@prisma/client";
 
 
 
@@ -34,35 +35,84 @@ const getDateWhereClause = (range?: string, date?: string) => {
   return gte ? { gte } : undefined;
 };
 
-// 2) Get all orders for a specific Cafe with filters
+// Type for Prisma where clause
+type OrderWhereInput = Prisma.OrderWhereInput;
+
+// Allowed status values (includes "all" for query validation)
+const validStatuses = ["all", "pending", "accepted", "preparing", "ready", "completed"] as const;
+type ValidStatus = (typeof validStatuses)[number];
+
+// Allowed range values
+const validRanges = ["today", "week", "month"] as const;
+type Range = (typeof validRanges)[number];
+
 export const getOrdersByCafe = async (req: Request, res: Response) => {
   try {
     const { cafeId } = req.params;
-
-    const {
-      limit = "10",
-      page = "1",
-      search,
-      status,
-      range,
-      date,
-    } = req.query as { [key: string]: string };
-
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
-    const skip = (pageNum - 1) * limitNum;
-
-    const whereClause: any = { 
-      cafeId: Number(cafeId),
-      status: { not: "completed" }, // Exclude completed orders
+    const { limit, page, search, status, range, date } = req.query as {
+      limit?: string;
+      page?: string;
+      search?: string;
+      status?: string;
+      range?: string;
+      date?: string;
     };
+
+    // Validate query parameters
+    const pageNum = parseInt(page || "1", 10);
+    const limitNum = parseInt(limit || "10", 10);
+
+    // Validate cafeId
+    const cafeIdNum = parseInt(cafeId, 10);
+    if (isNaN(cafeIdNum)) {
+      console.warn(`Invalid cafeId: ${cafeId}`);
+      return res.status(400).json({ message: "Invalid cafeId" });
+    }
+
+    // Validate page and limit
+    if (isNaN(pageNum) || pageNum < 1) {
+      console.warn(`Invalid page: ${page}`);
+      return res.status(400).json({ message: "Invalid page number" });
+    }
+    if (isNaN(limitNum) || limitNum < 1) {
+      console.warn(`Invalid limit: ${limit}`);
+      return res.status(400).json({ message: "Invalid limit value" });
+    }
+
+    // Cap limit at 100 for performance
+    const safeLimit = Math.min(limitNum, 100);
+    const skip = (pageNum - 1) * safeLimit;
+
+    // Validate status
+    if (status && !validStatuses.includes(status as ValidStatus)) {
+      console.warn(`Invalid status: ${status}`);
+      return res.status(400).json({ message: "Invalid status value" });
+    }
+
+    // Validate range
+    if (range && !validRanges.includes(range as Range)) {
+      console.warn(`Invalid range: ${range}`);
+      return res.status(400).json({ message: "Invalid range value" });
+    }
+
+    // Validate date
+    if (date && isNaN(Date.parse(date))) {
+      console.warn(`Invalid date: ${date}`);
+      return res.status(400).json({ message: "Invalid date format" });
+    }
+
+    // Build where clause with type safety
+    const whereClause: OrderWhereInput = {
+      cafeId: cafeIdNum,
+    };
+
+    // Only apply status filter if status is not "all"
+    if (status && status !== "all") {
+      whereClause.status = { equals: status };
+    }
 
     if (search) {
       whereClause.publicId = { contains: search, mode: "insensitive" };
-    }
-
-    if (status && status !== "all") {
-      whereClause.status = { equals: status };
     }
 
     if (range) {
@@ -84,12 +134,13 @@ export const getOrdersByCafe = async (req: Request, res: Response) => {
       whereClause.created_at = { gte: startDate, lte: endDate };
     }
 
+    // Fetch orders and count in a transaction
     const [orders, totalCount] = await prisma.$transaction([
       prisma.order.findMany({
         where: whereClause,
         orderBy: { created_at: "desc" },
         skip,
-        take: limitNum,
+        take: safeLimit,
         select: {
           id: true,
           publicId: true,
@@ -105,22 +156,34 @@ export const getOrdersByCafe = async (req: Request, res: Response) => {
       prisma.order.count({ where: whereClause }),
     ]);
 
+    // Log success
+    console.info(
+      `Fetched ${orders.length} orders for cafeId ${cafeIdNum}, page ${pageNum}, limit ${safeLimit}`
+    );
+
     res.status(200).json({
       message: "✅ Orders fetched successfully with filters!",
       pageInfo: {
         currentPage: pageNum,
-        limit: limitNum,
+        limit: safeLimit,
         totalOrders: totalCount,
-        totalPages: Math.ceil(totalCount / limitNum),
+        totalPages: Math.ceil(totalCount / safeLimit),
       },
       orders,
     });
-  } catch (err) {
-    console.error("❌ Error in getOrdersByCafe:", err);
-    res.status(500).json({ message: "🚨 Server error." });
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    console.error(
+      `Error in getOrdersByCafe for cafeId ${req.params.cafeId}: ${errorMessage}`,
+      {
+        stack: err instanceof Error ? err.stack : undefined,
+      }
+    );
+    res
+      .status(500)
+      .json({ message: "🚨 Server error occurred while fetching orders." });
   }
 };
-
 // 3) Get Order Details by Order ID
 export const getOrderDetails = async (req: Request, res: Response) => {
   try {
