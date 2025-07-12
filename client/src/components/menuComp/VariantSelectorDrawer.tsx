@@ -59,79 +59,77 @@ export default function VariantSelectorDrawer({ item }: { item: MenuItem }) {
         <Accordion type="multiple" defaultValue={["item-1"]}>
           <AccordionItem value="item-1">
             <AccordionTrigger className="text-sm font-semibold">
-              Customize your portion 🍱
+              How hungry are you? 😎
             </AccordionTrigger>
             <AccordionContent>
-              <div className="space-y-3">
-                {item.variants.map((variant, index) => {
-                  const composedItem: MenuItem = {
-                    ...item,
-                    id: `${item.id}-${variant.name}` as unknown as number,
-                    name: `${item.name} (${variant.name})`,
-                    price: variant.price,
-                  };
-                  const quantity = getQuantity(composedItem.id, variant.name);
+              {item.variants && item.variants.length > 0 && (
+                <div className="space-y-3">
+                  {item.variants.map((variant, index) => {
+                    const composedItem: MenuItem = {
+                      ...item,
+                      id: `${item.id}-${variant.name}` as unknown as number,
+                      name: `${item.name} (${variant.name})`,
+                      price: variant.price,
+                    };
+                    const quantity = getQuantity(composedItem.id, variant.name);
 
-                  return (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between border border-border/30 rounded-lg px-3 py-2"
-                    >
-                      <div className="flex flex-col flex-1 pr-2">
-                        <span className="text-sm font-medium text-foreground">
-                          {variant.name}
-                        </span>
-                        <span className="text-xs font-semibold text-primary mt-0.5">
-                          ₹{Number(variant.price).toFixed(2)}
-                        </span>
-                        {variant.description && (
-                          <span className="text-[10px] text-muted-foreground mt-0.5">
-                            {variant.description}
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between border border-border/30 rounded-lg px-3 py-2"
+                      >
+                        <div className="flex flex-col flex-1 pr-2">
+                          <span className="text-sm font-medium text-foreground">
+                            {variant.name}
                           </span>
-                        )}
-                      </div>
+                          <span className="text-xs font-semibold text-primary mt-0.5">
+                            ₹{Number(variant.price).toFixed(2)}
+                          </span>
+                        </div>
 
-                      {/* Quantity Controls */}
-                      {quantity === 0 ? (
-                        <Button
-                          onClick={() => addToCart(composedItem, variant.name)}
-                          className="h-8 px-3 text-xs font-medium border border-primary text-primary rounded-full"
-                          variant="outline"
-                        >
-                          <Plus size={12} />
-                          Add
-                        </Button>
-                      ) : (
-                        <div className="flex items-center gap-1 border border-primary rounded-full px-2 py-1">
-                          <button
-                            onClick={() =>
-                              removeFromCart(composedItem.id, variant.name)
-                            }
-                            className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-muted transition"
-                          >
-                            <Minus size={10} strokeWidth={2} />
-                          </button>
-                          <span className="px-1 font-semibold text-xs">
-                            {quantity}
-                          </span>
-                          <button
+                        {/* Quantity Controls */}
+                        {quantity === 0 ? (
+                          <Button
                             onClick={() =>
                               addToCart(composedItem, variant.name)
                             }
-                            className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-muted transition"
+                            className="h-8 px-3 text-xs font-medium border border-primary text-primary rounded-full"
+                            variant="outline"
                           >
-                            <Plus size={10} strokeWidth={2} />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                            <Plus size={12} />
+                            Add
+                          </Button>
+                        ) : (
+                          <div className="flex items-center gap-1 border border-primary rounded-full px-2 py-1">
+                            <button
+                              onClick={() =>
+                                removeFromCart(composedItem.id, variant.name)
+                              }
+                              className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-muted transition"
+                            >
+                              <Minus size={10} strokeWidth={2} />
+                            </button>
+                            <span className="px-1 font-semibold text-xs">
+                              {quantity}
+                            </span>
+                            <button
+                              onClick={() =>
+                                addToCart(composedItem, variant.name)
+                              }
+                              className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-muted transition"
+                            >
+                              <Plus size={10} strokeWidth={2} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-        
       </div>
     </div>
   );
