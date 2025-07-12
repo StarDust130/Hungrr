@@ -121,6 +121,7 @@ export const getCafeMenu = async (
     }
 
     // Fetch all active items for the cafe
+    // Fetch all active items for the cafe, including category and variants
     const items = await prisma.menuItem.findMany({
       where: {
         cafeId: cafe.id,
@@ -128,6 +129,7 @@ export const getCafeMenu = async (
       },
       include: {
         category: true,
+        variants: true, // ✅ include variants
       },
     });
 
@@ -144,9 +146,8 @@ export const getCafeMenu = async (
     // ✨ 2. Sort items within each category with the new logic
     for (const categoryName in grouped) {
       grouped[categoryName].sort((a, b) => {
-       const aHasImage = !!a.food_image_url;
-const bHasImage = !!b.food_image_url;
-
+        const aHasImage = !!a.food_image_url;
+        const bHasImage = !!b.food_image_url;
 
         // Prioritize items with an image first
         if (aHasImage !== bHasImage) {
@@ -156,7 +157,7 @@ const bHasImage = !!b.food_image_url;
         // If both have/don't have an image, prioritize by tags
         const aHasTags = Array.isArray(a.tags) && a.tags.length > 0;
         const bHasTags = Array.isArray(b.tags) && b.tags.length > 0;
-        
+
         if (aHasTags !== bHasTags) {
           return aHasTags ? -1 : 1;
         }
