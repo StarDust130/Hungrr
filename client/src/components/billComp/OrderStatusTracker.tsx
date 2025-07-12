@@ -140,6 +140,7 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
         color: "text-yellow-500",
         gradient: "from-yellow-400 to-orange-500",
         progress: 5,
+        animation: "check-anim",
       };
     }
     switch (orderState.status) {
@@ -153,6 +154,7 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
           color: "text-slate-500",
           gradient: "from-slate-400 to-slate-500",
           progress: 10,
+          animation: "hourglass-anim",
         };
       case "accepted":
         return {
@@ -162,6 +164,7 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
           color: "text-blue-500",
           gradient: "from-blue-500 to-cyan-500",
           progress: 33,
+          animation: "check-anim",
         };
       case "preparing":
         return {
@@ -172,6 +175,7 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
           gradient: "from-orange-500 to-amber-500",
           progress: 33 + percentage * 0.34,
           isPreparing: true,
+          animation: "check-anim",
         };
       case "ready":
         return {
@@ -181,6 +185,7 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
           color: "text-green-500",
           gradient: "from-green-500 to-emerald-500",
           progress: 100,
+          animation: "check-anim",
         };
       case "completed":
         return {
@@ -190,6 +195,7 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
           color: "text-indigo-500",
           gradient: "from-indigo-500 to-violet-500",
           progress: 100,
+          animation: "check-anim",
         };
       default:
         return {
@@ -199,6 +205,7 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
           color: "text-gray-500",
           gradient: "from-gray-400 to-gray-500",
           progress: 0,
+          animation: "check-anim",
         };
     }
   }, [orderState.status, orderState.isPaid, percentage, bill.paymentMethod]);
@@ -249,7 +256,7 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
           transition={{ type: "spring", stiffness: 400, damping: 20 }}
           className={`p-3 rounded-full bg-white dark:bg-black/20 shadow-md ${details.color}`}
         >
-          <details.Icon size={24} />
+          <details.Icon size={24} className={details.animation} />
         </motion.div>
       </div>
 
@@ -307,45 +314,44 @@ export const OrderStatusTracker: FC<{ bill: BillData }> = ({ bill }) => {
       </div>
 
       {/* Cancel Button if NOT paid */}
-      {!orderState.isPaid &&
-        orderState.status === "pending" && (
-            <div className="pt-1 text-right w-full mx-auto flex flex-col items-center">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="sm" className="text-sm">
-                    Cancel Order
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="text-xl">
-                      Payment pending 💸
-                    </AlertDialogTitle>
-                    <AlertDialogDescription className="text-sm text-muted-foreground">
-                      You haven’t paid yet, so your order isn’t accepted. Feel
-                      free to cancel — the kitchen’s still chillin&apos; 😌
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Keep My Order</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() =>
-                        handleCancelOrder(bill.publicId!, sessionToken!, () =>
-                          router.back()
-                        )
-                      }
-                      className="bg-destructive"
-                    >
-                      Yes, Cancel It
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-              <p className="text-xs mt-2 text-gray-500 dark:text-gray-400 text-center">
-                Orders can’t be canceled after payment 💳
-              </p>
-            </div>
-          )}
+      {!orderState.isPaid && orderState.status === "pending" && (
+        <div className="pt-1 text-right w-full mx-auto flex flex-col items-center">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" className="text-sm">
+                Cancel Order
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-xl">
+                  Payment pending 💸
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-sm text-muted-foreground">
+                  You haven’t paid yet, so your order isn’t accepted. Feel free
+                  to cancel — the kitchen’s still chillin&apos; 😌
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Keep My Order</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() =>
+                    handleCancelOrder(bill.publicId!, sessionToken!, () =>
+                      router.back()
+                    )
+                  }
+                  className="bg-destructive"
+                >
+                  Yes, Cancel It
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <p className="text-xs mt-2 text-gray-500 dark:text-gray-400 text-center">
+            Orders can’t be canceled after payment 💳
+          </p>
+        </div>
+      )}
     </motion.div>
   );
 };
