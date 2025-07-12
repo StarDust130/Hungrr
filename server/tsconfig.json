@@ -8,7 +8,6 @@
     "strict": false,
     "skipLibCheck": true,
     "noEmitOnError": false,
-    "types": ["node"]
   },
   "include": ["src"]
 }
