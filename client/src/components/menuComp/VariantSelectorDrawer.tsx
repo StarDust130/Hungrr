@@ -64,18 +64,13 @@ export default function VariantSelectorDrawer({ item }: { item: MenuItem }) {
             <AccordionContent>
               {item.variants && item.variants.length > 0 && (
                 <div className="space-y-3">
-                  {item.variants.map((variant, index) => {
-                    const composedItem: MenuItem = {
-                      ...item,
-                      id: `${item.id}-${variant.name}` as unknown as number,
-                      name: `${item.name} (${variant.name})`,
-                      price: variant.price,
-                    };
-                    const quantity = getQuantity(composedItem.id, variant.name);
+                  {item.variants.map((variant) => {
+                    // ✅ Fetch quantity using the correct numeric IDs
+                    const quantity = getQuantity(item.id, variant.id);
 
                     return (
                       <div
-                        key={index}
+                        key={variant.id} // Use the unique variant ID for the key
                         className="flex items-center justify-between border border-border/30 rounded-lg px-3 py-2"
                       >
                         <div className="flex flex-col flex-1 pr-2">
@@ -90,20 +85,19 @@ export default function VariantSelectorDrawer({ item }: { item: MenuItem }) {
                         {/* Quantity Controls */}
                         {quantity === 0 ? (
                           <Button
-                            onClick={() =>
-                              addToCart(composedItem, variant.name)
-                            }
+                            // ✅ Pass original item and the specific variant
+                            onClick={() => addToCart(item, variant)}
                             className="h-8 px-3 text-xs font-medium border border-primary text-primary rounded-full"
                             variant="outline"
                           >
-                            <Plus size={12} />
-                            Add
+                            <Plus size={12} /> Add
                           </Button>
                         ) : (
                           <div className="flex items-center gap-1 border border-primary rounded-full px-2 py-1">
                             <button
+                              // ✅ Pass numeric IDs to remove
                               onClick={() =>
-                                removeFromCart(composedItem.id, variant.name)
+                                removeFromCart(item.id, variant.id)
                               }
                               className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-muted transition"
                             >
@@ -113,9 +107,8 @@ export default function VariantSelectorDrawer({ item }: { item: MenuItem }) {
                               {quantity}
                             </span>
                             <button
-                              onClick={() =>
-                                addToCart(composedItem, variant.name)
-                              }
+                              // ✅ Pass original item and the specific variant to add
+                              onClick={() => addToCart(item, variant)}
                               className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-muted transition"
                             >
                               <Plus size={10} strokeWidth={2} />
