@@ -43,9 +43,13 @@ export const getMenuItemsByCafe = async (req: Request, res: Response) => {
         orderBy: { id: "desc" },
         skip,
         take: limit,
+        include: {
+          variants: true, // ✅ include variants
+        },
       }),
       prisma.menuItem.count({ where: whereFilter }),
     ]);
+    
 
     // 5️⃣ Send response
     return res.status(200).json({
@@ -65,7 +69,6 @@ export const getMenuItemsByCafe = async (req: Request, res: Response) => {
 };
 
 // 3.2) Create a new Menu Item (Corrected)
-// 3.2) Create a new Menu Item (Final Corrected Version)
 export const createMenuItem = async (req: Request, res: Response) => {
   try {
     const {
@@ -77,16 +80,15 @@ export const createMenuItem = async (req: Request, res: Response) => {
       food_image_url,
       isSpecial,
       dietary,
-      tags, // This is now a single string like "Spicy" or undefined
+      tags,
+      variants, // ✅ Optional: array of { name, price }
     } = req.body;
 
-    if (!cafeId || !categoryId || !name || !price) {
+    if (!cafeId || !categoryId || !name || price === undefined) {
       return res.status(400).json({
-        message: "🚫 Required: cafeId, categoryId, name, price.",
+        message: "🚫 Required fields: cafeId, categoryId, name, price.",
       });
     }
-
-    // ❌ REMOVED: const singleTag = tags && tags.length > 0 ? tags[0] : undefined;
 
     const newItem = await prisma.menuItem.create({
       data: {
@@ -96,12 +98,23 @@ export const createMenuItem = async (req: Request, res: Response) => {
         price: Number(price),
         description,
         food_image_url,
-        isSpecial: isSpecial || false,
-        dietary, // Directly uses the 'dietary' value
-        tags: tags, // ✅ FIX: Directly uses the 'tags' value, just like 'dietary'
+        isSpecial: Boolean(isSpecial),
+        dietary,
+        tags,
         is_active: true,
         is_available: true,
+
+        // ✅ Create variants only if provided
+        ...(variants?.length && {
+          variants: {
+            create: variants.map((v: any) => ({
+              name: v.name,
+              price: Number(v.price),
+            })),
+          },
+        }),
       },
+      // No include needed here, as 'variants' is not a relation
     });
 
     return res.status(201).json({
@@ -114,6 +127,7 @@ export const createMenuItem = async (req: Request, res: Response) => {
   }
 };
 
+
 // 3.3) Update an existing Menu Item (Final Corrected Version)
 export const updateMenuItem = async (req: Request, res: Response) => {
   try {
@@ -124,10 +138,11 @@ export const updateMenuItem = async (req: Request, res: Response) => {
       description,
       isSpecial,
       dietary,
-      tags, // This is a single string, null, or undefined
+      tags,
       categoryId,
       is_available,
       food_image_url,
+      variants, // ✅ Optional: replace with new variants
     } = req.body;
 
     const dataToUpdate: any = {};
@@ -137,19 +152,31 @@ export const updateMenuItem = async (req: Request, res: Response) => {
     if (description !== undefined) dataToUpdate.description = description;
     if (isSpecial !== undefined) dataToUpdate.isSpecial = isSpecial;
     if (dietary !== undefined) dataToUpdate.dietary = dietary;
+    if (tags !== undefined) dataToUpdate.tags = tags;
     if (categoryId !== undefined) dataToUpdate.categoryId = Number(categoryId);
     if (is_available !== undefined) dataToUpdate.is_available = is_available;
     if (food_image_url !== undefined)
       dataToUpdate.food_image_url = food_image_url;
 
-    // ✅ FIX: Directly assign the tag if it exists. Prisma handles 'null' or 'undefined' correctly.
-    if (tags !== undefined) {
-      dataToUpdate.tags = tags;
-    }
-
     const updatedItem = await prisma.menuItem.update({
       where: { id: Number(itemId) },
-      data: dataToUpdate,
+      data: {
+        ...dataToUpdate,
+
+        // ✅ If variants provided, delete old & create new
+        ...(variants?.length && {
+          variants: {
+            deleteMany: {}, // Remove all old
+            create: variants.map((v: any) => ({
+              name: v.name,
+              price: Number(v.price),
+            })),
+          },
+        }),
+      },
+      include: {
+        variants: true,
+      },
     });
 
     return res.status(200).json({
@@ -161,6 +188,7 @@ export const updateMenuItem = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "🚨 Failed to update menu item." });
   }
 };
+
 
 // 3.4 Fetch all unavailable (is_active: false) items for a cafe
 export const getUnavailableMenuItemsByCafe = async (
