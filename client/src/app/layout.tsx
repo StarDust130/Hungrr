@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider"
 import Navbar from "@/components/elements/Navbar";
 import Footer from "@/components/elements/Footer";
+import { Analytics } from "@vercel/analytics/next"
 
 // Serif for headings
 const caudex = Caudex({
@@ -42,6 +43,7 @@ export default function RootLayout({
           <main className="flex min-h-screen flex-col w-full max-w-3xl mx-auto rounded-2xl border border-gray-500 border-dotted">
             <Navbar />
             {children}
+            <Analytics />
             <Footer />
           </main>
         </ThemeProvider>
