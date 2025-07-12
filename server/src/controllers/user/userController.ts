@@ -238,15 +238,38 @@ export const upsertBill = async (
   }
 
   try {
+    // Validate itemIds and variantIds
+    for (const item of items) {
+      const menuItem = await prisma.menuItem.findUnique({
+        where: { id: item.itemId },
+        include: { variants: true },
+      });
+      if (!menuItem) {
+        return res
+          .status(400)
+          .json({ message: `Invalid itemId: ${item.itemId}` });
+      }
+      if (item.variantId) {
+        const variant = menuItem.variants.find((v) => v.id === item.variantId);
+        if (!variant) {
+          return res
+            .status(400)
+            .json({
+              message: `Invalid variantId: ${item.variantId} for itemId: ${item.itemId}`,
+            });
+        }
+      }
+    }
+
     const lastOrder = await prisma.order.findFirst({
       where: { cafeId, tableNo, sessionToken, paid: false },
       orderBy: { created_at: "desc" },
+      include: { order_items: true },
     });
 
     let orderToProcess: { id: number };
     let isNewOrder = false;
 
-    // ✅ Safely parse enums using Prisma enums
     const safePaymentMethod: PaymentMethod =
       paymentMethod &&
       Object.values(PaymentMethod).includes(paymentMethod as PaymentMethod)
@@ -271,19 +294,19 @@ export const upsertBill = async (
         },
       });
 
+      // Delete existing order items to avoid conflicts
+      await prisma.orderItem.deleteMany({
+        where: { orderId: orderToProcess.id },
+      });
+
+      // Recreate order items
       const transactionItems = items.map((item) =>
-        prisma.orderItem.upsert({
-          where: {
-            orderId_itemId: {
-              orderId: orderToProcess.id,
-              itemId: item.itemId,
-            },
-          },
-          update: { quantity: item.quantity },
-          create: {
+        prisma.orderItem.create({
+          data: {
             orderId: orderToProcess.id,
             itemId: item.itemId,
             quantity: item.quantity,
+            variantId: item.variantId || null,
           },
         })
       );
@@ -304,6 +327,7 @@ export const upsertBill = async (
             create: items.map((item) => ({
               itemId: item.itemId,
               quantity: item.quantity,
+              variantId: item.variantId || null,
             })),
           },
         },
@@ -315,7 +339,12 @@ export const upsertBill = async (
     const fullOrderForTotal = await prisma.order.findUnique({
       where: { id: orderToProcess.id },
       include: {
-        order_items: { include: { item: { select: { price: true } } } },
+        order_items: {
+          include: {
+            item: { select: { price: true } },
+            variant: { select: { price: true } },
+          },
+        },
       },
     });
 
@@ -324,7 +353,10 @@ export const upsertBill = async (
     }
 
     const totalPrice = fullOrderForTotal.order_items.reduce((sum, oi) => {
-      return sum + Number(oi.item.price) * oi.quantity;
+      const price = oi.variant
+        ? Number(oi.variant.price)
+        : Number(oi.item.price);
+      return sum + price * oi.quantity;
     }, 0);
 
     const finalUpdatedOrder = await prisma.order.update({
@@ -333,7 +365,12 @@ export const upsertBill = async (
         total_price: new Prisma.Decimal(totalPrice.toFixed(2)),
       },
       include: {
-        order_items: { include: { item: true } },
+        order_items: {
+          include: {
+            item: true,
+            variant: true,
+          },
+        },
       },
     });
 
@@ -363,7 +400,6 @@ export const getBillByPublicId = async (req: Request, res: Response) => {
     const order = await prisma.order.findUnique({
       where: { publicId },
       include: {
-        // ✅ ADD THIS LINE to include the cafe's slug in the response
         cafe: {
           select: {
             slug: true,
@@ -374,8 +410,12 @@ export const getBillByPublicId = async (req: Request, res: Response) => {
             address: true,
           },
         },
-
-        order_items: { include: { item: true } },
+        order_items: {
+          include: {
+            item: true,
+            variant: true,
+          },
+        },
         bill: true,
       },
     });
@@ -387,7 +427,21 @@ export const getBillByPublicId = async (req: Request, res: Response) => {
       });
     }
 
-    return res.status(200).json({ order });
+    // Transform order_items to include variant name in item name and variant price
+    const transformedOrderItems = order.order_items.map((oi) => ({
+      ...oi,
+      item: {
+        ...oi.item,
+        name: oi.variant
+          ? `${oi.item.name} (${oi.variant.name})`
+          : oi.item.name,
+        price: oi.variant ? oi.variant.price : oi.item.price,
+      },
+    }));
+
+    const responseOrder = { ...order, order_items: transformedOrderItems };
+
+    return res.status(200).json({ order: responseOrder });
   } catch (error) {
     console.error("💥 getBillByPublicId error:", error);
     return res.status(500).json({ error: "Server error" });
