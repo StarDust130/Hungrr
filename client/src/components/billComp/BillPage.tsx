@@ -64,6 +64,9 @@ export default function BillPage({ publicId }: { publicId: string }) {
     fetchBill();
   }, [publicId]);
 
+  //! Clear cart if the bill is accepted
+  if(bill?.status === "accepted") sessionStorage.removeItem("cart");
+
   // Effect 2: Manages the LIVE WebSocket updates. Runs only when the bill ID is available.
   useEffect(() => {
     if (!bill?.id) return;
