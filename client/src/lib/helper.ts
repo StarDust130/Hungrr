@@ -42,10 +42,12 @@ export function DateFormat(
   return d.toLocaleString("en-IN", options);
 }
 
-export const GST_CALCULATION = (amount: number): { gstAmount: number; grandTotal: number } => {
-  const gstPercentage = Number(localStorage.getItem("gstPercentage")) || 20; // make it 18% later
+export const GST_CALCULATION = (
+  amount: number
+): { gstAmount: number; grandTotal: number } => {
+  const gstPercentage = 6; // Fixed at 6%
   const rate = gstPercentage / 100;
-  const gstAmount = Number((amount * rate).toFixed(2));
-  const grandTotal = Number((amount + gstAmount).toFixed(2));
+  const gstAmount = Math.round(amount * rate);
+  const grandTotal = Math.round(amount + gstAmount);
   return { gstAmount, grandTotal };
 };
