@@ -9,6 +9,7 @@ import {
 } from "date-fns";
 import { emitOrderEvent } from "../user/userController";
 import { Prisma } from "@prisma/client";
+import { OrderStatus } from "../../utils/types";
 
 
 
@@ -49,13 +50,14 @@ type Range = (typeof validRanges)[number];
 export const getOrdersByCafe = async (req: Request, res: Response) => {
   try {
     const { cafeId } = req.params;
-    const { limit, page, search, status, range, date } = req.query as {
+    const { limit, page, search, status, range, date, live } = req.query as {
       limit?: string;
       page?: string;
       search?: string;
       status?: string;
       range?: string;
       date?: string;
+      live?: string;
     };
 
     // Validate query parameters
@@ -101,37 +103,31 @@ export const getOrdersByCafe = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid date format" });
     }
 
+    // Validate live
+    const isLive = live === "true";
+
     // Build where clause with type safety
     const whereClause: OrderWhereInput = {
       cafeId: cafeIdNum,
     };
 
-    // Only apply status filter if status is not "all"
-    if (status && status !== "all") {
-      whereClause.status = { equals: status };
+    // Exclude completed orders for LiveOrders
+    if (isLive) {
+      whereClause.status = { not: "completed" };
+    } else if (status && status !== "all") {
+      // Only apply status filter if status is not "all" for non-LiveOrders
+      whereClause.status = { equals: status as OrderStatus }; // Cast to OrderStatus
     }
 
     if (search) {
       whereClause.publicId = { contains: search, mode: "insensitive" };
     }
 
-    if (range) {
-      const now = new Date();
-      let gte;
-      if (range === "today") {
-        gte = startOfDay(now);
-      } else if (range === "week") {
-        gte = startOfDay(subDays(now, 6));
-      } else if (range === "month") {
-        gte = startOfDay(subDays(now, 29));
+    if (range || date) {
+      const dateFilter = getDateWhereClause(range, date);
+      if (dateFilter) {
+        whereClause.created_at = dateFilter;
       }
-      if (gte) {
-        whereClause.created_at = { gte };
-      }
-    } else if (date) {
-      const startDate = startOfDay(new Date(date));
-      const endDate = endOfDay(new Date(date));
-      whereClause.created_at = { gte: startDate, lte: endDate };
     }
 
     // Fetch orders and count in a transaction
@@ -158,7 +154,7 @@ export const getOrdersByCafe = async (req: Request, res: Response) => {
 
     // Log success
     console.info(
-      `Fetched ${orders.length} orders for cafeId ${cafeIdNum}, page ${pageNum}, limit ${safeLimit}`
+      `Fetched ${orders.length} orders for cafeId ${cafeIdNum}, page ${pageNum}, limit ${safeLimit}, live=${isLive}`
     );
 
     res.status(200).json({
@@ -184,6 +180,7 @@ export const getOrdersByCafe = async (req: Request, res: Response) => {
       .json({ message: "🚨 Server error occurred while fetching orders." });
   }
 };
+
 // 3) Get Order Details by Order ID
 export const getOrderDetails = async (req: Request, res: Response) => {
   try {
@@ -281,7 +278,6 @@ export const getCafeStats = async (req: Request, res: Response) => {
 
 // 5) Update Order Status
 // Assume OrderStatus type is defined elsewhere, e.g., in a types.ts file
-type OrderStatus = "pending" | "accepted" | "preparing" | "ready" | "completed";
 /**
  * REFACTORED: Updates an order's status and emits a real-time event.
  */
