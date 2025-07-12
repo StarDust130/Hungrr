@@ -132,7 +132,16 @@ export const getOrderDetails = async (req: Request, res: Response) => {
           select: {
             quantity: true,
             item: {
-              select: { name: true, price: true },
+              select: {
+                name: true,
+                price: true,
+              },
+            },
+            variant: {
+              select: {
+                name: true,
+                price: true,
+              },
             },
           },
         },

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { OrderStatus, PaymentMethod } from "@prisma/client";
+import type { OrderStatus } from "@prisma/client";
 
 export const DIETARY_OPTIONS = ["veg", "non_veg", "vegan"] as const;
 export type DietaryType = (typeof DIETARY_OPTIONS)[number];
@@ -102,7 +102,6 @@ export interface ActiveOrder {
   publicId: string;
   status: string;
 }
-
 
 export type OrderStatus =
   | "pending"
