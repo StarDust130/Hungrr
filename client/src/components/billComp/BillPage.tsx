@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // src/components/BillPage.tsx (or wherever you have it)
 "use client";
@@ -14,12 +15,10 @@ import Loading from "@/app/bills/loading";
 import OrderNotFound from "./OrderNotFound";
 
 export default function BillPage({ publicId }: { publicId: string }) {
-  // State for the bill, loading, and error is owned by this parent component
   const [bill, setBill] = useState<BillData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Effect 1: Handles the INITIAL data fetch. Runs only when publicId changes.
   useEffect(() => {
     const fetchBill = async () => {
       if (!publicId) {
@@ -35,13 +34,29 @@ export default function BillPage({ publicId }: { publicId: string }) {
         if (!order) throw new Error("Order not found.");
 
         const totalPrice = Number(order.total_price);
-        // const { gstAmount, grandTotal } = GST_CALCULATION(totalPrice);
-
-        // Set the initial state of the bill
         setBill({
           id: order.id,
           timestamp: order.created_at,
-          items: order.order_items,
+          items: order.order_items.map((oi: any) => ({
+            id: oi.id,
+            itemId: oi.itemId,
+            quantity: oi.quantity,
+            variantId: oi.variantId,
+            item: {
+              ...oi.item,
+              price: Number(oi.item.price),
+              variants: oi.variant
+                ? [
+                    {
+                      id: oi.variantId,
+                      itemId: oi.itemId,
+                      name: oi.variant.name,
+                      price: Number(oi.variant.price),
+                    },
+                  ]
+                : [],
+            },
+          })),
           totalPrice,
           paymentMethod: order.payment_method,
           paymentStatus: order.paid ? "paid" : "pending",
@@ -64,10 +79,8 @@ export default function BillPage({ publicId }: { publicId: string }) {
     fetchBill();
   }, [publicId]);
 
-  //! Clear cart if the bill is accepted
-  if(bill?.status === "accepted") sessionStorage.removeItem("cart");
+  if (bill?.status === "accepted") sessionStorage.removeItem("cart");
 
-  // Effect 2: Manages the LIVE WebSocket updates. Runs only when the bill ID is available.
   useEffect(() => {
     if (!bill?.id) return;
 
@@ -99,16 +112,12 @@ export default function BillPage({ publicId }: { publicId: string }) {
     };
   }, [bill?.id]);
 
-  // --- RENDER LOGIC ---
-
   if (loading) return <Loading />;
   if (error || !bill)
     return (
       <OrderNotFound error={error || "Could not find the requested bill."} />
     );
 
-  // Pass the single `bill` state down to all child components.
-  // When `bill` is updated by the socket, all these components will re-render with new props.
   return (
     <div className="flex flex-col w-full mx-auto items-center justify-center min-h-screen p-4 gap-3">
       <OrderStatusTracker bill={bill} />
