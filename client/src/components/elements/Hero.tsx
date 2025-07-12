@@ -47,7 +47,7 @@ const Hero = () => {
 
             {/* CTA Buttons */}
             <div className="flex w-full flex-col sm:flex-row gap-4 sm:gap-5 mx-auto lg:mx-0 justify-center lg:justify-start">
-              <Link href="/menu/123">
+              <Link href="/menu/foodgasm?tableNo=5">
                 <Button
                   size="lg"
                   className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 transition-transform hover:scale-[1.07] active:scale-95"
