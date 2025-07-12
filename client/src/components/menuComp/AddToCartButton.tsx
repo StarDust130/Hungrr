@@ -140,7 +140,7 @@ const AddToCartButton = ({
               <Button className=" w-full mx-auto text-center rounded-full text-sm font-semibold">
                 {totalVariantQuantity === 0
                   ? "Pick something yummy 🤤"
-                  : "Looks tasty! Add now  😋🍴"}
+                  : "Looks tasty! Add now  😋"}
               </Button>
             </DrawerClose>
           </DrawerFooter>
