@@ -60,15 +60,15 @@ export const BillDetails = ({ bill }: { bill: BillData }) => {
           <p className="w-20 text-right">Amount</p>
         </div>
 
-        {bill.items.map(({ item, quantity }) => (
+        {bill.items.map((item) => (
           <div
-            key={`${item.id}-${quantity}`}
+            key={`${item.itemId}-${item.variantId || ""}`}
             className="flex text-sm items-center"
           >
-            <p className="flex-grow">{item.name}</p>
-            <p className="w-16 text-center">{quantity}</p>
+            <p className="flex-grow">{item.item.name}</p>
+            <p className="w-16 text-center">{item.quantity}</p>
             <p className="w-20 text-right font-mono">
-              ₹{(item.price * quantity).toFixed(2)}
+              ₹{(Number(item.item.price) * item.quantity).toFixed(2)}
             </p>
           </div>
         ))}
