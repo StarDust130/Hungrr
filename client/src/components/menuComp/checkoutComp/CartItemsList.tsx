@@ -4,34 +4,30 @@ import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import SafeImage from "@/components/elements/SafeImage";
 import { CartItem, MenuItem } from "@/types/menu";
-import useCart from "@/hooks/useCart";
 
 interface Props {
   items: CartItem[];
-  onAdd: (item: MenuItem) => void;
-  onRemove: (itemId: number) => void;
-  onClear: (itemId: number) => void;
+  onAdd: (item: MenuItem, variantId?: number) => void;
+  onRemove: (itemId: number, variantId?: number) => void;
+  onClear: (itemId: number, variantId?: number) => void;
 }
 
-const CartItemsList = ({ items }: Props) => {
-  const { addToCart, removeFromCart, clearItemFromCart } = useCart();
-
+const CartItemsList = ({ items, onAdd, onRemove, onClear }: Props) => {
   return (
     <ul className="space-y-4">
-      {items.map(({ item, quantity }) => {
+      {items.map(({ item, quantity, variant }) => {
         const hasImage = !!item.food_image_url;
         const price = Number(item.price) || 0;
 
         return (
           <li
-            key={item.id}
+            key={`${item.id}-${variant?.id || "base"}`}
             className={`flex w-full gap-4 rounded-xl border border-border/50 shadow-sm transition-all ${
               hasImage
                 ? "bg-muted/40 p-3 items-start"
                 : "bg-background p-4 items-center"
             }`}
           >
-            {/* ✅ Only show image if available */}
             {hasImage && (
               <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border">
                 <SafeImage
@@ -42,7 +38,6 @@ const CartItemsList = ({ items }: Props) => {
               </div>
             )}
 
-            {/* ✅ Content Section */}
             <div className="flex-1 flex flex-col justify-between gap-2">
               <div className="flex justify-between items-start gap-3">
                 <div className="flex flex-col gap-0.5">
@@ -64,7 +59,7 @@ const CartItemsList = ({ items }: Props) => {
                     size="icon"
                     variant="outline"
                     className="w-8 h-8 rounded-full"
-                    onClick={() => removeFromCart(item.id)}
+                    onClick={() => onRemove(item.id, variant?.id)}
                   >
                     <Minus size={14} />
                   </Button>
@@ -75,7 +70,7 @@ const CartItemsList = ({ items }: Props) => {
                     size="icon"
                     variant="outline"
                     className="w-8 h-8 rounded-full"
-                    onClick={() => addToCart(item)}
+                    onClick={() => onAdd(item, variant?.id)}
                   >
                     <Plus size={14} />
                   </Button>
@@ -84,7 +79,7 @@ const CartItemsList = ({ items }: Props) => {
                   variant="ghost"
                   size="icon"
                   className="text-muted-foreground hover:text-red-500"
-                  onClick={() => clearItemFromCart(item.id)}
+                  onClick={() => onClear(item.id, variant?.id)}
                 >
                   <Trash2 size={16} />
                 </Button>
