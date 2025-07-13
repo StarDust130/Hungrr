@@ -22,12 +22,26 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-// It's best practice to define fallbacks for environment variables
+// Normalize function to avoid trailing slash issues
+const normalizeOrigin = (origin: string) => {
+  try {
+    return new URL(origin).origin;
+  } catch {
+    return origin;
+  }
+};
+
+// Set default client/admin URLs
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 const ADMIN_URL = process.env.ADMIN_URL || "http://localhost:3001";
 const KITCHEN_URL = process.env.KITCHEN_URL || "http://localhost:3002";
 
-const allowedOrigins = [CLIENT_URL, ADMIN_URL, KITCHEN_URL];
+// Add all allowed origins explicitly
+const allowedOrigins = [
+  normalizeOrigin(CLIENT_URL),
+  normalizeOrigin(ADMIN_URL),
+  normalizeOrigin(KITCHEN_URL),
+];
 
 // =============================================
 // MIDDLEWARE
@@ -38,10 +52,18 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
+      if (!origin) {
+        // Allow server-to-server or curl/Postman requests
+        return callback(null, true);
+      }
+
+      const cleaned = normalizeOrigin(origin);
+
+      if (allowedOrigins.includes(cleaned)) {
+        return callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        console.warn(`❌ CORS Blocked: ${cleaned}`);
+        return callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true,
@@ -59,7 +81,6 @@ const io = new Server(server, {
   },
 });
 
-// Make io accessible in route handlers via req.app.get('io')
 app.set("io", io);
 
 // =============================================
@@ -80,39 +101,33 @@ cron.schedule("* * * * *", async () => {
 console.log("✅ Cron job scheduled to run every minute.");
 
 // =============================================
-// SOCKET.IO EVENT HANDLERS
+// SOCKET.IO EVENTS
 // =============================================
 io.on("connection", (socket) => {
   console.log(`🟢 New client connected: ${socket.id}`);
 
-  // Handler for the ADMIN/KITCHEN dashboard to join a room for an entire cafe
   socket.on("join_cafe_room", (cafeId: string | number) => {
     if (!cafeId) {
-      console.error(
-        `🔴 Attempted to join a room with invalid cafeId from socket ${socket.id}`
-      );
+      console.error(`🔴 Invalid cafeId from socket ${socket.id}`);
       return;
     }
-    const roomName = `cafe_${cafeId}`;
-    socket.join(roomName);
-    console.log(`📦 Socket ${socket.id} joined CAFE room: "${roomName}"`);
+    const room = `cafe_${cafeId}`;
+    socket.join(room);
+    console.log(`📦 ${socket.id} joined room: ${room}`);
   });
 
-  // ✅ NEW: Handler for the USER website to join a room for a SINGLE order
   socket.on("join_order_room", (orderId: string | number) => {
     if (!orderId) {
-      console.error(
-        `🔴 Attempted to join a room with invalid orderId from socket ${socket.id}`
-      );
+      console.error(`🔴 Invalid orderId from socket ${socket.id}`);
       return;
     }
-    const roomName = `order_${orderId}`;
-    socket.join(roomName);
-    console.log(`📦 Socket ${socket.id} joined ORDER room: "${roomName}"`);
+    const room = `order_${orderId}`;
+    socket.join(room);
+    console.log(`📦 ${socket.id} joined room: ${room}`);
   });
 
   socket.on("disconnect", (reason) => {
-    console.log(`🔌 Client disconnected: ${socket.id}. Reason: ${reason}`);
+    console.log(`🔌 Disconnected: ${socket.id} (${reason})`);
   });
 });
 
