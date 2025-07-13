@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 
-# Exit on error
+# Exit if any command fails
 set -o errexit
 
-# Install ALL dependencies (not just production)
+# Install deps
 npm install
 
-# Generate Prisma client (optional, safe even if not used)
+# Generate Prisma client
 npx prisma generate
 
-# Build TypeScript
+# Build TypeScript project
 npm run build
+s
