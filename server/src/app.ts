@@ -43,7 +43,12 @@ const KITCHEN_URL = normalizeOrigin(
   process.env.KITCHEN_URL || "http://localhost:3002"
 );
 
-const allowedOrigins = [CLIENT_URL, ADMIN_URL, KITCHEN_URL];
+const allowedOrigins = [
+  CLIENT_URL,
+  ADMIN_URL,
+  KITCHEN_URL,
+  "https://www.hungrr.in",
+];
 console.log("✅ Allowed origins:", allowedOrigins);
 
 // =============================================
