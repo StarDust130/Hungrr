@@ -8,7 +8,7 @@ import cors from "cors";
 import cron from "node-cron";
 import dotenv from "dotenv";
 
-// Import route modules
+// Route modules
 import userRoutes from "./routes/userRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import statsRoutes from "./routes/statsRoutes";
@@ -23,7 +23,7 @@ const app = express();
 const server = http.createServer(app);
 
 // =============================================
-// NORMALIZE ORIGIN HELPER
+// ORIGIN NORMALIZATION
 // =============================================
 const normalizeOrigin = (origin: string): string => {
   try {
@@ -33,9 +33,6 @@ const normalizeOrigin = (origin: string): string => {
   }
 };
 
-// =============================================
-// ENVIRONMENT CONFIG
-// =============================================
 const CLIENT_URL = normalizeOrigin(
   process.env.CLIENT_URL || "http://localhost:3000"
 );
@@ -47,7 +44,6 @@ const KITCHEN_URL = normalizeOrigin(
 );
 
 const allowedOrigins = [CLIENT_URL, ADMIN_URL, KITCHEN_URL];
-
 console.log("✅ Allowed origins:", allowedOrigins);
 
 // =============================================
@@ -56,14 +52,11 @@ console.log("✅ Allowed origins:", allowedOrigins);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
+// Main CORS middleware
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) {
-        // Allow non-browser clients like curl, Postman, SSR
-        return callback(null, true);
-      }
-
+      if (!origin) return callback(null, true); // SSR, Postman, etc.
       const cleaned = normalizeOrigin(origin);
       if (allowedOrigins.includes(cleaned)) {
         return callback(null, true);
@@ -73,7 +66,25 @@ app.use(
       }
     },
     credentials: true,
-    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"], // include OPTIONS!
+  })
+);
+
+// Preflight handler for CORS
+app.options(
+  "*",
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const cleaned = normalizeOrigin(origin);
+      if (allowedOrigins.includes(cleaned)) {
+        return callback(null, true);
+      } else {
+        console.warn(`❌ CORS BLOCKED (OPTIONS): ${cleaned}`);
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   })
 );
 
@@ -84,11 +95,10 @@ const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
     credentials: true,
-    methods: ["GET", "POST", "PATCH", "DELETE"],
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   },
 });
 
-// Attach Socket.io to the app instance
 app.set("io", io);
 
 io.on("connection", (socket) => {
@@ -133,6 +143,6 @@ cron.schedule("* * * * *", async () => {
 });
 
 // =============================================
-// EXPORT
+// EXPORT APP & SERVER
 // =============================================
 export { app, server };
