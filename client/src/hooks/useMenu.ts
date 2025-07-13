@@ -5,6 +5,10 @@ interface UseMenuProps {
   cafeSlug: string;
 }
 
+// ✅ Safely resolve the backend API URL at the top once
+const BACKEND_API_URL =
+  process.env.NEXT_PUBLIC_BACKEND_API_URL || "https://api.hungrr.in";
+
 export function useMenu({ cafeSlug }: UseMenuProps) {
   const [menuData, setMenuData] = useState<Record<string, MenuItem[]>>({});
   const [searchTerm, setSearchTerm] = useState("");
@@ -15,20 +19,28 @@ export function useMenu({ cafeSlug }: UseMenuProps) {
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  //! ✅ Fetch all categories and menu data in parallel
   useEffect(() => {
     const fetchAllMenus = async () => {
       try {
+        console.log("🔥 Using BACKEND_API_URL:", BACKEND_API_URL);
+
+        // ✅ Fetch categories
         const catRes = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/menu/category/${cafeSlug}`
+          `${BACKEND_API_URL}/api/menu/category/${cafeSlug}`
         );
+
+        if (!catRes.ok) {
+          throw new Error("Failed to fetch categories");
+        }
+
         const catJson = await catRes.json();
         const categories: string[] = catJson.categories;
         setAllCategories(categories);
 
+        // ✅ Fetch menu for each category
         const promises = categories.map(async (_, index) => {
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/menu/${cafeSlug}?category_index=${index}`
+            `${BACKEND_API_URL}/api/menu/${cafeSlug}?category_index=${index}`
           );
           if (!res.ok) return null;
           const data = await res.json();
@@ -37,6 +49,7 @@ export function useMenu({ cafeSlug }: UseMenuProps) {
 
         const results = await Promise.all(promises);
 
+        // ✅ Combine data
         const combined: Record<string, MenuItem[]> = {};
         results.forEach((result) => {
           if (result) {
@@ -48,7 +61,7 @@ export function useMenu({ cafeSlug }: UseMenuProps) {
         setMenuData(combined);
         setActiveCategory(Object.keys(combined)[0] || "");
 
-        // ✅ Set specials early
+        // ✅ Set special items
         const allInitialItems = Object.values(combined).flat();
         const specialFiltered = allInitialItems.filter(
           (item) => item?.isSpecial
@@ -62,12 +75,10 @@ export function useMenu({ cafeSlug }: UseMenuProps) {
     fetchAllMenus();
   }, [cafeSlug]);
 
-  // ✅ Calculate loading state
   const isLoading = useMemo(() => {
     return Object.keys(menuData).length === 0;
   }, [menuData]);
 
-  // ✅ Filtered menu data by search term
   const filteredMenuData = useMemo(() => {
     if (!searchTerm.trim()) return menuData;
     const lower = searchTerm.toLowerCase();
@@ -85,7 +96,6 @@ export function useMenu({ cafeSlug }: UseMenuProps) {
     return filtered;
   }, [searchTerm, menuData]);
 
-  // ✅ Track visible category using IntersectionObserver
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -93,23 +103,22 @@ export function useMenu({ cafeSlug }: UseMenuProps) {
           if (entry.isIntersecting) {
             const id = entry.target.getAttribute("data-category");
             if (id) {
-              setActiveCategory(id); // ✅ This triggers highlight change
+              setActiveCategory(id);
             }
           }
         });
       },
       {
-        rootMargin: "-100px 0px -70% 0px", // tweak this to your layout
+        rootMargin: "-100px 0px -70% 0px",
         threshold: 0.1,
       }
     );
 
     observerRef.current = observer;
 
-    // Observe all sections
     Object.entries(sectionRefs.current).forEach(([category, ref]) => {
       if (ref) {
-        ref.setAttribute("data-category", category); // ✅ Required
+        ref.setAttribute("data-category", category);
         observer.observe(ref);
       }
     });
@@ -118,9 +127,7 @@ export function useMenu({ cafeSlug }: UseMenuProps) {
       observer.disconnect();
     };
   }, [filteredMenuData]);
-  
 
-  // ✅ List of visible categories depending on search
   const visibleCategories = searchTerm
     ? Object.keys(filteredMenuData)
     : allCategories;
