@@ -44,6 +44,7 @@ app.use(
       }
     },
     credentials: true,
+    methods: ["GET", "POST", "PATCH", "DELETE"],
   })
 );
 
