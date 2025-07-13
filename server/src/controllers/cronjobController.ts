@@ -5,6 +5,8 @@ import prisma from "../config/prisma";
 export const cleanupPendingOrders = async () => {
     console.log("----------------------------------------");
     console.log("🧹 Running scheduled job: Cleaning up pending orders...");
+    console.log("🛠 DATABASE_URL =", process.env.DATABASE_URL);
+
   
     try {
       // Calculate the timestamp for 10 minutes ago
