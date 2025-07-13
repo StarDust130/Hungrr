@@ -8,47 +8,25 @@ import cors from "cors";
 import cron from "node-cron";
 import dotenv from "dotenv";
 
-// Route modules
+// Import local modules
 import userRoutes from "./routes/userRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import kitchenRoutes from "./routes/kitchenRoutes";
 import { cleanupPendingOrders } from "./controllers/cronjobController";
 
 // =============================================
-// INITIALIZATION
+// INITIALIZATION & ENVIRONMENT
 // =============================================
 dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-// =============================================
-// ORIGIN NORMALIZATION
-// =============================================
-const normalizeOrigin = (origin: string): string => {
-  try {
-    return new URL(origin).origin;
-  } catch {
-    return origin;
-  }
-};
+// It's best practice to define fallbacks for environment variables
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+const ADMIN_URL = process.env.ADMIN_URL || "http://localhost:3001";
+const KITCHEN_URL = process.env.KITCHEN_URL || "http://localhost:3002";
 
-const CLIENT_URL = normalizeOrigin(
-  process.env.CLIENT_URL || "http://localhost:3000"
-);
-const ADMIN_URL = normalizeOrigin(
-  process.env.ADMIN_URL || "http://localhost:3001"
-);
-const KITCHEN_URL = normalizeOrigin(
-  process.env.KITCHEN_URL || "http://localhost:3002"
-);
-
-const allowedOrigins = [
-  CLIENT_URL,
-  ADMIN_URL,
-  KITCHEN_URL,
-  "https://www.hungrr.in",
-];
-console.log("✅ Allowed origins:", allowedOrigins);
+const allowedOrigins = [CLIENT_URL, ADMIN_URL, KITCHEN_URL];
 
 // =============================================
 // MIDDLEWARE
@@ -56,39 +34,16 @@ console.log("✅ Allowed origins:", allowedOrigins);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
-// Main CORS middleware
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true); // SSR, Postman, etc.
-      const cleaned = normalizeOrigin(origin);
-      if (allowedOrigins.includes(cleaned)) {
-        return callback(null, true);
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
       } else {
-        console.warn(`❌ CORS BLOCKED: ${cleaned}`);
-        return callback(new Error("Not allowed by CORS"));
+        callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true,
-  })
-);
-
-// Preflight handler for CORS
-app.options(
-  "*",
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      const cleaned = normalizeOrigin(origin);
-      if (allowedOrigins.includes(cleaned)) {
-        return callback(null, true);
-      } else {
-        console.warn(`❌ CORS BLOCKED (OPTIONS): ${cleaned}`);
-        return callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   })
 );
 
@@ -99,34 +54,15 @@ const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
     credentials: true,
-    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PATCH", "DELETE"],
   },
 });
 
+// Make io accessible in route handlers via req.app.get('io')
 app.set("io", io);
 
-io.on("connection", (socket) => {
-  console.log(`🟢 Socket connected: ${socket.id}`);
-
-  socket.on("join_cafe_room", (cafeId: string | number) => {
-    if (!cafeId) return;
-    socket.join(`cafe_${cafeId}`);
-    console.log(`📦 ${socket.id} joined cafe_${cafeId}`);
-  });
-
-  socket.on("join_order_room", (orderId: string | number) => {
-    if (!orderId) return;
-    socket.join(`order_${orderId}`);
-    console.log(`📦 ${socket.id} joined order_${orderId}`);
-  });
-
-  socket.on("disconnect", (reason) => {
-    console.log(`🔌 Disconnected: ${socket.id} — Reason: ${reason}`);
-  });
-});
-
 // =============================================
-// ROUTES
+// API ROUTES
 // =============================================
 app.use("/api", userRoutes);
 app.use("/api/admin", adminRoutes);
@@ -136,16 +72,49 @@ app.use("/api/kitchen", kitchenRoutes);
 // CRON JOB
 // =============================================
 cron.schedule("* * * * *", async () => {
-  console.log("⏰ Running cron job: cleaning up pending orders...");
-  try {
-    await cleanupPendingOrders();
-    console.log("✅ Cleanup job done.");
-  } catch (error) {
-    console.error("❌ Error in cleanup job:", error);
-  }
+  console.log("⏰ Cron job: Cleaning up pending orders.");
+  await cleanupPendingOrders();
+});
+console.log("✅ Cron job scheduled to run every minute.");
+
+// =============================================
+// SOCKET.IO EVENT HANDLERS
+// =============================================
+io.on("connection", (socket) => {
+  console.log(`🟢 New client connected: ${socket.id}`);
+
+  // Handler for the ADMIN/KITCHEN dashboard to join a room for an entire cafe
+  socket.on("join_cafe_room", (cafeId: string | number) => {
+    if (!cafeId) {
+      console.error(
+        `🔴 Attempted to join a room with invalid cafeId from socket ${socket.id}`
+      );
+      return;
+    }
+    const roomName = `cafe_${cafeId}`;
+    socket.join(roomName);
+    console.log(`📦 Socket ${socket.id} joined CAFE room: "${roomName}"`);
+  });
+
+  // ✅ NEW: Handler for the USER website to join a room for a SINGLE order
+  socket.on("join_order_room", (orderId: string | number) => {
+    if (!orderId) {
+      console.error(
+        `🔴 Attempted to join a room with invalid orderId from socket ${socket.id}`
+      );
+      return;
+    }
+    const roomName = `order_${orderId}`;
+    socket.join(roomName);
+    console.log(`📦 Socket ${socket.id} joined ORDER room: "${roomName}"`);
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.log(`🔌 Client disconnected: ${socket.id}. Reason: ${reason}`);
+  });
 });
 
 // =============================================
-// EXPORT APP & SERVER
+// EXPORTS
 // =============================================
 export { app, server };

@@ -1,4 +1,3 @@
-// src/routes/cafeRoutes.ts
 import { Router } from "express";
 import {
   getActiveOrdersForTable,
@@ -13,17 +12,16 @@ import {
 const router = Router();
 
 //! Menu Page 🍀
-router.get("/cafe_banner/:slug", getCafeInfoBySlug);
-router.get("/menu/:slug", getCafeMenu as any);
-router.get("/menu/category/:slug", getCategory as any);
+router.get("/cafe_banner/:slug", getCafeInfoBySlug); // ✅ OK
+router.get("/menu/:slug", getCafeMenu as any); // ✅ OK
+router.get("/menu/category/:slug", getCategory as any); // ✅ OK
 
-router.get("/orders/active/:cafeId/:tableNo", getActiveOrdersForTable as any);
+//! Orders
+router.get("/orders/active/:cafeId/:tableNo", getActiveOrdersForTable as any); // ✅ OK
 
 //! Bill Page 📜
-router.get("/bill/:publicId", getBillByPublicId as any);
-
-router.post("/bill", upsertBill as any); // Create or update order (add items)
-
-router.delete("/orders/:publicId", cancelPendingOrder as any); // Cancel pending order
+router.get("/bill/:publicId", getBillByPublicId as any); // ✅ OK
+router.post("/bill", upsertBill as any); // ✅ OK
+router.delete("/orders/:publicId", cancelPendingOrder as any); // ✅ OK
 
 export default router;
