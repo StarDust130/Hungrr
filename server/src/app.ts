@@ -8,7 +8,7 @@ import cors from "cors";
 import cron from "node-cron";
 import dotenv from "dotenv";
 
-// Import local modules
+// Import route modules
 import userRoutes from "./routes/userRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import statsRoutes from "./routes/statsRoutes";
@@ -16,14 +16,16 @@ import kitchenRoutes from "./routes/kitchenRoutes";
 import { cleanupPendingOrders } from "./controllers/cronjobController";
 
 // =============================================
-// INITIALIZATION & ENVIRONMENT
+// INITIALIZATION
 // =============================================
 dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-// Normalize function to avoid trailing slash issues
-const normalizeOrigin = (origin: string) => {
+// =============================================
+// NORMALIZE ORIGIN HELPER
+// =============================================
+const normalizeOrigin = (origin: string): string => {
   try {
     return new URL(origin).origin;
   } catch {
@@ -31,17 +33,22 @@ const normalizeOrigin = (origin: string) => {
   }
 };
 
-// Set default client/admin URLs
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
-const ADMIN_URL = process.env.ADMIN_URL || "http://localhost:3001";
-const KITCHEN_URL = process.env.KITCHEN_URL || "http://localhost:3002";
+// =============================================
+// ENVIRONMENT CONFIG
+// =============================================
+const CLIENT_URL = normalizeOrigin(
+  process.env.CLIENT_URL || "http://localhost:3000"
+);
+const ADMIN_URL = normalizeOrigin(
+  process.env.ADMIN_URL || "http://localhost:3001"
+);
+const KITCHEN_URL = normalizeOrigin(
+  process.env.KITCHEN_URL || "http://localhost:3002"
+);
 
-// Add all allowed origins explicitly
-const allowedOrigins = [
-  normalizeOrigin(CLIENT_URL),
-  normalizeOrigin(ADMIN_URL),
-  normalizeOrigin(KITCHEN_URL),
-];
+const allowedOrigins = [CLIENT_URL, ADMIN_URL, KITCHEN_URL];
+
+console.log("✅ Allowed origins:", allowedOrigins);
 
 // =============================================
 // MIDDLEWARE
@@ -53,16 +60,15 @@ app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) {
-        // Allow server-to-server or curl/Postman requests
+        // Allow non-browser clients like curl, Postman, SSR
         return callback(null, true);
       }
 
       const cleaned = normalizeOrigin(origin);
-
       if (allowedOrigins.includes(cleaned)) {
         return callback(null, true);
       } else {
-        console.warn(`❌ CORS Blocked: ${cleaned}`);
+        console.warn(`❌ CORS BLOCKED: ${cleaned}`);
         return callback(new Error("Not allowed by CORS"));
       }
     },
@@ -81,10 +87,31 @@ const io = new Server(server, {
   },
 });
 
+// Attach Socket.io to the app instance
 app.set("io", io);
 
+io.on("connection", (socket) => {
+  console.log(`🟢 Socket connected: ${socket.id}`);
+
+  socket.on("join_cafe_room", (cafeId: string | number) => {
+    if (!cafeId) return;
+    socket.join(`cafe_${cafeId}`);
+    console.log(`📦 ${socket.id} joined cafe_${cafeId}`);
+  });
+
+  socket.on("join_order_room", (orderId: string | number) => {
+    if (!orderId) return;
+    socket.join(`order_${orderId}`);
+    console.log(`📦 ${socket.id} joined order_${orderId}`);
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.log(`🔌 Disconnected: ${socket.id} — Reason: ${reason}`);
+  });
+});
+
 // =============================================
-// API ROUTES
+// ROUTES
 // =============================================
 app.use("/api", userRoutes);
 app.use("/api/admin", adminRoutes);
@@ -95,43 +122,16 @@ app.use("/api/kitchen", kitchenRoutes);
 // CRON JOB
 // =============================================
 cron.schedule("* * * * *", async () => {
-  console.log("⏰ Cron job: Cleaning up pending orders.");
-  await cleanupPendingOrders();
-});
-console.log("✅ Cron job scheduled to run every minute.");
-
-// =============================================
-// SOCKET.IO EVENTS
-// =============================================
-io.on("connection", (socket) => {
-  console.log(`🟢 New client connected: ${socket.id}`);
-
-  socket.on("join_cafe_room", (cafeId: string | number) => {
-    if (!cafeId) {
-      console.error(`🔴 Invalid cafeId from socket ${socket.id}`);
-      return;
-    }
-    const room = `cafe_${cafeId}`;
-    socket.join(room);
-    console.log(`📦 ${socket.id} joined room: ${room}`);
-  });
-
-  socket.on("join_order_room", (orderId: string | number) => {
-    if (!orderId) {
-      console.error(`🔴 Invalid orderId from socket ${socket.id}`);
-      return;
-    }
-    const room = `order_${orderId}`;
-    socket.join(room);
-    console.log(`📦 ${socket.id} joined room: ${room}`);
-  });
-
-  socket.on("disconnect", (reason) => {
-    console.log(`🔌 Disconnected: ${socket.id} (${reason})`);
-  });
+  console.log("⏰ Running cron job: cleaning up pending orders...");
+  try {
+    await cleanupPendingOrders();
+    console.log("✅ Cleanup job done.");
+  } catch (error) {
+    console.error("❌ Error in cleanup job:", error);
+  }
 });
 
 // =============================================
-// EXPORTS
+// EXPORT
 // =============================================
 export { app, server };
