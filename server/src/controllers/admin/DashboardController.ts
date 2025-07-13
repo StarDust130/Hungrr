@@ -21,7 +21,6 @@ interface DashboardStats {
   revenue: { value: number; change: number };
   orders: { value: number; change: number };
   avgOrderValue: { value: number; change: number };
-  newCustomers: { value: number; change: number };
   repeatOrderPercentage: { value: number; change: number };
   popularItem: string;
   orderStatusCounts: Record<string, number>;
