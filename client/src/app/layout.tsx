@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import Navbar from "@/components/elements/Navbar";
 import Footer from "@/components/elements/Footer";
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 // Serif for headings
 const caudex = Caudex({
@@ -44,6 +45,7 @@ export default function RootLayout({
             <Navbar />
             {children}
             <Analytics />
+            <SpeedInsights  />
             <Footer />
           </main>
         </ThemeProvider>
