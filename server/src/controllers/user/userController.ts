@@ -29,8 +29,9 @@ export const getCafeInfoBySlug = async (
         instaID: true,
         isPureVeg: true,
         openingTime: true,
-        gstPercentage: true,
+        // gstPercentage: true,
         is_active: true, // Keep this in the select to send the status to the frontend
+        logoUrl: true,
       },
     });
 
