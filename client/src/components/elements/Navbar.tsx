@@ -21,21 +21,6 @@ const Navbar = () => {
             />
           </Link>
 
-          {/* Center Nav (Desktop only) */}
-          <div className="hidden md:flex flex-1 justify-center items-center space-x-8 text-sm font-medium">
-            {["features", "how-it-works", "pricing"].map((section) => (
-              <Link
-                key={section}
-                href={`#${section}`}
-                className="hover:text-primary hover:underline underline-offset-4 transition-all"
-              >
-                {section
-                  .split("-")
-                  .map((word) => word[0].toUpperCase() + word.slice(1))
-                  .join(" ")}
-              </Link>
-            ))}
-          </div>
 
           {/* Right Controls */}
           <div className="flex items-center space-x-3">
