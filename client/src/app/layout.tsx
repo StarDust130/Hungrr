@@ -41,7 +41,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <main className="flex min-h-screen flex-col w-full max-w-3xl mx-auto rounded-2xl border border-gray-500 border-dotted">
+          <main className="flex min-h-screen flex-col w-full max-w-3xl mx-auto rounded-2xl md:border md:border-gray-500 md:border-dotted">
             <Navbar />
             {children}
             <Analytics />
