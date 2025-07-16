@@ -5,6 +5,8 @@ A slick QR-based ordering system for cafes and restaurants — no waiters, no de
 
 ---
 
+
+
 ## 🚀 What is Hungrr?
 
 Hungrr is a full-stack web app that lets customers **scan a QR code**, browse the **digital menu**, **place an order**, and optionally **pay** — all from their phone.
