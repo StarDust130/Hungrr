@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { ModeToggle } from "../ui/ModeToggle";
-import Link from "next/link";
+// import Link from "next/link";
 
 
 const Navbar = () => {
@@ -11,7 +11,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href={`/`} className="flex items-center space-x-3">
+          {/* <Link href={`/`} className="flex items-center space-x-3"> */}
             <Image
               src="/icon.png"
               alt="Logo"
@@ -19,7 +19,7 @@ const Navbar = () => {
               height={32}
               className="rounded-full border"
             />
-          </Link>
+          {/* </Link> */}
 
 
           {/* Right Controls */}
