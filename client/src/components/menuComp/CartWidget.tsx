@@ -67,7 +67,7 @@ const CartWidget = () => {
             </Button>
           </DrawerTrigger>
 
-          <DrawerContent className="flex flex-col bg-background max-h-[90vh] w-full md:max-w-6xl mx-auto rounded-lg shadow-lg overflow-hidden">
+          <DrawerContent className="flex flex-col bg-background max-h-[85vh] w-full md:max-w-6xl mx-auto rounded-lg shadow-lg overflow-hidden">
             <DrawerHeader className="text-left flex-shrink-0">
               <DrawerTitle className="text-2xl font-bold tracking-tight">
                 Your Order Summary
