@@ -58,9 +58,8 @@ const CartWidget = () => {
                   <div className="absolute -top-3 -left-2 backdrop-blur-sm w-8 h-8 rounded-full"></div>
                   <ShoppingCart size={24} className="relative z-10" />
                 </div>
-            
-                  <p className="font-bold text-lg">₹{totalPrice.toFixed(2)}</p>
-             
+
+                <p className="font-bold text-lg">₹{totalPrice.toFixed(2)}</p>
               </div>
               <div className="flex items-center gap-1 font-semibold text-base pr-2 cursor-pointer">
                 View Cart <ChevronRight size={20} />
