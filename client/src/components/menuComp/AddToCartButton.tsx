@@ -126,7 +126,7 @@ const AddToCartButton = ({
 
       {/* Drawer content */}
       {hasVariants && (
-        <DrawerContent className="p-0 bg-background rounded-t-2xl max-h-[85vh] flex flex-col">
+        <DrawerContent className="p-0 bg-background rounded-t-2xl max-h-[85vh] flex flex-col mx-auto">
           <DrawerTitle></DrawerTitle>
           <DrawerHeader></DrawerHeader>
 
