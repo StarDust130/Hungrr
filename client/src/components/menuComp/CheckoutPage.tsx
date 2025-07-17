@@ -124,7 +124,7 @@ const CheckoutPage = () => {
   }));
 
   return (
-    <div className="relative flex flex-col md:flex-row h-screen overflow-hidden">
+    <div className="relative flex flex-col md:flex-row h-[90vh] overflow-hidden">
       <div className="flex-1 overflow-y-auto px-4 pt-4 pb-48 sm:px-6 mb-46 md:mb-0">
         <CartItemsList
           items={displayCartItems}
