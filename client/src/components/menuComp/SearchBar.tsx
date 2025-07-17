@@ -8,7 +8,7 @@ type Props = {
 
 const SearchBar = ({ searchTerm, setSearchTerm }: Props) => (
   <header className="sticky top-0 z-30">
-    <div className="max-w-5xl mx-auto px-2 py-2 flex items-center gap-3">
+    <div className=" w-full mx-auto px-2.5 py-2 flex items-center gap-3">
       {/* Search Input */}
       <div className="flex-1 relative">
         <input
@@ -33,7 +33,6 @@ const SearchBar = ({ searchTerm, setSearchTerm }: Props) => (
           </button>
         )}
       </div>
-
     </div>
   </header>
 );
