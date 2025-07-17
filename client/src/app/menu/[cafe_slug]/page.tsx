@@ -34,7 +34,6 @@ export async function generateMetadata({
     ? cafeData.logoUrl
     : "https://hungrr.in/icon.png";
 
-
   return {
     title,
     description,

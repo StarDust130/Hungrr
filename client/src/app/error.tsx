@@ -29,10 +29,10 @@ export default function Error({
         height={200}
       />
       <h2 className="mt-5 text-xl font-bold text-red-500 mb-2">
-        Server is down or not working.
+        😭Server is down or not working.
       </h2>
       <p className="text-muted-foreground font-normal text-sm max-w-md mb-4">
-        We're aware of the issue. Please try again shortly.
+        We&apos;re aware of the issue. Please try again shortly.
       </p>
 
       <div className="flex justify-center items-center gap-3">
