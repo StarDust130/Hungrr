@@ -19,61 +19,63 @@ export function useMenu({ cafeSlug }: UseMenuProps) {
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  useEffect(() => {
-    const fetchAllMenus = async () => {
-      try {
-        console.log("🔥 Using BACKEND_API_URL:", BACKEND_API_URL);
+useEffect(() => {
+  const fetchAllMenus = async () => {
+    try {
+      // ✅ Fetch categories
+      const catRes = await fetch(
+        `${BACKEND_API_URL}/api/menu/category/${cafeSlug}`
+      );
 
-        // ✅ Fetch categories
-        const catRes = await fetch(
-          `${BACKEND_API_URL}/api/menu/category/${cafeSlug}`
-        );
+      if (!catRes.ok) throw new Error("Failed to fetch categories");
 
-        if (!catRes.ok) {
-          throw new Error("Failed to fetch categories");
-        }
+      const catJson = await catRes.json();
+      const categories: string[] = catJson.categories;
+      setAllCategories(categories);
 
-        const catJson = await catRes.json();
-        const categories: string[] = catJson.categories;
-        setAllCategories(categories);
+      // ✅ Fetch menus in batches (5 at a time)
+      const combined: Record<string, MenuItem[]> = {};
 
-        // ✅ Fetch menu for each category
-        const promises = categories.map(async (_, index) => {
-          const res = await fetch(
-            `${BACKEND_API_URL}/api/menu/${cafeSlug}?category_index=${index}`
-          );
-          if (!res.ok) return null;
-          const data = await res.json();
-          return data;
+      for (let i = 0; i < categories.length; i += 5) {
+        const batch = categories.slice(i, i + 5);
+        const batchPromises = batch.map((_, idx) => {
+          const actualIndex = i + idx;
+          return fetch(
+            `${BACKEND_API_URL}/api/menu/${cafeSlug}?category_index=${actualIndex}`
+          )
+            .then((res) => (res.ok ? res.json() : null))
+            .catch(() => null);
         });
 
-        const results = await Promise.all(promises);
+        const batchResults = await Promise.all(batchPromises);
 
-        // ✅ Combine data
-        const combined: Record<string, MenuItem[]> = {};
-        results.forEach((result) => {
+        batchResults.forEach((result) => {
           if (result) {
             const category = Object.keys(result)[0];
             combined[category] = result[category];
           }
         });
 
-        setMenuData(combined);
-        setActiveCategory(Object.keys(combined)[0] || "");
-
-        // ✅ Set special items
-        const allInitialItems = Object.values(combined).flat();
-        const specialFiltered = allInitialItems.filter(
-          (item) => item?.isSpecial
-        );
-        setSpecialItems(specialFiltered);
-      } catch (error) {
-        console.error("❌ Failed to fetch full menu:", error);
+        // Slight delay between batches to avoid CPU/DB spike
+        await new Promise((res) => setTimeout(res, 300));
       }
-    };
 
-    fetchAllMenus();
-  }, [cafeSlug]);
+      // ✅ Save to state
+      setMenuData(combined);
+      setActiveCategory(Object.keys(combined)[0] || "");
+
+      // ✅ Special items
+      const allItems = Object.values(combined).flat();
+      const specials = allItems.filter((item) => item?.isSpecial);
+      setSpecialItems(specials);
+    } catch (error) {
+      console.error("❌ Failed to fetch full menu:", error);
+    }
+  };
+
+  fetchAllMenus();
+}, [cafeSlug]);
+
 
   const isLoading = useMemo(() => {
     return Object.keys(menuData).length === 0;
