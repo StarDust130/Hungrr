@@ -67,17 +67,16 @@ const CartWidget = () => {
             </Button>
           </DrawerTrigger>
 
-          <DrawerContent className="flex flex-col bg-background max-h-[90dvh] w-full md:max-w-6xl mx-auto rounded-lg shadow-lg">
+          <DrawerContent className="flex flex-col bg-background max-h-[95dvh] w-full md:max-w-6xl mx-auto rounded-lg shadow-lg">
             <DrawerHeader className="text-left flex-shrink-0">
               <DrawerTitle className="text-2xl font-bold tracking-tight">
                 Your Order Summary
               </DrawerTitle>
             </DrawerHeader>
 
-            {/* Scrollable area */}
-            <div className="overflow-y-auto px-4 pb-6 flex-1">
+          
               <CheckoutPage />
-            </div>
+         
           </DrawerContent>
         </Drawer>
       </motion.div>
