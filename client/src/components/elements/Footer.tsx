@@ -5,7 +5,7 @@ const Footer = () => (
   <footer className="w-full mt-5 py-8 px-6 border-t border-border">
     <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center md:justify-between gap-6">
       {/* Logo */}
-      <Link href="/" className="flex items-center space-x-3">
+      <Link href="#top" className="flex items-center space-x-3">
         <div className="w-12 h-12 rounded-full overflow-hidden shadow-md bg-white/10 dark:bg-black/20">
           <Image
             src="/icon.png"
