@@ -1,90 +1,55 @@
-"use client";
-
-import { RefObject } from "react";
+import React from "react";
 import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button"; // Adjusted path
-import { BookOpenText } from "lucide-react";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { MenuItem } from "@/types/menu";
+import MenuItemCard from "./MenuItemCard";
 
-type Props = {
-  categories: string[];
-  activeCategory: string; // This prop will now directly control the highlight
-  scrollToCategory: (cat: string) => void;
-  navRef: RefObject<HTMLDivElement | null>;
-  setSearchTerm?: (val: string) => void;
-};
+interface Props {
+  serverRenderedMenuData: Record<string, MenuItem[]>;
+}
 
-const CategoryNav = ({
-  categories,
-  activeCategory,
-  scrollToCategory,
-  setSearchTerm,
-  navRef,
-}: Props) => {
-  // ❌ We remove the internal useState for 'active' as it was causing the sync issue.
-
-  const handleClick = (category: string) => {
-    // The DialogClose will handle closing the dialog.
-    scrollToCategory(category);
-  };
+export default function CategorySection({ serverRenderedMenuData }: Props) {
+  if (!serverRenderedMenuData) {
+    return null;
+  }
 
   return (
-    // The `ref` here is for the parent to potentially scroll the nav itself, which is fine.
-    <div ref={navRef} className="w-full flex justify-center">
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button
-            variant="outline"
-            className="flex items-center gap-2 px-4 py-2 rounded-full"
-            onClick={() => setSearchTerm?.("")}
+    <div className="space-y-4 pt-6">
+      <Accordion
+        type="multiple"
+        defaultValue={Object.keys(serverRenderedMenuData)}
+        className="w-full space-y-5"
+      >
+        {Object.entries(serverRenderedMenuData).map(([category, items]) => (
+          <section
+            key={category}
+            id={`category-${category}`}
+            className="scroll-m-24"
           >
-            <BookOpenText className="w-4 h-4" />
-            <span>Menu</span>
-          </Button>
-        </DialogTrigger>
-
-        <DialogContent className="max-w-xs p-2 rounded-2xl shadow-2xl border border-white/10 dark:border-neutral-800 bg-neutral-100/90 backdrop-blur-lg dark:bg-neutral-950/80">
-          <DialogHeader className="p-3">
-            <DialogTitle className="text-base font-semibold text-center text-neutral-800 dark:text-neutral-200">
-              😋 Choose a Category
-            </DialogTitle>
-            <DialogDescription className="text-xs text-neutral-600 dark:text-neutral-400 text-center mb-2">
-              Select a category to explore delicious options! ✨
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="py-2 max-h-[60vh] overflow-y-auto custom-scrollbar">
-            {categories.map((category) => (
-              <DialogClose asChild key={category}>
-                <button
-                  onClick={() => handleClick(category)}
-                  className={`relative flex items-center gap-3 w-full p-2.5 rounded-lg text-sm font-medium capitalize text-left transition-colors duration-200 outline-none group
-                    ${
-                      // ✅ The highlighting is now directly controlled by the prop from the parent.
-                      activeCategory === category
-                        ? "text-neutral-900 dark:text-neutral-300 font-bold"
-                        : "text-neutral-500 hover:bg-black/5 dark:text-neutral-400 dark:hover:bg-white/5"
-                    }`}
-                >
-                  {activeCategory === category && (
-                    <div className="absolute inset-0 rounded-lg -z-10 bg-neutral-500/10 dark:bg-neutral-500/10" />
-                  )}
-                  <span className="truncate">{category}</span>
-                </button>
-              </DialogClose>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
+            <AccordionItem value={category} className="border-none">
+              <AccordionTrigger className="text-xl sm:text-2xl font-bold capitalize tracking-tight hover:no-underline py-2">
+                {category}
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="flex flex-col">
+                  {/* ✅ This check ensures we only map over valid arrays, preventing the crash. */}
+                  {Array.isArray(items) &&
+                    items.map((item) => (
+                      <MenuItemCard
+                        key={`${item.id}-${item.name}`}
+                        item={item}
+                      />
+                    ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </section>
+        ))}
+      </Accordion>
     </div>
   );
-};
-
-export default CategoryNav;
+}

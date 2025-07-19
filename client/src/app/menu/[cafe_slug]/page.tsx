@@ -7,6 +7,7 @@ import { Metadata } from "next";
 import SpecialCardBox from "@/components/menuComp/SpecialCardBox";
 import CategorySection from "@/components/menuComp/CategorySection";
 import BackToTopButton from "@/components/menuComp/BacktoTopButton";
+import Navbar from "@/components/elements/Navbar";
 
 // ✅ FULLY FIXED generateMetadata
 export async function generateMetadata({
@@ -97,10 +98,11 @@ export default async function MenuPage({
 
   return (
     <>
+      <Navbar logoURL={cafeData.logoUrl} name={cafeData.name} />
       <CafeBanner cafe={cafeData} />
       <CartProvider>
         <MenuPageContent cafeId={cafeData.id} initialMenuData={menuData}>
-          <main className="max-w-4xl mx-auto px-2.5 ">
+          <main className="max-w-4xl mx-auto px-2.5 " suppressHydrationWarning>
             {specialItems.length > 0 && (
               <section className="py-6">
                 <SpecialCardBox items={specialItems} show={true} />
