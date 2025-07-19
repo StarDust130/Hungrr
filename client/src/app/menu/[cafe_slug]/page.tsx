@@ -102,7 +102,7 @@ export default async function MenuPage({
       <CafeBanner cafe={cafeData} />
       <CartProvider>
         <MenuPageContent cafeId={cafeData.id} initialMenuData={menuData}>
-          <main className="max-w-4xl mx-auto px-2.5 " suppressHydrationWarning>
+          <main className="max-w-4xl mx-auto px-2.5 mb-10 " suppressHydrationWarning>
             {specialItems.length > 0 && (
               <section className="py-6">
                 <SpecialCardBox items={specialItems} show={true} />
