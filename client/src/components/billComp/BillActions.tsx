@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -92,6 +92,26 @@ export function BillActions({ bill }: BillActionsProps) {
     }
   };
 
+  const [showFooter, setShowFooter] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+        // scrolling down
+        setShowFooter(false);
+      } else {
+        // scrolling up
+        setShowFooter(true);
+      }
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   // ✅ CORRECT LOGIC: This defines exactly when each button should show.
   const showPayButton =
     bill.paymentMethod === "online" && bill.paymentStatus === "pending";
@@ -159,7 +179,12 @@ export function BillActions({ bill }: BillActionsProps) {
       </div>
 
       {/* //! Fixed Bottom Bar for Mobile */}
-      <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-background border-t shadow-[0_-2px_8px_rgba(0,0,0,0.08)] px-4 py-3 rounded-t-2xl z-50 flex gap-3">
+      <div
+        className={`fixed bottom-0 left-0 right-0 sm:hidden bg-background border-t 
+              shadow-[0_-2px_8px_rgba(0,0,0,0.08)] px-4 py-3 rounded-t-2xl z-50 
+              flex gap-3 transition-transform duration-300 ease-in-out 
+              ${showFooter ? "translate-y-0" : "translate-y-full"}`}
+      >
         <Button
           variant="outline"
           size="lg"
@@ -170,7 +195,6 @@ export function BillActions({ bill }: BillActionsProps) {
           Menu
         </Button>
 
-        {/* Correctly renders buttons based on the logic */}
         {showPayButton && <PayButton isMobile />}
         {showDownloadButton && <DownloadButton isMobile />}
         {bill.paymentMethod === "cash" && bill.paymentStatus !== "paid" && (
