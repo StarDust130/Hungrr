@@ -12,6 +12,9 @@ export interface CafeInfo {
   reviews: number;
   openingTime: string;
   currency: string;
+  id: string;
+  is_active: boolean;
+  logoUrl: string;
 }
 
 export interface ItemVariant {
