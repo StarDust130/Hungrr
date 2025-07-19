@@ -25,13 +25,6 @@ const OrderNotFound = ({ error }: { error: string }) => {
         >
           <ArrowLeft /> Go Back
         </Button>
-        <Button
-          className="flex gap-2 items-center px-6 py-2 rounded-lg shadow "
-          variant="default"
-          onClick={() => window.location.reload()}
-        >
-          Try Again
-        </Button>
       </div>
     </div>
   );
