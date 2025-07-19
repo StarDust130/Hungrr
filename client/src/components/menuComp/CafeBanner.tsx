@@ -1,4 +1,3 @@
-"use client";
 import Image from "next/image";
 import { Clock } from "lucide-react";
 import DietaryIcon from "./DietaryIcon";
@@ -17,14 +16,8 @@ interface Cafe {
 
 
 
-import { useEffect } from "react";
 
 const CafeBanner = ({ cafe }: { cafe: Cafe }) => {
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("gstPercentage", cafe.gstPercentage || "5");
-    }
-  }, [cafe.gstPercentage]);
 
   return(
 
