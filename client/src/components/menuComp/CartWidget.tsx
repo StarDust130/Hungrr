@@ -38,7 +38,7 @@ const CartWidget = () => {
         <DrawerTrigger asChild>
           <Button
             variant="default"
-            className="w-full h-16 rounded-2xl shadow-2xl shadow-primary/30 flex items-center justify-between p-3 text-primary-foreground bg-gradient-to-r from-primary via-primary to-primary/80 transition-all duration-300 transform hover:scale-[1.03]"
+            className="w-full h-16 rounded-2xl shadow-2xl shadow-primary/30 flex items-center justify-between p-3 text-primary-foreground  transition-all duration-300 transform hover:scale-[1.03]"
           >
             <div className="flex items-center gap-4">
               <div className="relative">
@@ -47,7 +47,6 @@ const CartWidget = () => {
                   <ShoppingCart
                     size={60} // slightly bigger
                     strokeWidth={3} // makes it bolder
-                    className="text-black" // change color if needed
                   />
                 </div>
 
@@ -72,7 +71,7 @@ const CartWidget = () => {
               </div>
 
               {/* Total Price */}
-              <p className="text-xl font-bold tracking-tight text-black">
+              <p className="text-xl font-bold tracking-tight">
                 ₹{totalPrice.toFixed(2)}
               </p>
             </div>
