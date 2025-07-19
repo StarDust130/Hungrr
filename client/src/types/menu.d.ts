@@ -92,6 +92,9 @@ export interface BillData {
   payment_url: string;
   address: string;
   publicId: string;
+  cafe: {
+    slug: string
+  }
 }
 
 export interface OrderFromServer {

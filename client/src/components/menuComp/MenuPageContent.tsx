@@ -48,12 +48,15 @@ export default function MenuPageContent({
   const allCategories = Object.keys(initialMenuData);
   const navRef = useRef<HTMLDivElement>(null);
 
-  // Effect to set the shared Navbar info
+  // ✅ This is your correct logic.
+  // It runs once to set the shared Navbar info, including the table number from the URL.
   useEffect(() => {
     if (cafeData) {
-      setCafeInfo(cafeData);
+      const tableNumber = searchParams.get("tableNo");
+      setCafeInfo(cafeData, tableNumber || undefined);
     }
-  }, [cafeData, setCafeInfo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cafeData, searchParams]); // This runs when data is available.
 
   useEffect(() => {
     if (cafeId) setCafeId(Number(cafeId));

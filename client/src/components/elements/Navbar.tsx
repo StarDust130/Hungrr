@@ -11,7 +11,9 @@ export default function Navbar() {
   // Set default/fallback values for when not on a cafe-specific page
   const logoUrl = cafeInfo?.logoUrl || "/icon.png";
   const name = cafeInfo?.name || "";
-  const link = cafeInfo ? `/menu/${cafeInfo.slug}` : "/";
+  const link = cafeInfo
+    ? `/menu/${cafeInfo.slug}?tableNo=${cafeInfo.tableNo}#top`
+    : "/";
 
   return (
     <nav className="backdrop-blur-lg border-b border-border bg-background/80 shadow-sm">

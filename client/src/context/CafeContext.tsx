@@ -1,35 +1,59 @@
 "use client";
 
-import { createContext, useState, useContext, ReactNode } from "react";
+import {
+  createContext,
+  useState,
+  useContext,
+  ReactNode,
+  useEffect,
+} from "react";
 
-// Define the shape of the cafe info we want to share
+// ✅ 1. Add tableNo to the CafeInfo type
 type CafeInfo = {
   name: string;
   logoUrl: string;
   slug: string;
+  tableNo: string | null;
 };
 
-// Define the shape of the context
 type CafeContextType = {
   cafeInfo: CafeInfo | null;
-  setCafeInfo: (info: CafeInfo) => void;
+  setCafeInfo: (info: Omit<CafeInfo, "tableNo">, tableNo?: string) => void;
 };
 
-// Create the context with a default value
 const CafeContext = createContext<CafeContextType | null>(null);
 
-// Create the Provider component
 export const CafeProvider = ({ children }: { children: ReactNode }) => {
   const [cafeInfo, setCafeInfo] = useState<CafeInfo | null>(null);
 
+  // This effect will run once on the client to load any saved info
+  useEffect(() => {
+    const savedInfo = sessionStorage.getItem("cafeInfo");
+    if (savedInfo) {
+      setCafeInfo(JSON.parse(savedInfo));
+    }
+  }, []);
+
+  // ✅ 2. Update the set function to handle tableNo
+  const setAndStoreCafeInfo = (
+    info: Omit<CafeInfo, "tableNo">,
+    tableNo?: string
+  ) => {
+    const newInfo = { ...info, tableNo: tableNo || null };
+    setCafeInfo(newInfo);
+    // Also save to sessionStorage so it persists on page refresh
+    sessionStorage.setItem("cafeInfo", JSON.stringify(newInfo));
+  };
+
   return (
-    <CafeContext.Provider value={{ cafeInfo, setCafeInfo }}>
+    <CafeContext.Provider
+      value={{ cafeInfo, setCafeInfo: setAndStoreCafeInfo }}
+    >
       {children}
     </CafeContext.Provider>
   );
 };
 
-// Create a custom hook to easily access the context
 export const useCafe = () => {
   const context = useContext(CafeContext);
   if (!context) {
