@@ -4,7 +4,7 @@ import { ModeToggle } from "../ui/ModeToggle";
 // import Link from "next/link";
 
 
-const Navbar = () => {
+const Navbar = ({logoURL , name}: {logoURL: string , name: string}) => {
 
   return (
     <nav className=" top-0 left-0 right-0 z-50 backdrop-blur-md border-b border-border bg-background/70">
@@ -12,22 +12,23 @@ const Navbar = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           {/* <Link href={`/`} className="flex items-center space-x-3"> */}
+          <div className="flex items-center justify-start gap-2">
             <Image
-              src="/icon.png"
+              src={`${logoURL || "/icon.png"}`}
               alt="Logo"
-              width={40}
+              width={32}
               height={32}
               className="rounded-full border"
             />
+            {name && <p>{name}</p>}
+          </div>
           {/* </Link> */}
-
 
           {/* Right Controls */}
           <div className="flex items-center space-x-3">
             <ModeToggle />
           </div>
         </div>
-
       </div>
     </nav>
   );

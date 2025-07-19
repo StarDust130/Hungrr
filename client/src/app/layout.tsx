@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Caudex, Roboto } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider"
-import Navbar from "@/components/elements/Navbar";
 import Footer from "@/components/elements/Footer";
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -42,7 +41,6 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <main className="flex min-h-screen flex-col w-full max-w-3xl mx-auto rounded-2xl md:border md:border-gray-500 md:border-dotted">
-            <Navbar />
             {children}
             <Analytics />
             <SpeedInsights  />
