@@ -1,100 +1,90 @@
-import MenuItemCard from "@/components/menuComp/MenuItemCard";
-import Image from "next/image";
-import type { MenuData, MenuItem } from "@/types/menu.d.ts";
+"use client";
+
+import { RefObject } from "react";
 import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "@/components/ui/accordion";
-import BackToTopButton from "./BacktoTopButton";
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button"; // Adjusted path
+import { BookOpenText } from "lucide-react";
 
 type Props = {
-  filteredMenuData: MenuData;
-  visibleCategories: string[];
-  searchTerm: string;
-  sectionRefs: React.MutableRefObject<Record<string, HTMLElement | null>>;
-  openAccordions: string[];
-  setOpenAccordions: React.Dispatch<React.SetStateAction<string[]>>;
+  categories: string[];
+  activeCategory: string; // This prop will now directly control the highlight
+  scrollToCategory: (cat: string) => void;
+  navRef: RefObject<HTMLDivElement | null>;
+  setSearchTerm?: (val: string) => void;
 };
 
-const CategorySection = ({
-  filteredMenuData,
-  visibleCategories,
-  searchTerm,
-  sectionRefs,
-  openAccordions,
-  setOpenAccordions,
+const CategoryNav = ({
+  categories,
+  activeCategory,
+  scrollToCategory,
+  setSearchTerm,
+  navRef,
 }: Props) => {
-  const hasSearched = searchTerm.trim() !== "";
-  const hasNoResults = visibleCategories.length === 0;
-  const hasFetchedDataOnce = Object.keys(filteredMenuData).length > 0;
+  // ❌ We remove the internal useState for 'active' as it was causing the sync issue.
 
-  if (hasSearched && hasNoResults && hasFetchedDataOnce) {
-    return (
-      <div className="text-center flex flex-col justify-start items-center py-8">
-        <h3 className="text-xl font-semibold text-foreground">
-          No Dishes Found 😿
-        </h3>
-        <Image
-          src="/anime-girl-sad-2.png"
-          alt="Not Found"
-          width={200}
-          height={150}
-        />
-        <p className="text-muted-foreground text-xs mt-2">
-          Your search for{" "}
-          <span className="text-red-400 font-bold">“{searchTerm}”</span> did not
-          match any dishes.
-        </p>
-      </div>
-    );
-  }
+  const handleClick = (category: string) => {
+    // The DialogClose will handle closing the dialog.
+    scrollToCategory(category);
+  };
 
   return (
-    <>
-      <Accordion
-        type="multiple"
-        value={openAccordions}
-        onValueChange={setOpenAccordions}
-        className="space-y-4"
-      >
-        {Object.entries(filteredMenuData).map(([category, items]) => (
-          <AccordionItem
-            key={category}
-            value={category}
-            className="bg-transparent shadow-none"
+    // The `ref` here is for the parent to potentially scroll the nav itself, which is fine.
+    <div ref={navRef} className="w-full flex justify-center">
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button
+            variant="outline"
+            className="flex items-center gap-2 px-4 py-2 rounded-full"
+            onClick={() => setSearchTerm?.("")}
           >
-            <AccordionTrigger className="group px-2 md:px-4 py-3 hover:bg-muted/40 rounded-lg transition-all">
-              <div className="flex items-center justify-between w-full">
-                <h2 className="text-[18px] font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">
-                  {category}
-                </h2>
-              </div>
-            </AccordionTrigger>
+            <BookOpenText className="w-4 h-4" />
+            <span>Menu</span>
+          </Button>
+        </DialogTrigger>
 
-            <AccordionContent
-              ref={(el) => {
-                if (el) {
-                  el.setAttribute("data-category", category); // ✅ This is required for IntersectionObserver
-                  sectionRefs.current[category] = el; // ✅ This makes scrollToCategory work
-                }
-              }}
-              className="px-2 md:px-4 pt-2 pb-4 transition-all"
-            >
-              <div className="flex flex-col gap-4">
-                {items.map((item: MenuItem) => (
-                  <MenuItemCard key={`item-${item.id}`} item={item} />
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
+        <DialogContent className="max-w-xs p-2 rounded-2xl shadow-2xl border border-white/10 dark:border-neutral-800 bg-neutral-100/90 backdrop-blur-lg dark:bg-neutral-950/80">
+          <DialogHeader className="p-3">
+            <DialogTitle className="text-base font-semibold text-center text-neutral-800 dark:text-neutral-200">
+              😋 Choose a Category
+            </DialogTitle>
+            <DialogDescription className="text-xs text-neutral-600 dark:text-neutral-400 text-center mb-2">
+              Select a category to explore delicious options! ✨
+            </DialogDescription>
+          </DialogHeader>
 
-      <BackToTopButton />
-    </>
+          <div className="py-2 max-h-[60vh] overflow-y-auto custom-scrollbar">
+            {categories.map((category) => (
+              <DialogClose asChild key={category}>
+                <button
+                  onClick={() => handleClick(category)}
+                  className={`relative flex items-center gap-3 w-full p-2.5 rounded-lg text-sm font-medium capitalize text-left transition-colors duration-200 outline-none group
+                    ${
+                      // ✅ The highlighting is now directly controlled by the prop from the parent.
+                      activeCategory === category
+                        ? "text-neutral-900 dark:text-neutral-300 font-bold"
+                        : "text-neutral-500 hover:bg-black/5 dark:text-neutral-400 dark:hover:bg-white/5"
+                    }`}
+                >
+                  {activeCategory === category && (
+                    <div className="absolute inset-0 rounded-lg -z-10 bg-neutral-500/10 dark:bg-neutral-500/10" />
+                  )}
+                  <span className="truncate">{category}</span>
+                </button>
+              </DialogClose>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 
-export default CategorySection;
+export default CategoryNav;
