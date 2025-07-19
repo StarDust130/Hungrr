@@ -1,60 +1,43 @@
 "use client";
 
-import { useRef, useEffect, useState, RefObject } from "react";
+import { useRef, useState, useEffect, ReactNode } from "react";
 import { AnimatePresence } from "framer-motion";
-import SearchBar from "./SearchBar";
-import CategoryNav from "./CategoryNav";
-import CategorySection from "./CategorySection";
-import CartWidget from "@/components/menuComp/CartWidget";
-import { useMenu } from "@/hooks/useMenu";
-import SpecialCardSkeleton from "./SpecialCardSkeleton";
-import MenuItemCardSkeleton from "./MenuItemCardSkeleton";
-import SpecialCardBox from "./SpecialCardBox";
 import axios from "axios";
-import { ActiveOrder, OrderFromServer } from "@/types/menu";
-import { ActiveOrdersSection } from "./ActiveOrdersBar";
 import { useSearchParams } from "next/navigation";
-import { log } from "@/lib/helper";
 import useCart from "@/hooks/useCart";
 import { useSessionToken } from "@/hooks/useSessionToken";
-import SpecialLabel from "./SpecialLabel";
+import { MenuItem, ActiveOrder } from "@/types/menu";
+import SearchBar from "./SearchBar";
+import CategoryNav from "./CategoryNav";
+import CartWidget from "./CartWidget";
 import NoResults from "./NoResults";
+import CategorySection from "./CategorySection";
+import { ActiveOrdersSection } from "./ActiveOrdersBar";
 
 interface Props {
-  cafeSlug: string;
   cafeId: string;
+  children: ReactNode;
+  initialMenuData: Record<string, MenuItem[]>;
 }
 
-const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
-  const [hasMounted, setHasMounted] = useState(false);
-
-  const sessionToken = useSessionToken();
-  const {
-    searchTerm,
-    setSearchTerm,
-    activeCategory,
-    setActiveCategory,
-    visibleCategories,
-    filteredMenuData,
-    sectionRefs,
-    observerRef,
-    isSpecial,
-    isLoading,
-  } = useMenu({ cafeSlug });
-
+export default function MenuPageContent({
+  cafeId,
+  children,
+  initialMenuData,
+}: Props) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredData, setFilteredData] = useState<Record<
+    string,
+    MenuItem[]
+  > | null>(null);
   const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([]);
-  const [openAccordions, setOpenAccordions] = useState<string[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string>("");
+
+  const { setCafeId } = useCart();
+  const sessionToken = useSessionToken();
   const searchParams = useSearchParams();
-
-  const { loadOrderIntoCart, setCafeId } = useCart();
-
-  const navRef = useRef<HTMLDivElement>(null) as RefObject<HTMLDivElement>;
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-
-  // Prevent hydration error
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
+  const allCategories = Object.keys(initialMenuData);
+  const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (cafeId) setCafeId(Number(cafeId));
@@ -63,131 +46,78 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
   useEffect(() => {
     const tableNo = searchParams.get("tableNo");
     if (!cafeId || !tableNo || !sessionToken) return;
-
-    const fetchActiveOrders = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/orders/active/${cafeId}/${tableNo}`,
-          {
-            headers: {
-              "x-session-token": sessionToken,
-            },
-          }
-        );
-        log("Active orders fetched 🤑:", response.data.activeOrders);
-        if (response.data.activeOrders) {
-          setActiveOrders(response.data.activeOrders);
-        }
-      } catch (error) {
-        console.error("❌ Could not fetch active orders.", error);
-      }
-    };
-
-    fetchActiveOrders();
+    axios
+      .get(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/orders/active/${cafeId}/${tableNo}`,
+        { headers: { "x-session-token": sessionToken } }
+      )
+      .then((res) => {
+        if (res.data.activeOrders) setActiveOrders(res.data.activeOrders);
+      })
+      .catch((err) => console.error("❌ Could not fetch active orders.", err));
   }, [cafeId, searchParams, sessionToken]);
 
+  // ✅ This is the final, robust scroll-watching logic.
   useEffect(() => {
-    const syncCartWithServer = async () => {
-      const rawBillData = sessionStorage.getItem("currentBill");
-      if (!rawBillData) return;
+    const sections = Array.from(
+      document.querySelectorAll("section[id^='category-']")
+    );
+    if (sections.length === 0) return;
 
-      try {
-        const { cafeId, tableNo } = JSON.parse(rawBillData);
-        if (!cafeId || !tableNo) return;
+    // Set the first category as active by default.
+    setActiveCategory(sections[0].id.replace("category-", ""));
 
-        const response = await axios.get<{ order: OrderFromServer | null }>(
-          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/bill/${cafeId}/${tableNo}`
-        );
-
-        const order = response.data.order;
-        if (order && order.paid === false) {
-          loadOrderIntoCart(order.items);
-        }
-      } catch (error) {
-        console.warn("❌ Could not sync cart with server.", error);
-      }
-    };
-
-    syncCartWithServer();
-  }, [loadOrderIntoCart]);
-
-  const scrollToCategory = async (category: string) => {
-    if (searchTerm.trim()) return;
-
-    // ✅ Set the category before scrolling (this updates the highlight immediately)
-    setActiveCategory(category);
-
-    // Temporarily unobserve to prevent false triggers
-    Object.values(sectionRefs.current).forEach((ref) => {
-      if (ref) observerRef.current?.unobserve(ref);
-    });
-
-    setOpenAccordions((prev) =>
-      prev.includes(category) ? prev : [...prev, category]
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          // When a section is in view, set it as the active category.
+          if (entry.isIntersecting) {
+            const categoryId = entry.target.id.replace("category-", "");
+            setActiveCategory(categoryId);
+          }
+        });
+      },
+      // This creates an "activation line" 150px from the top of the screen.
+      { rootMargin: "-150px 0px -80% 0px" }
     );
 
-    let retries = 0;
-    const maxRetries = 30;
+    sections.forEach((section) => observer.observe(section));
 
-    const waitForElement = (): Promise<HTMLElement> => {
-      return new Promise((resolve, reject) => {
-        const check = () => {
-          const el = sectionRefs.current[category];
-          if (el && el.offsetHeight > 0) {
-            resolve(el);
-          } else if (retries < maxRetries) {
-            retries++;
-            requestAnimationFrame(check);
-          } else {
-            reject(new Error("Category element not found"));
-          }
-        };
-        check();
-      });
-    };
+    return () => sections.forEach((section) => observer.unobserve(section));
+  }, [children]); // We depend on `children` to know when the server-rendered content is available.
 
-    try {
-      setTimeout(async () => {
-        const el = await waitForElement();
-        const offset = el.getBoundingClientRect().top + window.scrollY - 140;
+  // Client-side search logic
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredData(null);
+      return;
+    }
+    const lower = searchTerm.toLowerCase();
+    const filtered: Record<string, MenuItem[]> = {};
+    Object.entries(initialMenuData).forEach(([category, items]) => {
+      if (Array.isArray(items)) {
+        const match = items.filter(
+          (item) =>
+            item.name.toLowerCase().includes(lower) ||
+            item.description?.toLowerCase().includes(lower)
+        );
+        if (match.length > 0) filtered[category] = match;
+      }
+    });
+    setFilteredData(filtered);
+  }, [searchTerm, initialMenuData]);
+
+  const scrollToCategory = (category: string) => {
+    setSearchTerm("");
+    setTimeout(() => {
+      const element = document.getElementById(`category-${category}`);
+      if (element) {
+        const offset =
+          element.getBoundingClientRect().top + window.scrollY - 140;
         window.scrollTo({ top: offset, behavior: "smooth" });
-
-        // Resume observing after scroll
-        setTimeout(() => {
-          Object.values(sectionRefs.current).forEach((ref) => {
-            if (ref) observerRef.current?.observe(ref);
-          });
-        }, 600);
-      }, 50);
-    } catch (error) {
-      console.warn("Failed to scroll to category:", error);
-    }
+      }
+    }, 0);
   };
-  
-
-  useEffect(() => {
-    if (!filteredMenuData) return;
-    const categories = Object.keys(filteredMenuData);
-    setOpenAccordions(categories);
-  }, [filteredMenuData]);
-
-  useEffect(() => {
-    if (searchTerm) return;
-    const activeEl = document.getElementById(`nav-${activeCategory}`);
-    if (activeEl && navRef.current) {
-      navRef.current.scrollTo({
-        left:
-          activeEl.offsetLeft -
-          navRef.current.offsetWidth / 2 +
-          activeEl.offsetWidth / 2,
-        behavior: "smooth",
-      });
-    }
-  }, [activeCategory, searchTerm]);
-
-  const loadingSpecials = isSpecial.length === 0 && isLoading;
-
-  if (!hasMounted) return <div className="min-h-screen" />; // prevent flash
 
   return (
     <div className="font-sans bg-background text-foreground min-h-screen">
@@ -198,7 +128,7 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
           </div>
           <div className="w-auto mr-1">
             <CategoryNav
-              categories={visibleCategories}
+              categories={allCategories}
               activeCategory={activeCategory}
               scrollToCategory={scrollToCategory}
               navRef={navRef}
@@ -207,65 +137,25 @@ const MenuPageContent = ({ cafeSlug, cafeId }: Props) => {
           </div>
         </div>
       </div>
-
-      {hasMounted && (
-        <>
-          <main className="max-w-4xl mx-auto px-4 pb-32">
-            <AnimatePresence>
-              {activeOrders.length > 0 && (
-                <ActiveOrdersSection activeOrders={activeOrders} />
-              )}
-            </AnimatePresence>
-
-            {loadingSpecials ? (
-              <section className="py-6">
-                <SpecialLabel />
-                <div
-                  className="flex overflow-x-auto gap-4 px-2 pt-1 no-scrollbar"
-                  style={{ WebkitOverflowScrolling: "touch" }}
-                >
-                  {[...Array(4)].map((_, i) => (
-                    <div key={`skeleton-${i}`} className="flex-shrink-0">
-                      <SpecialCardSkeleton />
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ) : (
-              <SpecialCardBox items={isSpecial} show={!searchTerm} />
-            )}
-
-            {isLoading ? (
-              <div className="flex flex-col gap-6 py-6">
-                {[...Array(6)].map((_, i) => (
-                  <MenuItemCardSkeleton key={i} />
-                ))}
-              </div>
-            ) : filteredMenuData &&
-              Object.keys(filteredMenuData).length === 0 ? (
-              <NoResults query={searchTerm} />
-            ) : (
-              <CategorySection
-                filteredMenuData={filteredMenuData}
-                visibleCategories={visibleCategories}
-                searchTerm={searchTerm}
-                sectionRefs={sectionRefs}
-                openAccordions={openAccordions}
-                setOpenAccordions={setOpenAccordions}
-              />
-            )}
-
-            <div ref={loadMoreRef} className="h-8 w-full" />
-          </main>
-
-          <AnimatePresence>
-            <CartWidget />
-          </AnimatePresence>
-        </>
+      <AnimatePresence>
+        {activeOrders.length > 0 && (
+          <ActiveOrdersSection activeOrders={activeOrders} />
+        )}
+      </AnimatePresence>
+      {searchTerm.trim() ? (
+        <main className="max-w-4xl mx-auto px-4 pb-32">
+          {filteredData && Object.keys(filteredData).length > 0 ? (
+            <CategorySection serverRenderedMenuData={filteredData} />
+          ) : (
+            <NoResults query={searchTerm} />
+          )}
+        </main>
+      ) : (
+        children
       )}
+      <AnimatePresence>
+        <CartWidget />
+      </AnimatePresence>
     </div>
   );
-  
-}  
-
-export default MenuPageContent;
+}
