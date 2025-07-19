@@ -61,9 +61,9 @@ export async function generateMetadata({
 export default async function MenuPage({
   params,
 }: {
-  params: { cafe_slug: string };
+  params: Promise<{ cafe_slug: string }>;
 }) {
-  const { cafe_slug } = params;
+  const { cafe_slug } = await params;
   const [cafeData, menuData] = await Promise.all([
     fetchCafeData(cafe_slug),
     getFullMenuData(cafe_slug),
@@ -97,11 +97,17 @@ export default async function MenuPage({
 
   return (
     <>
-      
       <CafeBanner cafe={cafeData} />
       <CartProvider>
-        <MenuPageContent cafeId={cafeData.id} initialMenuData={menuData} cafeData={cafeData}>
-          <main className="max-w-4xl mx-auto px-2.5 mb-10 " suppressHydrationWarning>
+        <MenuPageContent
+          cafeId={cafeData.id}
+          initialMenuData={menuData}
+          cafeData={cafeData}
+        >
+          <main
+            className="max-w-4xl mx-auto px-2.5 mb-10 "
+            suppressHydrationWarning
+          >
             {specialItems.length > 0 && (
               <section className="py-6">
                 <SpecialCardBox items={specialItems} show={true} />

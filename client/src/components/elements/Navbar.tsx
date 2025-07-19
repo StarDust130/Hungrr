@@ -26,12 +26,16 @@ export default function Navbar() {
           >
             {/* Robust Circular Logo Container */}
             <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-transparent group-hover:border-primary transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/30">
-              <Image
-                src={logoUrl}
-                alt={`${name} Logo`}
-                layout="fill"
-                objectFit="cover"
-              />
+              <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-transparent group-hover:border-primary transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/30">
+                {/* ✅ FIX: Updated the Image component */}
+                <Image
+                  src={logoUrl}
+                  alt={`${name} Logo`}
+                  fill // Replaces layout="fill"
+                  sizes="(max-width: 640px) 36px, 40px" // Tells the browser the image size
+                  className="object-cover" // Replaces objectFit="cover"
+                />
+              </div>
             </div>
             {name && (
               // Premium Gradient Text for Branding
