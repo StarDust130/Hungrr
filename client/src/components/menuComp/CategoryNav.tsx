@@ -1,6 +1,6 @@
 "use client";
 
-import { RefObject, useEffect, useState } from "react";
+import { RefObject } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -8,17 +8,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogClose,
+  DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { BookOpenText } from "lucide-react";
-import { DialogDescription } from "@radix-ui/react-dialog";
 
 type Props = {
   categories: string[];
   activeCategory: string;
   scrollToCategory: (cat: string) => void;
-  navRef: RefObject<HTMLDivElement>;
-  setSearchTerm?: (val: string) => void; // ✅ Optional for clearing
+  // ✅ FIX: Allow the navRef prop to be nullable to match the useRef hook.
+  navRef: RefObject<HTMLDivElement | null>;
+  setSearchTerm?: (val: string) => void;
 };
 
 const CategoryNav = ({
@@ -28,36 +29,26 @@ const CategoryNav = ({
   setSearchTerm,
   navRef,
 }: Props) => {
-  const [open, setOpen] = useState(false);
-  const [active, setActive] = useState(activeCategory);
-
-  // Sync local state when dialog opens
-  useEffect(() => {
-    if (open) {
-      setActive(activeCategory);
-    }
-  }, [open, activeCategory]);
-
   const handleClick = (category: string) => {
-    setOpen(false);
-    setTimeout(() => scrollToCategory(category), 150);
+    // DialogClose handles closing the dialog
+    scrollToCategory(category);
   };
 
   return (
     <div ref={navRef} className="w-full flex justify-center">
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog>
         <DialogTrigger asChild>
           <Button
             variant="outline"
             className="flex items-center gap-2 px-4 py-2 rounded-full"
-            onClick={() => setSearchTerm?.("")} // ✅ Clear search on menu open
+            onClick={() => setSearchTerm?.("")}
           >
             <BookOpenText className="w-4 h-4" />
             <span>Menu</span>
           </Button>
         </DialogTrigger>
 
-        <DialogContent className="max-w-xs p-2 rounded-2xl shadow-2xl border border-white/10 dark:border-neutral-800 bg-neutral-100/90 backdrop-blur-lg dark:bg-neutral-950/80">
+        <DialogContent className="max-w-xs p-2 rounded-2xl">
           <DialogHeader className="p-3">
             <DialogTitle className="text-base font-semibold text-center text-neutral-800 dark:text-neutral-200">
               😋 Choose a Category
@@ -74,12 +65,12 @@ const CategoryNav = ({
                   onClick={() => handleClick(category)}
                   className={`relative flex items-center gap-3 w-full p-2.5 rounded-lg text-sm font-medium capitalize text-left transition-colors duration-200 outline-none group
                     ${
-                      active === category
+                      activeCategory === category
                         ? "text-neutral-900 dark:text-neutral-300 font-bold"
                         : "text-neutral-500 hover:bg-black/5 dark:text-neutral-400 dark:hover:bg-white/5"
                     }`}
                 >
-                  {active === category && (
+                  {activeCategory === category && (
                     <div className="absolute inset-0 rounded-lg -z-10 bg-neutral-500/10 dark:bg-neutral-500/10" />
                   )}
                   <span className="truncate">{category}</span>
