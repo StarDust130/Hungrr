@@ -56,7 +56,7 @@ export default function MenuPageContent({
       setCafeInfo(cafeData, tableNumber || undefined);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cafeData, searchParams]); // This runs when data is available.
+  }, [cafeData, searchParams]); 
 
   useEffect(() => {
     if (cafeId) setCafeId(Number(cafeId));
