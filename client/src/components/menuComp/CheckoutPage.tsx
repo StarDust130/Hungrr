@@ -125,6 +125,7 @@ const CheckoutPage = () => {
 
   return (
     <div className="relative flex flex-col md:flex-row h-[95dvh] overflow-hidden">
+      {/* All above all all items */}
       <div className="flex-1 overflow-y-auto px-4 pt-4 pb-48 sm:px-6 mb-46 md:mb-0">
         <CartItemsList
           items={displayCartItems}
@@ -139,6 +140,7 @@ const CheckoutPage = () => {
         />
       </div>
 
+     {/* Below Part Info + Button */}
       <div className="absolute bottom-0 left-0 right-0 bg-background shadow-[0_-4px_20px_rgba(0,0,0,0.1)] border-t p-4 space-y-4 z-10">
         <div className="mx-auto max-w-lg space-y-4">
           <div className="flex items-center justify-between gap-3">
