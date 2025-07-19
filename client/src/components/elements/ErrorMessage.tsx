@@ -6,7 +6,7 @@ function ErrorMessage({
   highlight,
   sub,
 }: {
-  img: string;
+  img?: string;
   message: string;
   highlight?: string;
   sub?: string;
@@ -21,7 +21,7 @@ function ErrorMessage({
       </p>
 
       <Image
-        src={img}
+        src={img || "/anime-girl-sad-1.png"}
         alt="Error"
         width={180}
         height={180}
