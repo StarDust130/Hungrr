@@ -11,7 +11,7 @@ const SpecialCardBox = ({ items, show }: Props) => {
   if (!show || items.length === 0) return null;
 
   return (
-    <section className="py-6">
+    <section>
       <SpecialLabel />
       <div
         className="flex overflow-x-auto gap-4 scrollbar-hide px-2 pt-1"
