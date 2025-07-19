@@ -11,7 +11,10 @@ const OrderNotFound = ({ error }: { error: string }) => {
         width={200}
         height={200}
       />
-      <h1 className="text-xl font-bold ">Please place a new order. 😿</h1>
+      <h1 className="text-xl font-bold">Please place a new order. 😿</h1>
+      <p className="text-sm text-center text-muted-foreground">
+        You didn’t complete payment within 10 minutes, so your order expired.
+      </p>
       <p className="text-xs text-red-600">{error}</p>
 
       <div className="flex gap-4 mt-2">
@@ -33,4 +36,5 @@ const OrderNotFound = ({ error }: { error: string }) => {
     </div>
   );
 };
+
 export default OrderNotFound;
