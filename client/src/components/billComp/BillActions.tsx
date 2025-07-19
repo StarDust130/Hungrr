@@ -24,6 +24,7 @@ import GenerateReliablePdf from "./GenerateReliablePdf";
 import { useRouter } from "next/navigation";
 import { BillData } from "@/types/menu";
 import { log } from "@/lib/helper";
+import { useCafe } from "@/context/CafeContext";
 
 
 
@@ -37,6 +38,7 @@ export function BillActions({ bill }: BillActionsProps) {
   const [showQrModal, setShowQrModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const router = useRouter();
+  const { cafeInfo } = useCafe();
 
   log("BillActions rendered with bill 😛:", bill);
 
@@ -77,7 +79,9 @@ export function BillActions({ bill }: BillActionsProps) {
       return;
     }
     // Construct the URL: e.g., /menu/buchi-cafe?tableNo=41
-    const menuUrl = `/menu/${bill.cafe.slug}?tableNo=${bill.tableNo}#top`;
+    const menuUrl = cafeInfo
+      ? `/menu/${cafeInfo.slug}?tableNo=${bill.tableNo}#top`
+      : "/";
     router.push(menuUrl);
   };
 

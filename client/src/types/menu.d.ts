@@ -15,6 +15,7 @@ export interface CafeInfo {
   id: string;
   is_active: boolean;
   logoUrl: string;
+  slug: string;
 }
 
 export interface ItemVariant {

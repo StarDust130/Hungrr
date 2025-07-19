@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import useCart from "@/hooks/useCart";
 import { useSessionToken } from "@/hooks/useSessionToken";
 import { MenuItem, ActiveOrder } from "@/types/menu";
+import { useCafe } from "@/context/CafeContext";
 import SearchBar from "./SearchBar";
 import CategoryNav from "./CategoryNav";
 import CartWidget from "./CartWidget";
@@ -18,12 +19,19 @@ interface Props {
   cafeId: string;
   children: ReactNode;
   initialMenuData: Record<string, MenuItem[]>;
+  // Pass the full cafeData to set the context for the navbar
+  cafeData: {
+    name: string;
+    logoUrl: string;
+    slug: string;
+  };
 }
 
 export default function MenuPageContent({
   cafeId,
   children,
   initialMenuData,
+  cafeData,
 }: Props) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredData, setFilteredData] = useState<Record<
@@ -34,10 +42,18 @@ export default function MenuPageContent({
   const [activeCategory, setActiveCategory] = useState<string>("");
 
   const { setCafeId } = useCart();
+  const { setCafeInfo } = useCafe();
   const sessionToken = useSessionToken();
   const searchParams = useSearchParams();
   const allCategories = Object.keys(initialMenuData);
   const navRef = useRef<HTMLDivElement>(null);
+
+  // Effect to set the shared Navbar info
+  useEffect(() => {
+    if (cafeData) {
+      setCafeInfo(cafeData);
+    }
+  }, [cafeData, setCafeInfo]);
 
   useEffect(() => {
     if (cafeId) setCafeId(Number(cafeId));
@@ -57,34 +73,32 @@ export default function MenuPageContent({
       .catch((err) => console.error("❌ Could not fetch active orders.", err));
   }, [cafeId, searchParams, sessionToken]);
 
-  // ✅ This is the final, robust scroll-watching logic.
+  // Final, robust scroll-watching logic
   useEffect(() => {
     const sections = Array.from(
       document.querySelectorAll("section[id^='category-']")
     );
     if (sections.length === 0) return;
 
-    // Set the first category as active by default.
-    setActiveCategory(sections[0].id.replace("category-", ""));
+    if (!activeCategory) {
+      setActiveCategory(sections[0].id.replace("category-", ""));
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          // When a section is in view, set it as the active category.
           if (entry.isIntersecting) {
             const categoryId = entry.target.id.replace("category-", "");
             setActiveCategory(categoryId);
           }
         });
       },
-      // This creates an "activation line" 150px from the top of the screen.
-      { rootMargin: "-150px 0px -80% 0px" }
+      { rootMargin: "-150px 0px -70% 0px" }
     );
 
     sections.forEach((section) => observer.observe(section));
-
     return () => sections.forEach((section) => observer.unobserve(section));
-  }, [children]); // We depend on `children` to know when the server-rendered content is available.
+  }, [children, activeCategory]); // Depend on `children` to re-attach observer if the server content changes.
 
   // Client-side search logic
   useEffect(() => {
