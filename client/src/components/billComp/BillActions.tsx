@@ -102,7 +102,7 @@ export function BillActions({ bill }: BillActionsProps) {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+      if (currentScrollY > lastScrollY.current && currentScrollY > 20) {
         // scrolling down
         setShowFooter(false);
       } else {
