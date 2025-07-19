@@ -77,7 +77,7 @@ export function BillActions({ bill }: BillActionsProps) {
       return;
     }
     // Construct the URL: e.g., /menu/buchi-cafe?tableNo=41
-    const menuUrl = `/menu/${bill.cafe.slug}?tableNo=${bill.tableNo}`;
+    const menuUrl = `/menu/${bill.cafe.slug}?tableNo=${bill.tableNo}#top`;
     router.push(menuUrl);
   };
 
@@ -98,7 +98,7 @@ export function BillActions({ bill }: BillActionsProps) {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+      if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
         // scrolling down
         setShowFooter(false);
       } else {
