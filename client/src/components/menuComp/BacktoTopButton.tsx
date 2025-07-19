@@ -11,7 +11,7 @@ const BackToTopButton = () => {
     const handleScroll = () => {
       const currentScroll = window.scrollY;
       const isScrollingUp = currentScroll < lastScrollY;
-      const isFarDown = currentScroll > window.innerHeight * 2;
+      const isFarDown = currentScroll > window.innerHeight * 0.8;
 
       setShow(isScrollingUp && isFarDown);
       setLastScrollY(currentScroll);
