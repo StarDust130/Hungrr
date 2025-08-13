@@ -19,6 +19,7 @@ export default function Loading() {
       <div className="flex items-center space-x-2 text-muted-foreground">
         <Atom className="h-6 w-6 animate-spin" />
         <span className="font-medium">Loading Menu ...</span>
+        <span className="font-medium mt-2">It’s a bit slow ⏳ — cheap server naps when idle. Please wait 10–20s 😊🙏.</span>
       </div>
       <p className="text-sm text-muted-foreground">
         Please wait while we prepare your content.
